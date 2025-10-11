@@ -13,11 +13,16 @@
 
     <UForm :state="form" class="space-y-4" @submit="onSubmit">
       <UFormField label="Email" name="email" required>
-        <UInput v-model="form.email" type="email" placeholder="admin@example.com" />
+        <UInput v-model="form.email" type="email" placeholder="admin@example.com" class="w-full" />
       </UFormField>
 
       <UFormField label="Password" name="password" required>
-        <UInput v-model="form.password" type="password" placeholder="Enter your password" />
+        <UInput
+          v-model="form.password"
+          type="password"
+          placeholder="Enter your password"
+          class="w-full"
+        />
       </UFormField>
 
       <UButton type="submit" block :loading="loading">
@@ -43,6 +48,7 @@ definePageMeta({
 
 const { login } = useAdminAuth()
 const toast = useToast()
+const { showError } = useErrorToast()
 const loading = ref(false)
 
 const form = reactive({
@@ -67,11 +73,7 @@ const onSubmit = async () => {
 
     navigateTo('/admin/projects')
   } catch (err: unknown) {
-    toast.add({
-      title: 'Login Failed',
-      description: err instanceof Error ? err.message : 'Invalid credentials',
-      color: 'error'
-    })
+    showError('Login Failed', err)
   } finally {
     loading.value = false
   }

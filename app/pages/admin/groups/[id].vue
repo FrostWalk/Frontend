@@ -123,7 +123,7 @@ definePageMeta({
 })
 
 const route = useRoute()
-const toast = useToast()
+const { showError } = useErrorToast()
 
 const loading = ref(true)
 const groupDetails = ref<GroupDetailsResponse | null>(null)
@@ -138,23 +138,15 @@ const fetchGroupDetails = async () => {
     })
 
     if (error) {
-      toast.add({
-        title: 'Error',
-        description: error.error || 'Failed to load group details',
-        color: 'error'
-      })
+      showError('Error', error)
       return
     }
 
     if (data) {
       groupDetails.value = data
     }
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     loading.value = false
   }

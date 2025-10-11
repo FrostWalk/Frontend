@@ -59,6 +59,7 @@ definePageMeta({
 })
 
 const toast = useToast()
+const { showError } = useErrorToast()
 const loading = ref(false)
 
 const form = reactive({
@@ -84,11 +85,7 @@ const onSubmit = async () => {
     })
 
     if (error) {
-      toast.add({
-        title: 'Project Creation Failed',
-        description: error.error || 'Failed to create project',
-        color: 'error'
-      })
+      showError('Project Creation Failed', error)
       return
     }
 
@@ -102,12 +99,8 @@ const onSubmit = async () => {
       // Redirect to project setup
       navigateTo(`/admin/projects/${data.project_id}/setup`)
     }
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     loading.value = false
   }

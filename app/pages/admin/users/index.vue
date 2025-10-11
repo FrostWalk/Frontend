@@ -93,6 +93,7 @@ definePageMeta({
 
 const { roleId, roles } = useAdminAuth()
 const toast = useToast()
+const { showError } = useErrorToast()
 
 const loading = ref(true)
 const admins = ref<AdminResponseScheme[]>([])
@@ -105,23 +106,15 @@ const fetchAdmins = async () => {
     const { data, error } = await getAllAdminsHandler()
 
     if (error) {
-      toast.add({
-        title: 'Error',
-        description: error.error || 'Failed to load admins',
-        color: 'error'
-      })
+      showError('Error', error)
       return
     }
 
     if (data) {
       admins.value = data.admins
     }
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     loading.value = false
   }
@@ -150,11 +143,7 @@ const deleteAdmin = async (id: number) => {
     })
 
     if (error) {
-      toast.add({
-        title: 'Delete Failed',
-        description: error.error || 'Failed to delete admin',
-        color: 'error'
-      })
+      showError('Delete Failed', error)
       return
     }
 
@@ -165,12 +154,8 @@ const deleteAdmin = async (id: number) => {
     })
 
     await fetchAdmins()
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   }
 }
 

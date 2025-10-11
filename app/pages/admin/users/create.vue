@@ -58,6 +58,7 @@ definePageMeta({
 
 const { roleId, roles } = useAdminAuth()
 const toast = useToast()
+const { showError } = useErrorToast()
 const loading = ref(false)
 
 const form = reactive({
@@ -103,11 +104,7 @@ const onSubmit = async () => {
     })
 
     if (error) {
-      toast.add({
-        title: 'Admin Creation Failed',
-        description: error.error || 'Failed to create admin',
-        color: 'error'
-      })
+      showError('Admin Creation Failed', error)
       return
     }
 
@@ -120,12 +117,8 @@ const onSubmit = async () => {
 
       navigateTo('/admin/users')
     }
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     loading.value = false
   }

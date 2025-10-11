@@ -81,6 +81,7 @@ definePageMeta({
 
 const route = useRoute()
 const toast = useToast()
+const { showError } = useErrorToast()
 
 const loading = ref(false)
 const loadingProjects = ref(true)
@@ -108,11 +109,7 @@ const fetchProjects = async () => {
     const { data, error } = await getAllProjectsHandler()
 
     if (error) {
-      toast.add({
-        title: 'Error',
-        description: error.error || 'Failed to load projects',
-        color: 'error'
-      })
+      showError('Error', error)
       return
     }
 
@@ -126,12 +123,8 @@ const fetchProjects = async () => {
           projects.value.find((p) => p.project_id === parseInt(projectId as string)) || null
       }
     }
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     loadingProjects.value = false
   }
@@ -145,11 +138,7 @@ watch(selectedProject, (project) => {
 
 const onSubmit = async () => {
   if (!selectedProject.value) {
-    toast.add({
-      title: 'Validation Error',
-      description: 'Please select a project',
-      color: 'error'
-    })
+    showError('Validation Error', { error: 'Please select a project' })
     return
   }
 
@@ -164,11 +153,7 @@ const onSubmit = async () => {
     })
 
     if (error) {
-      toast.add({
-        title: 'Code Generation Failed',
-        description: error.error || 'Failed to generate security code',
-        color: 'error'
-      })
+      showError('Code Generation Failed', error)
       return
     }
 
@@ -176,12 +161,8 @@ const onSubmit = async () => {
       generatedCode.value = data.code
       showSuccessModal.value = true
     }
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     loading.value = false
   }
@@ -195,12 +176,8 @@ const copyGeneratedCode = async () => {
       description: 'Security code copied to clipboard',
       color: 'success'
     })
-  } catch {
-    toast.add({
-      title: 'Copy Failed',
-      description: 'Failed to copy code to clipboard',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Copy Failed', err)
   }
 }
 

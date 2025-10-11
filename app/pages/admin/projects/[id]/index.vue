@@ -249,6 +249,7 @@ definePageMeta({
 const route = useRoute()
 const { roleId, roles } = useAdminAuth()
 const toast = useToast()
+const { showError } = useErrorToast()
 
 const loading = ref(true)
 const loadingGroups = ref(false)
@@ -300,11 +301,7 @@ const fetchProject = async () => {
     })
 
     if (error) {
-      toast.add({
-        title: 'Error',
-        description: error.error || 'Failed to load project',
-        color: 'error'
-      })
+      showError('Error', error)
       return
     }
 
@@ -321,12 +318,8 @@ const fetchProject = async () => {
 
     // Fetch coordinator
     await fetchCoordinator()
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     loading.value = false
   }
@@ -392,11 +385,7 @@ const assignCoordinator = async () => {
     })
 
     if (error) {
-      toast.add({
-        title: 'Assignment Failed',
-        description: error.error || 'Failed to assign coordinator',
-        color: 'error'
-      })
+      showError('Assignment Failed', error)
       return
     }
 
@@ -426,11 +415,7 @@ const removeCoordinator = async () => {
     })
 
     if (error) {
-      toast.add({
-        title: 'Removal Failed',
-        description: error.error || 'Failed to remove coordinator',
-        color: 'error'
-      })
+      showError('Removal Failed', error)
       return
     }
 
@@ -441,12 +426,8 @@ const removeCoordinator = async () => {
     })
 
     coordinator.value = null
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   }
 }
 

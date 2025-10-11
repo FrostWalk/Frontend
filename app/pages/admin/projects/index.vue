@@ -83,7 +83,7 @@ definePageMeta({
 })
 
 const { roleId, roles } = useAdminAuth()
-const toast = useToast()
+const { showError } = useErrorToast()
 
 const loading = ref(true)
 const projects = ref<Project[]>([])
@@ -94,23 +94,15 @@ const fetchProjects = async () => {
     const { data, error } = await getAllProjectsHandler()
 
     if (error) {
-      toast.add({
-        title: 'Error',
-        description: error.error || 'Failed to load projects',
-        color: 'error'
-      })
+      showError('Error', error)
       return
     }
 
     if (data) {
       projects.value = data.projects
     }
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     loading.value = false
   }

@@ -178,6 +178,7 @@ definePageMeta({
 
 const route = useRoute()
 const toast = useToast()
+const { showError } = useErrorToast()
 
 const projectId = parseInt(route.params.id as string)
 const currentStep = ref(0)
@@ -259,12 +260,8 @@ const submitAll = async () => {
     })
 
     navigateTo(`/admin/projects/${projectId}`)
-  } catch {
-    toast.add({
-      title: 'Setup Failed',
-      description: 'An error occurred during setup',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Setup Failed', err)
   } finally {
     submitting.value = false
   }

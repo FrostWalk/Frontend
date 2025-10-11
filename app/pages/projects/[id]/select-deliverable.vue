@@ -73,6 +73,7 @@ definePageMeta({
 
 const route = useRoute()
 const toast = useToast()
+const { showError } = useErrorToast()
 
 const loading = ref(true)
 const submitting = ref(false)
@@ -98,11 +99,7 @@ const fetchData = async () => {
     const { data: projectsData, error: projectsError } = await getStudentProjects()
 
     if (projectsError) {
-      toast.add({
-        title: 'Error',
-        description: projectsError.error || 'Failed to load deliverables',
-        color: 'error'
-      })
+      showError('Error', projectsError)
       return
     }
 
@@ -130,12 +127,8 @@ const fetchData = async () => {
     } catch {
       // No current selection, that's okay
     }
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     loading.value = false
   }
@@ -143,11 +136,7 @@ const fetchData = async () => {
 
 const onSubmit = async () => {
   if (!selectedDeliverable.value) {
-    toast.add({
-      title: 'Validation Error',
-      description: 'Please select a deliverable',
-      color: 'error'
-    })
+    showError('Validation Error', { error: 'Please select a deliverable' })
     return
   }
 
@@ -176,11 +165,7 @@ const onSubmit = async () => {
     const { data, error } = response
 
     if (error) {
-      toast.add({
-        title: 'Selection Failed',
-        description: error.error || 'Failed to select deliverable',
-        color: 'error'
-      })
+      showError('Selection Failed', error)
       return
     }
 
@@ -193,12 +178,8 @@ const onSubmit = async () => {
 
       navigateTo('/projects')
     }
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     submitting.value = false
   }

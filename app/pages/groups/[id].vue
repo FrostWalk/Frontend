@@ -132,6 +132,7 @@ definePageMeta({
 const route = useRoute()
 const { user } = useStudentAuth()
 const toast = useToast()
+const { showError } = useErrorToast()
 
 const loading = ref(true)
 const addingMember = ref(false)
@@ -159,11 +160,7 @@ const fetchGroupData = async () => {
     })
 
     if (membersError) {
-      toast.add({
-        title: 'Error',
-        description: membersError.error || 'Failed to load group data',
-        color: 'error'
-      })
+      showError('Error', membersError)
       return
     }
 
@@ -186,12 +183,8 @@ const fetchGroupData = async () => {
     } catch {
       // No deliverable selected yet, that's okay
     }
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     loading.value = false
   }
@@ -207,11 +200,7 @@ const addMember = async () => {
     })
 
     if (error) {
-      toast.add({
-        title: 'Failed to Add Member',
-        description: error.error || 'An error occurred',
-        color: 'error'
-      })
+      showError('Failed to Add Member', error)
       return
     }
 
@@ -224,12 +213,8 @@ const addMember = async () => {
       addMemberForm.email = ''
       await fetchGroupData()
     }
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     addingMember.value = false
   }

@@ -4,25 +4,49 @@
       <h2 class="text-2xl font-bold text-center">Student Registration</h2>
     </template>
 
-    <UForm :state="form" class="space-y-4" @submit="onSubmit">
+    <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
       <UFormField label="First Name" name="first_name" required>
-        <UInput v-model="form.first_name" placeholder="John" />
+        <UInput v-model="state.first_name" placeholder="John" class="w-full" />
       </UFormField>
 
       <UFormField label="Last Name" name="last_name" required>
-        <UInput v-model="form.last_name" placeholder="Doe" />
+        <UInput v-model="state.last_name" placeholder="Doe" class="w-full" />
       </UFormField>
 
       <UFormField label="Email" name="email" required>
-        <UInput v-model="form.email" type="email" placeholder="john.doe@studenti.unitn.it" />
+        <UInput
+          v-model="state.email"
+          type="email"
+          placeholder="john.doe@studenti.unitn.it"
+          class="w-full"
+        />
       </UFormField>
 
       <UFormField label="University ID" name="university_id" required>
-        <UInput v-model.number="form.university_id" type="number" placeholder="123456" />
+        <UInput
+          v-model.number="state.university_id"
+          type="number"
+          placeholder="123456"
+          class="w-full"
+        />
       </UFormField>
 
       <UFormField label="Password" name="password" required>
-        <UInput v-model="form.password" type="password" placeholder="Enter your password" />
+        <UInput
+          v-model="state.password"
+          type="password"
+          placeholder="Enter your password"
+          class="w-full"
+        />
+      </UFormField>
+
+      <UFormField label="Confirm Password" name="confirm_password" required>
+        <UInput
+          v-model="state.confirm_password"
+          type="password"
+          placeholder="Confirm your password"
+          class="w-full"
+        />
       </UFormField>
 
       <UButton type="submit" block :loading="loading"> Register </UButton>
@@ -40,43 +64,87 @@
 </template>
 
 <script setup lang="ts">
+import * as v from 'valibot'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import { studentSignupHandler } from '~/composables/api/sdk.gen'
 
 definePageMeta({
   layout: 'auth'
 })
 
+const schema = v.pipe(
+  v.object({
+    first_name: v.pipe(
+      v.string(),
+      v.trim(),
+      v.minLength(1, 'First name is required'),
+      v.maxLength(50, 'First name must be less than 50 characters')
+    ),
+    last_name: v.pipe(
+      v.string(),
+      v.trim(),
+      v.minLength(1, 'Last name is required'),
+      v.maxLength(50, 'Last name must be less than 50 characters')
+    ),
+    email: v.pipe(
+      v.string(),
+      v.trim(),
+      v.minLength(1, 'Email is required'),
+      v.email('Invalid email address')
+    ),
+    university_id: v.pipe(
+      v.number('University ID is required'),
+      v.integer('University ID must be a number'),
+      v.minValue(1, 'University ID must be greater than 0')
+    ),
+    password: v.pipe(
+      v.string(),
+      v.minLength(8, 'Password must be at least 8 characters'),
+      v.maxLength(100, 'Password must be less than 100 characters')
+    ),
+    confirm_password: v.pipe(v.string(), v.minLength(1, 'Please confirm your password'))
+  }),
+  v.forward(
+    v.partialCheck(
+      [['password'], ['confirm_password']],
+      (input) => input.password === input.confirm_password,
+      'Passwords do not match'
+    ),
+    ['confirm_password']
+  )
+)
+
+type Schema = v.InferOutput<typeof schema>
+
 const toast = useToast()
+const { showError } = useErrorToast()
 const loading = ref(false)
 
-const form = reactive({
+const state = reactive({
   first_name: '',
   last_name: '',
   email: '',
-  university_id: null as number | null,
-  password: ''
+  university_id: undefined as number | undefined,
+  password: '',
+  confirm_password: ''
 })
 
-const onSubmit = async () => {
+async function onSubmit(event: FormSubmitEvent<Schema>) {
   loading.value = true
 
   try {
     const { error } = await studentSignupHandler({
       body: {
-        first_name: form.first_name,
-        last_name: form.last_name,
-        email: form.email,
-        university_id: form.university_id!,
-        password: form.password
+        first_name: event.data.first_name,
+        last_name: event.data.last_name,
+        email: event.data.email,
+        university_id: event.data.university_id,
+        password: event.data.password
       }
     })
 
     if (error) {
-      toast.add({
-        title: 'Registration Failed',
-        description: error.error || 'An error occurred during registration',
-        color: 'error'
-      })
+      showError('Registration Failed', error)
       return
     }
 
@@ -87,24 +155,21 @@ const onSubmit = async () => {
     })
 
     // Clear form
-    Object.assign(form, {
+    Object.assign(state, {
       first_name: '',
       last_name: '',
       email: '',
-      university_id: null,
-      password: ''
+      university_id: undefined,
+      password: '',
+      confirm_password: ''
     })
 
     // Redirect to login after 2 seconds
     setTimeout(() => {
       navigateTo('/login')
     }, 2000)
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     loading.value = false
   }

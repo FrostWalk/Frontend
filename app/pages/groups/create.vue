@@ -45,6 +45,7 @@ definePageMeta({
 })
 
 const toast = useToast()
+const { showError } = useErrorToast()
 const loading = ref(false)
 const projectInfo = ref<ProjectInfo | null>(null)
 
@@ -66,11 +67,7 @@ const validateCode = async () => {
 
     if (error) {
       projectInfo.value = null
-      toast.add({
-        title: 'Invalid Code',
-        description: 'The security code is invalid or expired',
-        color: 'error'
-      })
+      showError('Invalid Code', error)
       return
     }
 
@@ -83,11 +80,7 @@ const validateCode = async () => {
       })
     } else {
       projectInfo.value = null
-      toast.add({
-        title: 'Invalid Code',
-        description: 'The security code is invalid or expired',
-        color: 'error'
-      })
+      showError('Invalid Code', { error: 'The security code is invalid or expired' })
     }
   } catch {
     projectInfo.value = null
@@ -96,11 +89,7 @@ const validateCode = async () => {
 
 const onSubmit = async () => {
   if (!projectInfo.value) {
-    toast.add({
-      title: 'Validation Error',
-      description: 'Please enter a valid security code',
-      color: 'error'
-    })
+    showError('Validation Error', { error: 'Please enter a valid security code' })
     return
   }
 
@@ -115,11 +104,7 @@ const onSubmit = async () => {
     })
 
     if (error) {
-      toast.add({
-        title: 'Group Creation Failed',
-        description: error.error || 'Failed to create group',
-        color: 'error'
-      })
+      showError('Group Creation Failed', error)
       return
     }
 
@@ -132,12 +117,8 @@ const onSubmit = async () => {
 
       navigateTo(`/groups/${data.group_id}`)
     }
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     loading.value = false
   }

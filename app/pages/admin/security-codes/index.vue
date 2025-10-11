@@ -95,6 +95,7 @@ definePageMeta({
 })
 
 const toast = useToast()
+const { showError } = useErrorToast()
 
 const loading = ref(true)
 const codes = ref<SecurityCodeWithNames[]>([])
@@ -105,23 +106,15 @@ const fetchCodes = async () => {
     const { data, error } = await getAllCodesHandler()
 
     if (error) {
-      toast.add({
-        title: 'Error',
-        description: error.error || 'Failed to load security codes',
-        color: 'error'
-      })
+      showError('Error', error)
       return
     }
 
     if (data) {
       codes.value = data.codes
     }
-  } catch {
-    toast.add({
-      title: 'Error',
-      description: 'An unexpected error occurred',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Error', err)
   } finally {
     loading.value = false
   }
@@ -149,12 +142,8 @@ const copyCode = async (code: string) => {
       description: 'Security code copied to clipboard',
       color: 'success'
     })
-  } catch {
-    toast.add({
-      title: 'Copy Failed',
-      description: 'Failed to copy code to clipboard',
-      color: 'error'
-    })
+  } catch (err) {
+    showError('Copy Failed', err)
   }
 }
 

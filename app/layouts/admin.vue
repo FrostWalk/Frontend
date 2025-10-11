@@ -46,9 +46,13 @@
               <div class="font-medium">{{ user?.first_name }} {{ user?.last_name }}</div>
               <div class="text-xs opacity-80">{{ getRoleName(roleId) }}</div>
             </div>
-            <UButton color="neutral" variant="ghost" icon="material-symbols:logout" @click="logout">
+            <button
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 transition-colors"
+              @click="logout"
+            >
+              <Icon name="material-symbols:logout" size="18" />
               Logout
-            </UButton>
+            </button>
           </div>
         </div>
       </div>
