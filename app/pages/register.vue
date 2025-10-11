@@ -150,7 +150,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   loading.value = true
 
   try {
-    const { error } = await studentSignupHandler({
+    const { error, response } = await studentSignupHandler({
       body: {
         first_name: event.data.first_name,
         last_name: event.data.last_name,
@@ -161,7 +161,18 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     })
 
     if (error) {
-      showError('Registration Failed', error)
+      // Check if it's a 409 conflict (account already exists)
+      if (response?.status === 409) {
+        toast.add({
+          title: 'Account Already Exists',
+          description:
+            'This email address or student ID is already registered. You can log in or recover your password if needed.',
+          color: 'warning',
+          duration: 6000
+        })
+      } else {
+        showError('Registration Failed', error)
+      }
       return
     }
 

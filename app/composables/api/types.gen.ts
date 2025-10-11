@@ -3067,6 +3067,10 @@ export type StudentSignupHandlerErrors = {
      */
     400: JsonError;
     /**
+     * Student with this email or university ID already exists
+     */
+    409: JsonError;
+    /**
      * Internal server error occurred
      */
     500: JsonError;
