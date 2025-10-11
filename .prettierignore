@@ -1,0 +1,21 @@
+# Build outputs
+.output
+.nuxt
+dist
+.cache
+node_modules
+
+# Generated files
+composables/api/
+*.gen.ts
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Logs
+*.log
+
+# OS
+.DS_Store
