@@ -69,7 +69,8 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { studentSignupHandler, allowedDomainsHandler } from '~/composables/api/sdk.gen'
 
 definePageMeta({
-  layout: 'auth'
+  layout: 'auth',
+  middleware: 'guest'
 })
 
 const toast = useToast()

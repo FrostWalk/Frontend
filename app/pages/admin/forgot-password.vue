@@ -45,7 +45,8 @@
 import { forgotPasswordHandler } from '~/composables/api/sdk.gen'
 
 definePageMeta({
-  layout: 'auth'
+  layout: 'auth',
+  middleware: 'admin-guest'
 })
 
 const toast = useToast()

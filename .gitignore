@@ -25,3 +25,6 @@ logs
 
 # Generated API client
 composables/api/
+
+.vscode
+.cursor
