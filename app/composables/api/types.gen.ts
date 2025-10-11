@@ -34,6 +34,13 @@ export type AdminResponseScheme = {
     role_id: number;
 };
 
+export type AllowedDomainsResponse = {
+    /**
+     * List of email domains allowed for account creation
+     */
+    domains: Array<string>;
+};
+
 export type AssignCoordinatorRequest = {
     admin_id: number;
 };
@@ -2909,6 +2916,22 @@ export type UpdateAdminHandlerResponses = {
     200: unknown;
 };
 
+export type AllowedDomainsHandlerData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/students/auth/allowed-domains';
+};
+
+export type AllowedDomainsHandlerResponses = {
+    /**
+     * List of allowed email domains
+     */
+    200: AllowedDomainsResponse;
+};
+
+export type AllowedDomainsHandlerResponse = AllowedDomainsHandlerResponses[keyof AllowedDomainsHandlerResponses];
+
 export type ConfirmStudentHandlerData = {
     body?: never;
     path?: never;
@@ -3043,6 +3066,10 @@ export type StudentSignupHandlerErrors = {
      * Invalid data in request
      */
     400: JsonError;
+    /**
+     * Student with this email or university ID already exists
+     */
+    409: JsonError;
     /**
      * Internal server error occurred
      */

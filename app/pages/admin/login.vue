@@ -43,7 +43,8 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'auth'
+  layout: 'auth',
+  middleware: 'admin-guest'
 })
 
 const { login } = useAdminAuth()

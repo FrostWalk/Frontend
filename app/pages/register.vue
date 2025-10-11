@@ -66,59 +66,77 @@
 <script setup lang="ts">
 import * as v from 'valibot'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { studentSignupHandler } from '~/composables/api/sdk.gen'
+import { studentSignupHandler, allowedDomainsHandler } from '~/composables/api/sdk.gen'
 
 definePageMeta({
-  layout: 'auth'
+  layout: 'auth',
+  middleware: 'guest'
 })
-
-const schema = v.pipe(
-  v.object({
-    first_name: v.pipe(
-      v.string(),
-      v.trim(),
-      v.minLength(1, 'First name is required'),
-      v.maxLength(50, 'First name must be less than 50 characters')
-    ),
-    last_name: v.pipe(
-      v.string(),
-      v.trim(),
-      v.minLength(1, 'Last name is required'),
-      v.maxLength(50, 'Last name must be less than 50 characters')
-    ),
-    email: v.pipe(
-      v.string(),
-      v.trim(),
-      v.minLength(1, 'Email is required'),
-      v.email('Invalid email address')
-    ),
-    university_id: v.pipe(
-      v.number('University ID is required'),
-      v.integer('University ID must be a number'),
-      v.minValue(1, 'University ID must be greater than 0')
-    ),
-    password: v.pipe(
-      v.string(),
-      v.minLength(8, 'Password must be at least 8 characters'),
-      v.maxLength(100, 'Password must be less than 100 characters')
-    ),
-    confirm_password: v.pipe(v.string(), v.minLength(1, 'Please confirm your password'))
-  }),
-  v.forward(
-    v.partialCheck(
-      [['password'], ['confirm_password']],
-      (input) => input.password === input.confirm_password,
-      'Passwords do not match'
-    ),
-    ['confirm_password']
-  )
-)
-
-type Schema = v.InferOutput<typeof schema>
 
 const toast = useToast()
 const { showError } = useErrorToast()
 const loading = ref(false)
+const allowedDomains = ref<string[]>([])
+
+// Fetch allowed domains
+const { data: domainsData } = await allowedDomainsHandler()
+if (domainsData?.domains) {
+  allowedDomains.value = domainsData.domains
+}
+
+const schema = computed(() =>
+  v.pipe(
+    v.object({
+      first_name: v.pipe(
+        v.string(),
+        v.trim(),
+        v.minLength(1, 'First name is required'),
+        v.maxLength(50, 'First name must be less than 50 characters')
+      ),
+      last_name: v.pipe(
+        v.string(),
+        v.trim(),
+        v.minLength(1, 'Last name is required'),
+        v.maxLength(50, 'Last name must be less than 50 characters')
+      ),
+      email: v.pipe(
+        v.string(),
+        v.trim(),
+        v.minLength(1, 'Email is required'),
+        v.email('Invalid email address'),
+        v.check(
+          (email) => {
+            if (allowedDomains.value.length === 0) return true
+            const domain = email.split('@')[1]?.toLowerCase()
+            return allowedDomains.value.some((allowed) => allowed.toLowerCase() === domain)
+          },
+          () => `Email domain must be one of: ${allowedDomains.value.join(', ')}`
+        )
+      ),
+      university_id: v.pipe(
+        v.number('University ID is required'),
+        v.integer('University ID must be a number'),
+        v.minValue(1, 'University ID must be greater than 0')
+      ),
+      password: v.pipe(
+        v.string(),
+        v.minLength(8, 'Password must be at least 8 characters'),
+        v.maxLength(100, 'Password must be less than 100 characters')
+      ),
+      confirm_password: v.pipe(v.string(), v.minLength(1, 'Please confirm your password'))
+    }),
+    v.forward(
+      v.partialCheck(
+        [['password'], ['confirm_password']],
+        (input) => input.password === input.confirm_password,
+        'Passwords do not match'
+      ),
+      ['confirm_password']
+    )
+  )
+)
+
+type Schema = v.InferOutput<typeof schema.value>
 
 const state = reactive({
   first_name: '',
@@ -133,7 +151,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   loading.value = true
 
   try {
-    const { error } = await studentSignupHandler({
+    const { error, response } = await studentSignupHandler({
       body: {
         first_name: event.data.first_name,
         last_name: event.data.last_name,
@@ -144,7 +162,18 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     })
 
     if (error) {
-      showError('Registration Failed', error)
+      // Check if it's a 409 conflict (account already exists)
+      if (response?.status === 409) {
+        toast.add({
+          title: 'Account Already Exists',
+          description:
+            'This email address or student ID is already registered. You can log in or recover your password if needed.',
+          color: 'warning',
+          duration: 6000
+        })
+      } else {
+        showError('Registration Failed', error)
+      }
       return
     }
 
