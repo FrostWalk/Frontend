@@ -10,7 +10,6 @@ clone:
       - event: tag
       - event: push
         branch: [development, main]
-      - event: pull_request
 
 steps:
   # ---------- DEV IMAGE (frontend:dev) ----------
@@ -36,9 +35,6 @@ steps:
     when:
       # Build on pushes to the development branch…
       - event: push
-        branch: development
-      # …on pull requests to development…
-      - event: pull_request
         branch: development
       # …and also when run manually
       - event: manual
