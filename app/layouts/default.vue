@@ -19,6 +19,13 @@
                 <Icon name="material-symbols:folder-open" class="mr-2" />
                 Projects
               </NuxtLink>
+              <button
+                class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
+                @click="navigateToMyGroup"
+              >
+                <Icon name="material-symbols:groups" class="mr-2" />
+                My Group
+              </button>
               <NuxtLink
                 to="/groups/create"
                 class="inline-flex items-center px-1 pt-1 text-sm font-medium"
@@ -83,7 +90,10 @@
 </template>
 
 <script setup lang="ts">
+import { getGroups } from '~/composables/api/sdk.gen'
+
 const { user, logout } = useStudentAuth()
+const { showError } = useErrorToast()
 
 const isDropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
@@ -91,6 +101,27 @@ const dropdownRef = ref<HTMLElement | null>(null)
 const handleLogout = () => {
   isDropdownOpen.value = false
   logout()
+}
+
+const navigateToMyGroup = async () => {
+  try {
+    const { data, error } = await getGroups()
+
+    if (error) {
+      showError('Error', error)
+      return
+    }
+
+    if (data && data.groups && data.groups.length > 0) {
+      // Navigate to the first group the user is part of
+      navigateTo(`/groups/${data.groups[0].group.group_id}`)
+    } else {
+      // No group found, redirect to create group
+      navigateTo('/groups/create')
+    }
+  } catch (err) {
+    showError('Error', err)
+  }
 }
 
 // Close dropdown when clicking outside

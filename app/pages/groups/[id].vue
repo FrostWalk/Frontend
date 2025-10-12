@@ -17,11 +17,7 @@
           </h1>
           <p class="text-gray-600">{{ members.length }} member(s)</p>
         </div>
-        <UButton
-          v-if="isLeader"
-          :to="`/groups/${route.params.id}/select-deliverable`"
-          color="primary"
-        >
+        <UButton v-if="isLeader" color="primary" @click="navigateToSelectDeliverable">
           <Icon name="material-symbols:assignment" class="mr-2" />
           Select Group Deliverable
         </UButton>
@@ -126,7 +122,8 @@ import {
 } from '~/composables/api/sdk.gen'
 
 definePageMeta({
-  middleware: 'auth'
+  middleware: 'auth',
+  key: (route) => `group-${route.params.id}`
 })
 
 const route = useRoute()
@@ -188,6 +185,14 @@ const fetchGroupData = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const navigateToSelectDeliverable = async () => {
+  const groupId = route.params.id as string
+  await navigateTo(`/groups/${groupId}/select-deliverable`, {
+    replace: false,
+    external: false
+  })
 }
 
 const addMember = async () => {

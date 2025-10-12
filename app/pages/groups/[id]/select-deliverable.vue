@@ -72,7 +72,8 @@ import type { GroupDeliverable, GroupDeliverableComponent } from '~/composables/
 import { getStudentProjects, createGroupDeliverableSelection } from '~/composables/api/sdk.gen'
 
 definePageMeta({
-  middleware: 'auth'
+  middleware: 'auth',
+  key: (route) => `group-${route.params.id}-select-deliverable`
 })
 
 const route = useRoute()
