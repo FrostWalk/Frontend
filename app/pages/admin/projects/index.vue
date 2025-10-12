@@ -64,9 +64,9 @@
             </div>
           </div>
 
-          <UDropdown :items="getProjectActions(project)">
+          <UDropdownMenu :items="getProjectActions(project)">
             <UButton color="neutral" variant="ghost" icon="material-symbols:more-vert" />
-          </UDropdown>
+          </UDropdownMenu>
         </div>
       </UCard>
     </div>
