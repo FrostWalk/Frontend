@@ -394,21 +394,7 @@
       v-model:open="showAssignModal"
       title="Assign Coordinator"
       description="Select and assign a coordinator to manage this project"
-      :ui="{ content: 'w-full sm:max-w-2xl overflow-visible' }"
     >
-      <template #actions>
-        <UButton
-          v-if="!loadingAdmins"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          icon="material-symbols:refresh"
-          @click="fetchAdmins"
-        >
-          Refresh List
-        </UButton>
-      </template>
-
       <template #body>
         <div v-if="loadingAdmins" class="text-center py-6">
           <Icon
@@ -417,23 +403,17 @@
             class="animate-spin mx-auto text-primary-500"
           />
         </div>
-        <div v-else class="space-y-4 min-h-[300px]">
-          <div v-if="coordinators.length === 0" class="text-center py-4">
-            <p class="text-gray-600 mb-4">No coordinators available</p>
-            <UButton color="primary" size="sm" @click="showCreateCoordinatorModal = true">
-              <Icon name="material-symbols:person-add" class="mr-2" />
-              Create New Coordinator
-            </UButton>
-          </div>
-          <div v-else>
-            <UForm :state="{ coordinator: selectedCoordinator }" class="space-y-4">
-              <UFormField label="Select Coordinator" name="coordinator" required>
+        <div v-else class="space-y-4">
+          <UForm :state="{ coordinator: selectedCoordinator }" class="space-y-4">
+            <UFormField label="Select Coordinator" name="coordinator" required>
+              <div class="flex gap-2">
                 <USelectMenu
                   v-model="selectedCoordinator"
                   :items="coordinatorItems"
                   placeholder="Choose a coordinator..."
                   :loading="loadingAdmins"
                   searchable
+                  class="flex-1"
                 >
                   <template #leading>
                     <UAvatar
@@ -447,9 +427,28 @@
                     <UAvatar :text="`${item.first_name[0]}${item.last_name[0]}`" size="xs" />
                   </template>
                 </USelectMenu>
-              </UFormField>
-            </UForm>
-          </div>
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  icon="material-symbols:refresh"
+                  :disabled="loadingAdmins"
+                  @click="fetchAdmins"
+                />
+              </div>
+            </UFormField>
+
+            <div class="pt-2">
+              <UButton
+                color="neutral"
+                variant="soft"
+                block
+                icon="material-symbols:person-add"
+                @click="showCreateCoordinatorModal = true"
+              >
+                Create New Coordinator
+              </UButton>
+            </div>
+          </UForm>
         </div>
       </template>
 
