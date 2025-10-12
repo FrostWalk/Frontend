@@ -47,5 +47,11 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/admin/**': { ssr: false }
+  },
+
+  vite: {
+    build: {
+      sourcemap: false
+    }
   }
 })
