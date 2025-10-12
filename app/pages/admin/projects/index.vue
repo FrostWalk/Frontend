@@ -114,14 +114,14 @@ const getProjectActions = (project: Project) => {
       {
         label: 'View Details',
         icon: 'material-symbols:visibility',
-        click: () => navigateTo(`/admin/projects/${project.project_id}`)
+        to: `/admin/projects/${project.project_id}`
       }
     ],
     [
       {
         label: 'Create Security Code',
         icon: 'material-symbols:key',
-        click: () => navigateTo(`/admin/security-codes/create?project=${project.project_id}`)
+        to: `/admin/security-codes/create?project=${project.project_id}`
       }
     ]
   ]
@@ -131,7 +131,7 @@ const getProjectActions = (project: Project) => {
       {
         label: 'Setup Deliverables',
         icon: 'material-symbols:settings',
-        click: () => navigateTo(`/admin/projects/${project.project_id}/setup`)
+        to: `/admin/projects/${project.project_id}/setup`
       }
     ])
   }

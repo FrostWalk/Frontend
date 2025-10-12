@@ -23,7 +23,6 @@
       </div>
 
       <UTabs v-model="currentTab" :items="tabs">
-        <!-- Overview Tab -->
         <template #overview>
           <UCard>
             <template #header>
@@ -53,7 +52,7 @@
             <div v-if="groupDeliverables.length === 0" class="text-center py-12">
               <p class="text-gray-600">No group deliverables configured</p>
               <UButton
-                to="`/admin/projects/${project.project_id}/setup`"
+                :to="`/admin/projects/${project.project_id}/setup`"
                 color="primary"
                 class="mt-4"
               >
@@ -178,12 +177,25 @@
     </div>
 
     <!-- Assign Coordinator Modal -->
-    <UModal v-model="showAssignModal">
-      <UCard>
-        <template #header>
-          <h3 class="font-semibold">Assign Coordinator</h3>
-        </template>
+    <UModal
+      v-model:open="showAssignModal"
+      title="Assign Coordinator"
+      description="Select and assign a coordinator to manage this project"
+    >
+      <template #actions>
+        <UButton
+          v-if="!loadingAdmins"
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          icon="material-symbols:refresh"
+          @click="fetchAdmins"
+        >
+          Refresh List
+        </UButton>
+      </template>
 
+      <template #body>
         <div v-if="loadingAdmins" class="text-center py-6">
           <Icon
             name="material-symbols:hourglass-empty"
@@ -191,32 +203,91 @@
             class="animate-spin mx-auto text-primary-500"
           />
         </div>
-        <div v-else class="space-y-3">
-          <USelectMenu
-            v-model="selectedAdmin"
-            :options="coordinators"
-            value-attribute="id"
-            option-attribute="email"
-            placeholder="Select a coordinator"
-          />
-          <p v-if="selectedAdmin" class="text-sm text-gray-600 mt-2">
-            Selected: {{ selectedAdmin.first_name }} {{ selectedAdmin.last_name }} ({{
-              selectedAdmin.email
-            }})
-          </p>
-        </div>
-
-        <template #footer>
-          <div class="flex justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="showAssignModal = false">
-              Cancel
-            </UButton>
-            <UButton :loading="assigning" :disabled="!selectedAdmin" @click="assignCoordinator">
-              Assign
+        <div v-else class="space-y-4">
+          <div v-if="coordinators.length === 0" class="text-center py-4">
+            <p class="text-gray-600 mb-4">No coordinators available</p>
+            <UButton color="primary" size="sm" @click="showCreateCoordinatorModal = true">
+              <Icon name="material-symbols:person-add" class="mr-2" />
+              Create New Coordinator
             </UButton>
           </div>
-        </template>
-      </UCard>
+          <div v-else class="space-y-3">
+            <USelectMenu
+              v-model="selectedAdmin"
+              :options="coordinators"
+              value-attribute="id"
+              option-attribute="email"
+              placeholder="Select a coordinator"
+            />
+            <p v-if="selectedAdmin" class="text-sm text-gray-600">
+              Selected: {{ selectedAdmin.first_name }} {{ selectedAdmin.last_name }} ({{
+                selectedAdmin.email
+              }})
+            </p>
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showAssignModal = false">
+            Cancel
+          </UButton>
+          <UButton :loading="assigning" :disabled="!selectedAdmin" @click="assignCoordinator">
+            Assign
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Create Coordinator Modal -->
+    <UModal
+      v-model:open="showCreateCoordinatorModal"
+      title="Create New Coordinator"
+      description="Create a new administrator with coordinator role"
+    >
+      <template #body>
+        <UForm :state="coordinatorForm" class="space-y-4" @submit="createCoordinator">
+          <UFormField label="Email" name="email" required>
+            <UInput
+              v-model="coordinatorForm.email"
+              type="email"
+              placeholder="coordinator@example.com"
+            />
+          </UFormField>
+
+          <div class="grid grid-cols-2 gap-4">
+            <UFormField label="First Name" name="first_name" required>
+              <UInput v-model="coordinatorForm.first_name" placeholder="John" />
+            </UFormField>
+
+            <UFormField label="Last Name" name="last_name" required>
+              <UInput v-model="coordinatorForm.last_name" placeholder="Doe" />
+            </UFormField>
+          </div>
+
+          <UAlert icon="material-symbols:info" color="secondary">
+            <template #description>
+              <span class="text-sm"
+                >The new user will be created with the Coordinator role. A temporary password will
+                be generated automatically.</span
+              >
+            </template>
+          </UAlert>
+        </UForm>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showCreateCoordinatorModal = false">
+            Cancel
+          </UButton>
+          <UButton :loading="creatingCoordinator" @click="createCoordinator">
+            <Icon name="material-symbols:check" class="mr-2" />
+            Create Coordinator
+          </UButton>
+        </div>
+      </template>
     </UModal>
   </div>
 </template>
@@ -238,7 +309,8 @@ import {
   listCoordinators,
   getAllAdminsHandler,
   assignCoordinator as assignCoordinatorApi,
-  removeCoordinator as removeCoordinatorApi
+  removeCoordinator as removeCoordinatorApi,
+  createAdminHandler
 } from '~/composables/api/sdk.gen'
 
 definePageMeta({
@@ -256,6 +328,8 @@ const loadingGroups = ref(false)
 const loadingAdmins = ref(false)
 const assigning = ref(false)
 const showAssignModal = ref(false)
+const showCreateCoordinatorModal = ref(false)
+const creatingCoordinator = ref(false)
 
 const project = ref<Project | null>(null)
 const groupDeliverables = ref<GroupDeliverable[]>([])
@@ -267,7 +341,19 @@ const coordinator = ref<CoordinatorDetail | null>(null)
 const coordinators = ref<AdminResponseScheme[]>([])
 const selectedAdmin = ref<AdminResponseScheme | null>(null)
 
+const coordinatorForm = reactive({
+  email: '',
+  first_name: '',
+  last_name: ''
+})
+
 const currentTab = ref(0)
+
+// Close modals when switching tabs
+watch(currentTab, () => {
+  showCreateCoordinatorModal.value = false
+  showAssignModal.value = false
+})
 const tabs = [
   { key: 'overview', label: 'Overview', icon: 'material-symbols:info', slot: 'overview' },
   {
@@ -431,6 +517,47 @@ const removeCoordinator = async () => {
   }
 }
 
+const createCoordinator = async () => {
+  creatingCoordinator.value = true
+
+  try {
+    const { data, error } = await createAdminHandler({
+      body: {
+        email: coordinatorForm.email,
+        first_name: coordinatorForm.first_name,
+        last_name: coordinatorForm.last_name,
+        admin_role_id: 3 // Coordinator role
+      }
+    })
+
+    if (error) {
+      showError('Creation Failed', error)
+      return
+    }
+
+    if (data) {
+      toast.add({
+        title: 'Coordinator Created',
+        description: `Successfully created coordinator: ${coordinatorForm.email}`,
+        color: 'success'
+      })
+
+      // Reset form
+      coordinatorForm.email = ''
+      coordinatorForm.first_name = ''
+      coordinatorForm.last_name = ''
+
+      // Close modal and refresh coordinators list
+      showCreateCoordinatorModal.value = false
+      await fetchAdmins()
+    }
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    creatingCoordinator.value = false
+  }
+}
+
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -441,5 +568,7 @@ const formatDate = (dateStr: string) => {
 
 onMounted(() => {
   fetchProject()
+  // Ensure Overview tab is selected by default
+  currentTab.value = 0
 })
 </script>
