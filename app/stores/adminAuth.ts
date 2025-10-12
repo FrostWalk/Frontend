@@ -101,6 +101,17 @@ export const useAdminAuthStore = defineStore('adminAuth', {
     // Check if user has a specific role
     hasRole(roleId: number): boolean {
       return this.roleId === roleId
+    },
+
+    // Update user data (e.g., after profile edit)
+    updateUser(updatedUser: AdminResponseScheme) {
+      this.user = updatedUser
+      this.roleId = updatedUser.role_id
+
+      // Update localStorage
+      if (import.meta.client && typeof localStorage !== 'undefined') {
+        localStorage.setItem('admin_user', JSON.stringify(updatedUser))
+      }
     }
   }
 })

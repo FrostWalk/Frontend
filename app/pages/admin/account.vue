@@ -118,7 +118,7 @@ definePageMeta({
   layout: 'admin'
 })
 
-const { user, roleId, roles } = useAdminAuth()
+const { user, roleId, roles, updateUser } = useAdminAuth()
 const toast = useToast()
 const { showError } = useErrorToast()
 
@@ -172,10 +172,14 @@ const updateProfile = async () => {
       return
     }
 
-    // Update local user data
-    user.value.first_name = profileForm.first_name
-    user.value.last_name = profileForm.last_name
-    user.value.email = profileForm.email
+    // Update Pinia store and localStorage
+    const updatedUser = {
+      ...user.value,
+      first_name: profileForm.first_name,
+      last_name: profileForm.last_name,
+      email: profileForm.email
+    }
+    updateUser(updatedUser)
 
     toast.add({
       title: 'Profile Updated',

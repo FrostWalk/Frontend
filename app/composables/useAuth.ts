@@ -29,6 +29,7 @@ export const useAdminAuth = () => {
     logout: store.logout,
     init: store.init,
     hasRole: store.hasRole,
+    updateUser: store.updateUser,
     roles: store.roles
   }
 }
