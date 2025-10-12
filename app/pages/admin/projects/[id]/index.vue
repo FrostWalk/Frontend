@@ -21,15 +21,27 @@
             <template #header>
               <div class="flex items-center justify-between">
                 <h3 class="font-semibold">Project Details</h3>
-                <UButton
-                  color="neutral"
-                  variant="ghost"
-                  size="sm"
-                  icon="material-symbols:edit"
-                  @click="openEditProjectModal"
-                >
-                  Edit Project
-                </UButton>
+                <div class="flex gap-2">
+                  <UButton
+                    color="neutral"
+                    variant="ghost"
+                    size="sm"
+                    icon="material-symbols:edit"
+                    @click="openEditProjectModal"
+                  >
+                    Edit Project
+                  </UButton>
+                  <UButton
+                    v-if="roleId === roles.PROFESSOR || roleId === roles.ROOT"
+                    color="error"
+                    variant="ghost"
+                    size="sm"
+                    icon="material-symbols:delete"
+                    @click="showDeleteProjectModal = true"
+                  >
+                    Delete Project
+                  </UButton>
+                </div>
               </div>
             </template>
 
@@ -634,6 +646,45 @@
       </template>
     </UModal>
 
+    <!-- Delete Project Confirmation Modal -->
+    <UModal
+      v-model:open="showDeleteProjectModal"
+      title="Delete Project"
+      description="This action cannot be undone. All associated deliverables, components, and groups will be permanently deleted."
+    >
+      <template #body>
+        <div class="space-y-4">
+          <UAlert
+            color="error"
+            icon="material-symbols:warning"
+            title="Warning"
+            description="Deleting this project will permanently remove all data including:"
+          />
+          <ul class="list-disc list-inside text-sm text-gray-700 dark:text-gray-300 space-y-1 ml-2">
+            <li>All group and student deliverables</li>
+            <li>All components</li>
+            <li>All groups and their data</li>
+            <li>All student submissions</li>
+          </ul>
+          <p class="text-sm font-medium text-gray-900 dark:text-white">
+            Are you sure you want to delete project "{{ project?.name }}"?
+          </p>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showDeleteProjectModal = false">
+            Cancel
+          </UButton>
+          <UButton color="error" :loading="deletingProject" @click="deleteProject">
+            <Icon name="material-symbols:delete-forever" class="mr-2" />
+            Delete Permanently
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
     <!-- Edit Project Modal -->
     <UModal
       v-model:open="showEditProjectModal"
@@ -709,6 +760,7 @@ import type {
 import {
   getOneProjectHandler,
   updateProjectHandler,
+  deleteProjectHandler,
   getProjectGroups,
   listCoordinators,
   getAllAdminsHandler,
@@ -749,6 +801,10 @@ const editingDeliverable = ref(false)
 // Edit project modal
 const showEditProjectModal = ref(false)
 const editingProject = ref(false)
+
+// Delete project modal
+const showDeleteProjectModal = ref(false)
+const deletingProject = ref(false)
 
 const project = ref<Project | null>(null)
 const groupDeliverables = ref<GroupDeliverable[]>([])
@@ -810,6 +866,7 @@ watch(currentTab, () => {
   showEditGroupDeliverableModal.value = false
   showEditStudentDeliverableModal.value = false
   showEditProjectModal.value = false
+  showDeleteProjectModal.value = false
 })
 const tabs = [
   {
@@ -1112,6 +1169,36 @@ const updateProject = async () => {
     showError('Error', err)
   } finally {
     editingProject.value = false
+  }
+}
+
+const deleteProject = async () => {
+  if (!project.value) return
+
+  deletingProject.value = true
+
+  try {
+    const { error } = await deleteProjectHandler({
+      path: { id: project.value.project_id }
+    })
+
+    if (error) {
+      showError('Delete Failed', error)
+      return
+    }
+
+    toast.add({
+      title: 'Project Deleted',
+      description: 'Project and all associated data have been permanently deleted',
+      color: 'success'
+    })
+
+    // Redirect to projects list
+    navigateTo('/admin/projects')
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    deletingProject.value = false
   }
 }
 

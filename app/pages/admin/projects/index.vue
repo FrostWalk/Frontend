@@ -68,10 +68,6 @@
               </div>
             </div>
           </div>
-
-          <UDropdownMenu :items="getProjectActions(project)" @click.stop>
-            <UButton color="neutral" variant="ghost" icon="material-symbols:more-vert" />
-          </UDropdownMenu>
         </div>
       </UCard>
     </div>
@@ -104,44 +100,14 @@ const fetchProjects = async () => {
     }
 
     if (data) {
-      projects.value = data.projects
+      // Sort projects by year in descending order
+      projects.value = data.projects.sort((a, b) => b.year - a.year)
     }
   } catch (err) {
     showError('Error', err)
   } finally {
     loading.value = false
   }
-}
-
-const getProjectActions = (project: Project) => {
-  const actions = [
-    [
-      {
-        label: 'View Details',
-        icon: 'material-symbols:visibility',
-        to: `/admin/projects/${project.project_id}`
-      }
-    ],
-    [
-      {
-        label: 'Create Security Code',
-        icon: 'material-symbols:key',
-        to: `/admin/security-codes/create?project=${project.project_id}`
-      }
-    ]
-  ]
-
-  if (roleId.value === roles.PROFESSOR || roleId.value === roles.ROOT) {
-    actions.push([
-      {
-        label: 'Setup Deliverables',
-        icon: 'material-symbols:settings',
-        to: `/admin/projects/${project.project_id}/setup`
-      }
-    ])
-  }
-
-  return actions
 }
 
 const formatDate = (dateStr: string) => {
