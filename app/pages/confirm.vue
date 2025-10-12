@@ -15,16 +15,24 @@
       </div>
 
       <div v-else-if="success" class="space-y-4">
-        <Icon name="material-symbols:check-circle" size="48" class="mx-auto text-green-500" />
-        <p class="text-lg font-medium text-green-600">Email confirmed successfully!</p>
-        <p class="text-sm text-gray-600">Redirecting to login...</p>
+        <div class="flex justify-center">
+          <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-500">
+            <Icon name="material-symbols:check" size="32" class="text-white" />
+          </div>
+        </div>
+        <p class="text-lg font-medium text-gray-900">Account successfully confirmed</p>
+        <UButton to="/login" color="primary" block> Go to Login </UButton>
       </div>
 
       <div v-else-if="error" class="space-y-4">
-        <Icon name="material-symbols:error" size="48" class="mx-auto text-red-500" />
+        <div class="flex justify-center">
+          <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500">
+            <Icon name="material-symbols:close" size="32" class="text-white" />
+          </div>
+        </div>
         <p class="text-lg font-medium text-red-600">Confirmation failed</p>
         <p class="text-sm text-gray-600">{{ errorMessage }}</p>
-        <UButton to="/login" color="primary"> Go to Login </UButton>
+        <UButton to="/login" color="primary" block> Go to Login </UButton>
       </div>
     </div>
   </UCard>
@@ -64,11 +72,6 @@ onMounted(async () => {
       errorMessage.value = response.error.error || 'Invalid or expired token'
     } else {
       success.value = true
-
-      // Redirect to login after 3 seconds
-      setTimeout(() => {
-        navigateTo('/login')
-      }, 3000)
     }
   } catch {
     error.value = true
