@@ -7,15 +7,20 @@
         <UFormField label="Project" name="project_id" required>
           <USelectMenu
             v-model="selectedProject"
-            :options="projects"
-            option-attribute="name"
-            value-attribute="project_id"
+            :items="projectItems"
             :loading="loadingProjects"
-            placeholder="Select a project"
-          />
-          <p v-if="selectedProject" class="text-sm text-gray-600 mt-1">
-            Selected: {{ selectedProject.name }} ({{ selectedProject.year }})
-          </p>
+            placeholder="Choose a project..."
+            searchable
+          >
+            <template #leading>
+              <Icon
+                v-if="selectedProject"
+                name="material-symbols:folder"
+                size="20"
+                class="text-primary-500"
+              />
+            </template>
+          </USelectMenu>
         </UFormField>
 
         <UFormField
@@ -38,16 +43,13 @@
     </UCard>
 
     <!-- Success Modal -->
-    <UModal v-model="showSuccessModal">
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-center">
+    <UModal v-model:open="showSuccessModal" title="Security Code Generated" :close="false">
+      <template #body>
+        <div class="text-center space-y-4">
+          <div class="flex items-center justify-center mb-4">
             <Icon name="material-symbols:check-circle" size="48" class="text-green-500" />
           </div>
-          <h3 class="text-center font-semibold mt-2">Security Code Generated</h3>
-        </template>
 
-        <div class="text-center space-y-4">
           <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
             <code class="text-2xl font-mono font-bold text-primary-600">{{ generatedCode }}</code>
           </div>
@@ -61,11 +63,11 @@
             Copy Code
           </UButton>
         </div>
+      </template>
 
-        <template #footer>
-          <UButton color="primary" block @click="closeModal"> Done </UButton>
-        </template>
-      </UCard>
+      <template #footer>
+        <UButton color="primary" block @click="closeModal"> Done </UButton>
+      </template>
     </UModal>
   </div>
 </template>
@@ -79,6 +81,8 @@ definePageMeta({
   layout: 'admin'
 })
 
+type ProjectItem = Project & { label: string }
+
 const route = useRoute()
 const toast = useToast()
 const { showError } = useErrorToast()
@@ -89,12 +93,20 @@ const showSuccessModal = ref(false)
 const generatedCode = ref('')
 
 const projects = ref<Project[]>([])
-const selectedProject = ref<Project | null>(null)
+const selectedProject = ref<ProjectItem | undefined>(undefined)
 
 const form = reactive({
   project_id: null as number | null,
   expiration: ''
 })
+
+// Transform projects for USelectMenu
+const projectItems = computed(() =>
+  projects.value.map((project) => ({
+    ...project,
+    label: `${project.name} (${project.year})`
+  }))
+)
 
 // Set minimum date to tomorrow
 const minDate = computed(() => {
@@ -119,8 +131,13 @@ const fetchProjects = async () => {
       // Pre-select project from query param if provided
       const projectId = route.query.project
       if (projectId) {
-        selectedProject.value =
-          projects.value.find((p) => p.project_id === parseInt(projectId as string)) || null
+        const project = projects.value.find((p) => p.project_id === parseInt(projectId as string))
+        if (project) {
+          selectedProject.value = {
+            ...project,
+            label: `${project.name} (${project.year})`
+          }
+        }
       }
     }
   } catch (err) {
@@ -137,7 +154,7 @@ watch(selectedProject, (project) => {
 })
 
 const onSubmit = async () => {
-  if (!selectedProject.value) {
+  if (!selectedProject.value || !form.project_id) {
     showError('Validation Error', { error: 'Please select a project' })
     return
   }
@@ -145,10 +162,14 @@ const onSubmit = async () => {
   loading.value = true
 
   try {
+    // Convert datetime-local to ISO 8601 format
+    const expirationDate = new Date(form.expiration)
+    const expirationISO = expirationDate.toISOString()
+
     const { data, error } = await createCodeHandler({
       body: {
-        project_id: form.project_id!,
-        expiration: form.expiration
+        project_id: form.project_id,
+        expiration: expirationISO
       }
     })
 
