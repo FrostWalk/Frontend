@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
     <nav class="bg-white dark:bg-gray-800 shadow">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -66,11 +66,11 @@
       </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <main class="flex-1 max-w-7xl w-full mx-auto py-6 sm:px-6 lg:px-8">
       <slot />
     </main>
 
-    <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
+    <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
       <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
         <p class="text-center text-sm text-gray-500 dark:text-gray-400">
           © 2025 Advanced programming. All rights reserved.
