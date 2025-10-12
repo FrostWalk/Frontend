@@ -1,0 +1,27 @@
+services:
+  # Development environment
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: frontend-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NUXT_PUBLIC_API_BASE_URL=https://dev.advancedprogramming.ovh/api
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  # Production environment
+  frontend-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: frontend-prod
+    ports:
+      - "3000:3000"
+    environment:
+      - NUXT_PUBLIC_API_BASE_URL=https://advancedprogramming.ovh/api
+      - NODE_ENV=production
+    restart: unless-stopped
+
