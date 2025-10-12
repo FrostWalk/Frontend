@@ -4,6 +4,8 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-    <PrivacyBanner />
+    <ClientOnly>
+      <PrivacyBanner />
+    </ClientOnly>
   </UApp>
 </template>
