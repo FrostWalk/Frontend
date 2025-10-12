@@ -6,7 +6,7 @@
           <div class="flex">
             <div class="flex-shrink-0 flex items-center">
               <NuxtLink to="/projects" class="text-xl font-bold text-gray-900 dark:text-white">
-                Ferris Store
+                Advanced programming
               </NuxtLink>
             </div>
             <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -73,7 +73,7 @@
     <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
       <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
         <p class="text-center text-sm text-gray-500 dark:text-gray-400">
-          © 2025 Ferris Store. All rights reserved.
+          © 2025 Advanced programming. All rights reserved.
         </p>
       </div>
     </footer>

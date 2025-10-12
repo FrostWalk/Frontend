@@ -32,7 +32,12 @@
     </div>
 
     <div v-else class="grid gap-6">
-      <UCard v-for="project in projects" :key="project.project_id">
+      <UCard
+        v-for="project in projects"
+        :key="project.project_id"
+        class="cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all"
+        @click="navigateTo(`/admin/projects/${project.project_id}`)"
+      >
         <div class="flex justify-between items-start">
           <div class="flex-1">
             <div class="flex items-center gap-3 mb-2">
@@ -63,10 +68,6 @@
               </div>
             </div>
           </div>
-
-          <UDropdown :items="getProjectActions(project)">
-            <UButton color="neutral" variant="ghost" icon="material-symbols:more-vert" />
-          </UDropdown>
         </div>
       </UCard>
     </div>
@@ -99,44 +100,14 @@ const fetchProjects = async () => {
     }
 
     if (data) {
-      projects.value = data.projects
+      // Sort projects by year in descending order
+      projects.value = data.projects.sort((a, b) => b.year - a.year)
     }
   } catch (err) {
     showError('Error', err)
   } finally {
     loading.value = false
   }
-}
-
-const getProjectActions = (project: Project) => {
-  const actions = [
-    [
-      {
-        label: 'View Details',
-        icon: 'material-symbols:visibility',
-        click: () => navigateTo(`/admin/projects/${project.project_id}`)
-      }
-    ],
-    [
-      {
-        label: 'Create Security Code',
-        icon: 'material-symbols:key',
-        click: () => navigateTo(`/admin/security-codes/create?project=${project.project_id}`)
-      }
-    ]
-  ]
-
-  if (roleId.value === roles.PROFESSOR || roleId.value === roles.ROOT) {
-    actions.push([
-      {
-        label: 'Setup Deliverables',
-        icon: 'material-symbols:settings',
-        click: () => navigateTo(`/admin/projects/${project.project_id}/setup`)
-      }
-    ])
-  }
-
-  return actions
 }
 
 const formatDate = (dateStr: string) => {

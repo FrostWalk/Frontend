@@ -21,6 +21,16 @@
                 Projects
               </NuxtLink>
               <NuxtLink
+                v-if="roleId === roles.COORDINATOR"
+                to="/admin/groups"
+                class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
+                active-class="border-b-2 border-white"
+                inactive-class="opacity-80 hover:opacity-100"
+              >
+                <Icon name="material-symbols:groups" class="mr-2" />
+                Groups
+              </NuxtLink>
+              <NuxtLink
                 v-if="roleId === roles.ROOT || roleId === roles.PROFESSOR"
                 to="/admin/users"
                 class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
@@ -38,6 +48,15 @@
               >
                 <Icon name="material-symbols:key" class="mr-2" />
                 Security Codes
+              </NuxtLink>
+              <NuxtLink
+                to="/admin/account"
+                class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
+                active-class="border-b-2 border-white"
+                inactive-class="opacity-80 hover:opacity-100"
+              >
+                <Icon name="material-symbols:account-circle" class="mr-2" />
+                Account
               </NuxtLink>
             </div>
           </div>

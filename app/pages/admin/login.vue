@@ -1,14 +1,7 @@
 <template>
   <UCard>
     <template #header>
-      <div class="text-center">
-        <Icon
-          name="material-symbols:admin-panel-settings"
-          size="48"
-          class="mx-auto text-primary-500 mb-2"
-        />
-        <h2 class="text-2xl font-bold">Admin Login</h2>
-      </div>
+      <h2 class="text-2xl font-bold text-center">Admin Login</h2>
     </template>
 
     <UForm :state="form" class="space-y-4" @submit="onSubmit">
@@ -25,10 +18,7 @@
         />
       </UFormField>
 
-      <UButton type="submit" block :loading="loading">
-        <Icon name="material-symbols:login" class="mr-2" />
-        Login
-      </UButton>
+      <UButton type="submit" block :loading="loading"> Login </UButton>
     </UForm>
 
     <template #footer>

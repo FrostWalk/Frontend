@@ -3,6 +3,21 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
+  app: {
+    head: {
+      link: [
+        // SVG favicon for modern browsers
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        // ICO fallback
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        // PNG favicons for different sizes
+        { rel: 'icon', type: 'image/png', sizes: '96x96', href: '/favicon-96x96.png' }
+      ]
+    },
+    pageTransition: { name: 'page', mode: 'out-in' },
+    layoutTransition: { name: 'layout', mode: 'out-in' }
+  },
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/image',
@@ -28,5 +43,9 @@ export default defineNuxtConfig({
     public: {
       apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'https://advancedprogramming.ovh/api'
     }
+  },
+
+  routeRules: {
+    '/admin/**': { ssr: false }
   }
 })

@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="!privacyStore.bannerDismissed"
+    v-if="isMounted && !privacyStore.bannerDismissed"
     class="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg"
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -30,4 +30,9 @@
 
 <script setup lang="ts">
 const privacyStore = usePrivacyStore()
+const isMounted = ref(false)
+
+onMounted(() => {
+  isMounted.value = true
+})
 </script>
