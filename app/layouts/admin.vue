@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
     <nav class="bg-primary-600 dark:bg-primary-700 shadow-lg">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -11,73 +11,77 @@
               </NuxtLink>
             </div>
             <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <NuxtLink
-                to="/admin/projects"
-                class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
-                active-class="border-b-2 border-white"
-                inactive-class="opacity-80 hover:opacity-100"
-              >
-                <Icon name="material-symbols:folder-open" class="mr-2" />
-                Projects
-              </NuxtLink>
-              <NuxtLink
-                v-if="roleId === roles.COORDINATOR"
-                to="/admin/groups"
-                class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
-                active-class="border-b-2 border-white"
-                inactive-class="opacity-80 hover:opacity-100"
-              >
-                <Icon name="material-symbols:groups" class="mr-2" />
-                Groups
-              </NuxtLink>
-              <NuxtLink
-                v-if="roleId === roles.ROOT || roleId === roles.PROFESSOR"
-                to="/admin/users"
-                class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
-                active-class="border-b-2 border-white"
-                inactive-class="opacity-80 hover:opacity-100"
-              >
-                <Icon name="material-symbols:manage-accounts" class="mr-2" />
-                Admins
-              </NuxtLink>
-              <NuxtLink
-                to="/admin/security-codes"
-                class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
-                active-class="border-b-2 border-white"
-                inactive-class="opacity-80 hover:opacity-100"
-              >
-                <Icon name="material-symbols:key" class="mr-2" />
-                Security Codes
-              </NuxtLink>
-              <NuxtLink
-                to="/admin/account"
-                class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
-                active-class="border-b-2 border-white"
-                inactive-class="opacity-80 hover:opacity-100"
-              >
-                <Icon name="material-symbols:account-circle" class="mr-2" />
-                Account
-              </NuxtLink>
+              <ClientOnly>
+                <NuxtLink
+                  to="/admin/projects"
+                  class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
+                  active-class="border-b-2 border-white"
+                  inactive-class="opacity-80 hover:opacity-100"
+                >
+                  <Icon name="material-symbols:folder-open" class="mr-2" />
+                  Projects
+                </NuxtLink>
+                <NuxtLink
+                  v-if="roleId === roles.COORDINATOR"
+                  to="/admin/groups"
+                  class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
+                  active-class="border-b-2 border-white"
+                  inactive-class="opacity-80 hover:opacity-100"
+                >
+                  <Icon name="material-symbols:groups" class="mr-2" />
+                  Groups
+                </NuxtLink>
+                <NuxtLink
+                  v-if="roleId === roles.ROOT || roleId === roles.PROFESSOR"
+                  to="/admin/users"
+                  class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
+                  active-class="border-b-2 border-white"
+                  inactive-class="opacity-80 hover:opacity-100"
+                >
+                  <Icon name="material-symbols:manage-accounts" class="mr-2" />
+                  Admins
+                </NuxtLink>
+                <NuxtLink
+                  to="/admin/security-codes"
+                  class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
+                  active-class="border-b-2 border-white"
+                  inactive-class="opacity-80 hover:opacity-100"
+                >
+                  <Icon name="material-symbols:key" class="mr-2" />
+                  Security Codes
+                </NuxtLink>
+                <NuxtLink
+                  to="/admin/account"
+                  class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
+                  active-class="border-b-2 border-white"
+                  inactive-class="opacity-80 hover:opacity-100"
+                >
+                  <Icon name="material-symbols:account-circle" class="mr-2" />
+                  Account
+                </NuxtLink>
+              </ClientOnly>
             </div>
           </div>
           <div class="flex items-center space-x-4">
-            <div class="text-white text-sm">
-              <div class="font-medium">{{ user?.first_name }} {{ user?.last_name }}</div>
-              <div class="text-xs opacity-80">{{ getRoleName(roleId) }}</div>
-            </div>
-            <button
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 transition-colors"
-              @click="logout"
-            >
-              <Icon name="material-symbols:logout" size="18" />
-              Logout
-            </button>
+            <ClientOnly>
+              <div class="text-white text-sm">
+                <div class="font-medium">{{ user?.first_name }} {{ user?.last_name }}</div>
+                <div class="text-xs opacity-80">{{ getRoleName(roleId) }}</div>
+              </div>
+              <button
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 transition-colors"
+                @click="logout"
+              >
+                <Icon name="material-symbols:logout" size="18" />
+                Logout
+              </button>
+            </ClientOnly>
           </div>
         </div>
       </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <main class="flex-1 max-w-7xl w-full mx-auto py-6 sm:px-6 lg:px-8">
       <slot />
     </main>
   </div>

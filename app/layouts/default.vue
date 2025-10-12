@@ -31,36 +31,38 @@
             </div>
           </div>
           <div class="flex items-center">
-            <div ref="dropdownRef" class="relative">
-              <button
-                class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
-                @click="isDropdownOpen = !isDropdownOpen"
-              >
-                <Icon name="material-symbols:account-circle" size="20" />
-                {{ user?.first_name || 'User' }}
-                <Icon name="material-symbols:arrow-drop-down" size="20" />
-              </button>
+            <ClientOnly>
+              <div ref="dropdownRef" class="relative">
+                <button
+                  class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  @click="isDropdownOpen = !isDropdownOpen"
+                >
+                  <Icon name="material-symbols:account-circle" size="20" />
+                  {{ user?.first_name || 'User' }}
+                  <Icon name="material-symbols:arrow-drop-down" size="20" />
+                </button>
 
-              <div
-                v-if="isDropdownOpen"
-                class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
-              >
-                <div class="py-1">
-                  <div
-                    class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700"
-                  >
-                    {{ user?.email || '' }}
+                <div
+                  v-if="isDropdownOpen"
+                  class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
+                >
+                  <div class="py-1">
+                    <div
+                      class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700"
+                    >
+                      {{ user?.email || '' }}
+                    </div>
+                    <button
+                      class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                      @click="handleLogout"
+                    >
+                      <Icon name="material-symbols:logout" size="18" />
+                      Logout
+                    </button>
                   </div>
-                  <button
-                    class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                    @click="handleLogout"
-                  >
-                    <Icon name="material-symbols:logout" size="18" />
-                    Logout
-                  </button>
                 </div>
               </div>
-            </div>
+            </ClientOnly>
           </div>
         </div>
       </div>
@@ -69,14 +71,6 @@
     <main class="flex-1 max-w-7xl w-full mx-auto py-6 sm:px-6 lg:px-8">
       <slot />
     </main>
-
-    <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-      <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-        <p class="text-center text-sm text-gray-500 dark:text-gray-400">
-          © 2025 Advanced programming. All rights reserved.
-        </p>
-      </div>
-    </footer>
   </div>
 </template>
 
