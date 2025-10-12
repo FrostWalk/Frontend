@@ -1327,6 +1327,12 @@ export const studentSignupHandler = <ThrowOnError extends boolean = false>(optio
  */
 export const updateStudentDeliverableSelection = <ThrowOnError extends boolean = false>(options: Options<UpdateStudentDeliverableSelectionData, ThrowOnError>) => {
     return (options.client ?? client).patch<UpdateStudentDeliverableSelectionResponses, UpdateStudentDeliverableSelectionErrors, ThrowOnError>({
+        security: [
+            {
+                name: 'X-Student-Token',
+                type: 'apiKey'
+            }
+        ],
         url: '/v1/students/deliverable-selection',
         ...options,
         headers: {
@@ -1341,6 +1347,12 @@ export const updateStudentDeliverableSelection = <ThrowOnError extends boolean =
  */
 export const createStudentDeliverableSelection = <ThrowOnError extends boolean = false>(options: Options<CreateStudentDeliverableSelectionData, ThrowOnError>) => {
     return (options.client ?? client).post<CreateStudentDeliverableSelectionResponses, CreateStudentDeliverableSelectionErrors, ThrowOnError>({
+        security: [
+            {
+                name: 'X-Student-Token',
+                type: 'apiKey'
+            }
+        ],
         url: '/v1/students/deliverable-selection',
         ...options,
         headers: {
@@ -1355,6 +1367,12 @@ export const createStudentDeliverableSelection = <ThrowOnError extends boolean =
  */
 export const deleteStudentDeliverableSelection = <ThrowOnError extends boolean = false>(options: Options<DeleteStudentDeliverableSelectionData, ThrowOnError>) => {
     return (options.client ?? client).delete<DeleteStudentDeliverableSelectionResponses, DeleteStudentDeliverableSelectionErrors, ThrowOnError>({
+        security: [
+            {
+                name: 'X-Student-Token',
+                type: 'apiKey'
+            }
+        ],
         url: '/v1/students/deliverable-selection/project/{project_id}',
         ...options
     });
@@ -1365,8 +1383,71 @@ export const deleteStudentDeliverableSelection = <ThrowOnError extends boolean =
  */
 export const getStudentDeliverableSelection = <ThrowOnError extends boolean = false>(options: Options<GetStudentDeliverableSelectionData, ThrowOnError>) => {
     return (options.client ?? client).get<GetStudentDeliverableSelectionResponses, GetStudentDeliverableSelectionErrors, ThrowOnError>({
+        security: [
+            {
+                name: 'X-Student-Token',
+                type: 'apiKey'
+            }
+        ],
         url: '/v1/students/deliverable-selection/project/{project_id}',
         ...options
+    });
+};
+
+/**
+ * Get the deliverable selection for a group
+ */
+export const getGroupDeliverableSelection = <ThrowOnError extends boolean = false>(options: Options<GetGroupDeliverableSelectionData, ThrowOnError>) => {
+    return (options.client ?? client).get<GetGroupDeliverableSelectionResponses, GetGroupDeliverableSelectionErrors, ThrowOnError>({
+        security: [
+            {
+                name: 'X-Student-Token',
+                type: 'apiKey'
+            }
+        ],
+        url: '/v1/students/group-deliverable-selections/{group_id}',
+        ...options
+    });
+};
+
+/**
+ * Update the link and markdown text of a group deliverable selection (Group Leaders only)
+ * Note: The deliverable choice itself cannot be changed
+ */
+export const updateGroupDeliverableSelection = <ThrowOnError extends boolean = false>(options: Options<UpdateGroupDeliverableSelectionData, ThrowOnError>) => {
+    return (options.client ?? client).patch<UpdateGroupDeliverableSelectionResponses, UpdateGroupDeliverableSelectionErrors, ThrowOnError>({
+        security: [
+            {
+                name: 'X-Student-Token',
+                type: 'apiKey'
+            }
+        ],
+        url: '/v1/students/group-deliverable-selections/{group_id}',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+};
+
+/**
+ * Create a group deliverable selection (Group Leaders only)
+ */
+export const createGroupDeliverableSelection = <ThrowOnError extends boolean = false>(options: Options<CreateGroupDeliverableSelectionData, ThrowOnError>) => {
+    return (options.client ?? client).post<CreateGroupDeliverableSelectionResponses, CreateGroupDeliverableSelectionErrors, ThrowOnError>({
+        security: [
+            {
+                name: 'X-Student-Token',
+                type: 'apiKey'
+            }
+        ],
+        url: '/v1/students/group-deliverable-selections/{group_id}',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
     });
 };
 
@@ -1448,45 +1529,6 @@ export const deleteGroup = <ThrowOnError extends boolean = false>(options: Optio
         ],
         url: '/v1/students/groups/{group_id}',
         ...options
-    });
-};
-
-/**
- * Get the deliverable selection for a group
- */
-export const getGroupDeliverableSelection = <ThrowOnError extends boolean = false>(options: Options<GetGroupDeliverableSelectionData, ThrowOnError>) => {
-    return (options.client ?? client).get<GetGroupDeliverableSelectionResponses, GetGroupDeliverableSelectionErrors, ThrowOnError>({
-        url: '/v1/students/groups/{group_id}/deliverable-selection',
-        ...options
-    });
-};
-
-/**
- * Update the link and markdown text of a group deliverable selection (Group Leaders only)
- * Note: The deliverable choice itself cannot be changed
- */
-export const updateGroupDeliverableSelection = <ThrowOnError extends boolean = false>(options: Options<UpdateGroupDeliverableSelectionData, ThrowOnError>) => {
-    return (options.client ?? client).patch<UpdateGroupDeliverableSelectionResponses, UpdateGroupDeliverableSelectionErrors, ThrowOnError>({
-        url: '/v1/students/groups/{group_id}/deliverable-selection',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-};
-
-/**
- * Create a group deliverable selection (Group Leaders only)
- */
-export const createGroupDeliverableSelection = <ThrowOnError extends boolean = false>(options: Options<CreateGroupDeliverableSelectionData, ThrowOnError>) => {
-    return (options.client ?? client).post<CreateGroupDeliverableSelectionResponses, CreateGroupDeliverableSelectionErrors, ThrowOnError>({
-        url: '/v1/students/groups/{group_id}/deliverable-selection',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
     });
 };
 
@@ -1615,12 +1657,6 @@ export const studentsMeHandler = <ThrowOnError extends boolean = false>(options?
  */
 export const updateMeStudentHandler = <ThrowOnError extends boolean = false>(options: Options<UpdateMeStudentHandlerData, ThrowOnError>) => {
     return (options.client ?? client).patch<UpdateMeStudentHandlerResponses, UpdateMeStudentHandlerErrors, ThrowOnError>({
-        security: [
-            {
-                name: 'X-Student-Token',
-                type: 'apiKey'
-            }
-        ],
         url: '/v1/students/users/me',
         ...options,
         headers: {
