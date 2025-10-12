@@ -48,44 +48,261 @@
 
         <!-- Group Deliverables Tab -->
         <template #group-deliverables>
-          <div class="space-y-4">
-            <div v-if="groupDeliverables.length === 0" class="text-center py-12">
-              <p class="text-gray-600">No group deliverables configured</p>
+          <div class="space-y-6">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  Group Deliverables
+                </h3>
+                <p class="text-sm text-gray-600 mt-1">
+                  {{ groupDeliverables.length }} deliverable{{
+                    groupDeliverables.length !== 1 ? 's' : ''
+                  }}
+                  configured
+                </p>
+              </div>
               <UButton
+                v-if="groupDeliverables.length === 0"
                 :to="`/admin/projects/${project.project_id}/setup`"
                 color="primary"
-                class="mt-4"
+                icon="material-symbols:add"
               >
                 Setup Deliverables
               </UButton>
             </div>
-            <UCard v-for="deliverable in groupDeliverables" :key="deliverable.group_deliverable_id">
-              <h4 class="font-semibold mb-2">{{ deliverable.name }}</h4>
-              <p class="text-sm text-gray-600">ID: {{ deliverable.group_deliverable_id }}</p>
-            </UCard>
+
+            <div
+              v-if="groupDeliverables.length === 0"
+              class="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg"
+            >
+              <Icon
+                name="material-symbols:assignment"
+                size="48"
+                class="mx-auto text-gray-400 mb-4"
+              />
+              <p class="text-gray-600 mb-2">No group deliverables configured</p>
+              <p class="text-sm text-gray-500">
+                Set up deliverables to allow groups to select their assignments
+              </p>
+            </div>
+
+            <div v-else class="space-y-4">
+              <UCard
+                v-for="deliverable in groupDeliverables"
+                :key="deliverable.group_deliverable_id"
+              >
+                <template #header>
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <h4 class="font-semibold text-lg">{{ deliverable.name }}</h4>
+                      <p class="text-sm text-gray-600 mt-1">
+                        ID: {{ deliverable.group_deliverable_id }}
+                      </p>
+                    </div>
+                    <UBadge color="primary" variant="soft"> Group Deliverable </UBadge>
+                  </div>
+                </template>
+
+                <div class="space-y-4">
+                  <!-- Components Section -->
+                  <div>
+                    <h5
+                      class="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2"
+                    >
+                      <Icon name="material-symbols:extension" size="20" class="text-primary-500" />
+                      Components
+                    </h5>
+                    <div
+                      v-if="
+                        getGroupComponentsForDeliverable(deliverable.group_deliverable_id)
+                          .length === 0
+                      "
+                      class="text-center py-6 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                    >
+                      <Icon
+                        name="material-symbols:extension-off"
+                        size="32"
+                        class="mx-auto text-gray-400 mb-2"
+                      />
+                      <p class="text-sm text-gray-600">No components assigned</p>
+                    </div>
+                    <div v-else class="grid gap-3">
+                      <div
+                        v-for="component in getGroupComponentsForDeliverable(
+                          deliverable.group_deliverable_id
+                        )"
+                        :key="component.id"
+                        class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                      >
+                        <div class="flex items-center gap-3">
+                          <Icon
+                            name="material-symbols:check-circle"
+                            size="20"
+                            class="text-green-500"
+                          />
+                          <div>
+                            <p class="font-medium">{{ component.component_name }}</p>
+                            <p class="text-sm text-gray-600">
+                              Component ID: {{ component.group_deliverable_component_id }}
+                            </p>
+                          </div>
+                        </div>
+                        <UBadge color="secondary" variant="soft">
+                          Qty: {{ component.quantity }}
+                        </UBadge>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Actions -->
+                  <div
+                    class="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700"
+                  >
+                    <UButton color="neutral" variant="ghost" size="sm" icon="material-symbols:edit">
+                      Edit
+                    </UButton>
+                    <UButton
+                      color="primary"
+                      variant="soft"
+                      size="sm"
+                      icon="material-symbols:visibility"
+                    >
+                      View Details
+                    </UButton>
+                  </div>
+                </div>
+              </UCard>
+            </div>
           </div>
         </template>
 
         <!-- Student Deliverables Tab -->
         <template #student-deliverables>
-          <div class="space-y-4">
-            <div v-if="studentDeliverables.length === 0" class="text-center py-12">
-              <p class="text-gray-600">No student deliverables configured</p>
+          <div class="space-y-6">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  Student Deliverables
+                </h3>
+                <p class="text-sm text-gray-600 mt-1">
+                  {{ studentDeliverables.length }} deliverable{{
+                    studentDeliverables.length !== 1 ? 's' : ''
+                  }}
+                  configured
+                </p>
+              </div>
               <UButton
+                v-if="studentDeliverables.length === 0"
                 :to="`/admin/projects/${project.project_id}/setup`"
                 color="primary"
-                class="mt-4"
+                icon="material-symbols:add"
               >
                 Setup Deliverables
               </UButton>
             </div>
-            <UCard
-              v-for="deliverable in studentDeliverables"
-              :key="deliverable.student_deliverable_id"
+
+            <div
+              v-if="studentDeliverables.length === 0"
+              class="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg"
             >
-              <h4 class="font-semibold mb-2">{{ deliverable.name }}</h4>
-              <p class="text-sm text-gray-600">ID: {{ deliverable.student_deliverable_id }}</p>
-            </UCard>
+              <Icon name="material-symbols:person" size="48" class="mx-auto text-gray-400 mb-4" />
+              <p class="text-gray-600 mb-2">No student deliverables configured</p>
+              <p class="text-sm text-gray-500">
+                Set up deliverables to allow students to select their assignments
+              </p>
+            </div>
+
+            <div v-else class="space-y-4">
+              <UCard
+                v-for="deliverable in studentDeliverables"
+                :key="deliverable.student_deliverable_id"
+              >
+                <template #header>
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <h4 class="font-semibold text-lg">{{ deliverable.name }}</h4>
+                      <p class="text-sm text-gray-600 mt-1">
+                        ID: {{ deliverable.student_deliverable_id }}
+                      </p>
+                    </div>
+                    <UBadge color="secondary" variant="soft"> Student Deliverable </UBadge>
+                  </div>
+                </template>
+
+                <div class="space-y-4">
+                  <!-- Components Section -->
+                  <div>
+                    <h5
+                      class="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2"
+                    >
+                      <Icon
+                        name="material-symbols:extension"
+                        size="20"
+                        class="text-secondary-500"
+                      />
+                      Components
+                    </h5>
+                    <div
+                      v-if="
+                        getStudentComponentsForDeliverable(deliverable.student_deliverable_id)
+                          .length === 0
+                      "
+                      class="text-center py-6 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                    >
+                      <Icon
+                        name="material-symbols:extension-off"
+                        size="32"
+                        class="mx-auto text-gray-400 mb-2"
+                      />
+                      <p class="text-sm text-gray-600">No components assigned</p>
+                    </div>
+                    <div v-else class="grid gap-3">
+                      <div
+                        v-for="component in getStudentComponentsForDeliverable(
+                          deliverable.student_deliverable_id
+                        )"
+                        :key="component.id"
+                        class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                      >
+                        <div class="flex items-center gap-3">
+                          <Icon
+                            name="material-symbols:check-circle"
+                            size="20"
+                            class="text-green-500"
+                          />
+                          <div>
+                            <p class="font-medium">{{ component.component_name }}</p>
+                            <p class="text-sm text-gray-600">
+                              Component ID: {{ component.student_deliverable_component_id }}
+                            </p>
+                          </div>
+                        </div>
+                        <UBadge color="secondary" variant="soft">
+                          Qty: {{ component.quantity }}
+                        </UBadge>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Actions -->
+                  <div
+                    class="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700"
+                  >
+                    <UButton color="neutral" variant="ghost" size="sm" icon="material-symbols:edit">
+                      Edit
+                    </UButton>
+                    <UButton
+                      color="secondary"
+                      variant="soft"
+                      size="sm"
+                      icon="material-symbols:visibility"
+                    >
+                      View Details
+                    </UButton>
+                  </div>
+                </div>
+              </UCard>
+            </div>
           </div>
         </template>
 
@@ -301,7 +518,9 @@ import type {
   StudentDeliverableComponent,
   GroupInfo,
   CoordinatorDetail,
-  AdminResponseScheme
+  AdminResponseScheme,
+  GroupDeliverableComponentResponse,
+  StudentDeliverableComponentResponse
 } from '~/composables/api/types.gen'
 import {
   getOneProjectHandler,
@@ -310,7 +529,9 @@ import {
   getAllAdminsHandler,
   assignCoordinator as assignCoordinatorApi,
   removeCoordinator as removeCoordinatorApi,
-  createAdminHandler
+  createAdminHandler,
+  getComponentsForGroupDeliverableHandler,
+  getComponentsForStudentDeliverableHandler
 } from '~/composables/api/sdk.gen'
 
 definePageMeta({
@@ -341,13 +562,19 @@ const coordinator = ref<CoordinatorDetail | null>(null)
 const coordinators = ref<AdminResponseScheme[]>([])
 const selectedAdmin = ref<AdminResponseScheme | null>(null)
 
+// Component associations for deliverables
+const groupDeliverableComponents = ref<Map<number, GroupDeliverableComponentResponse[]>>(new Map())
+const studentDeliverableComponents = ref<Map<number, StudentDeliverableComponentResponse[]>>(
+  new Map()
+)
+
 const coordinatorForm = reactive({
   email: '',
   first_name: '',
   last_name: ''
 })
 
-const currentTab = ref(0)
+const currentTab = ref('overview')
 
 // Close modals when switching tabs
 watch(currentTab, () => {
@@ -355,22 +582,37 @@ watch(currentTab, () => {
   showAssignModal.value = false
 })
 const tabs = [
-  { key: 'overview', label: 'Overview', icon: 'material-symbols:info', slot: 'overview' },
+  {
+    key: 'overview',
+    value: 'overview',
+    label: 'Overview',
+    icon: 'material-symbols:info',
+    slot: 'overview'
+  },
   {
     key: 'group-deliverables',
+    value: 'group-deliverables',
     label: 'Group Deliverables',
     icon: 'material-symbols:group-work',
     slot: 'group-deliverables'
   },
   {
     key: 'student-deliverables',
+    value: 'student-deliverables',
     label: 'Student Deliverables',
     icon: 'material-symbols:person',
     slot: 'student-deliverables'
   },
-  { key: 'groups', label: 'Groups', icon: 'material-symbols:groups', slot: 'groups' },
+  {
+    key: 'groups',
+    value: 'groups',
+    label: 'Groups',
+    icon: 'material-symbols:groups',
+    slot: 'groups'
+  },
   {
     key: 'coordinators',
+    value: 'coordinators',
     label: 'Coordinators',
     icon: 'material-symbols:admin-panel-settings',
     slot: 'coordinators'
@@ -397,6 +639,9 @@ const fetchProject = async () => {
       studentDeliverables.value = data.student_deliverables
       groupComponents.value = data.group_components
       studentComponents.value = data.student_components
+
+      // Fetch component associations for deliverables
+      await fetchDeliverableComponents()
     }
 
     // Fetch groups
@@ -558,6 +803,52 @@ const createCoordinator = async () => {
   }
 }
 
+// Helper functions to get components for deliverables
+const getGroupComponentsForDeliverable = (deliverableId: number) => {
+  return groupDeliverableComponents.value.get(deliverableId) || []
+}
+
+const getStudentComponentsForDeliverable = (deliverableId: number) => {
+  return studentDeliverableComponents.value.get(deliverableId) || []
+}
+
+// Fetch component associations for deliverables
+const fetchDeliverableComponents = async () => {
+  // Fetch group deliverable components
+  for (const deliverable of groupDeliverables.value) {
+    try {
+      const { data } = await getComponentsForGroupDeliverableHandler({
+        path: { id: deliverable.group_deliverable_id }
+      })
+      if (data) {
+        groupDeliverableComponents.value.set(deliverable.group_deliverable_id, data.components)
+      }
+    } catch (error) {
+      console.warn(
+        `Failed to fetch components for group deliverable ${deliverable.group_deliverable_id}:`,
+        error
+      )
+    }
+  }
+
+  // Fetch student deliverable components
+  for (const deliverable of studentDeliverables.value) {
+    try {
+      const { data } = await getComponentsForStudentDeliverableHandler({
+        path: { id: deliverable.student_deliverable_id }
+      })
+      if (data) {
+        studentDeliverableComponents.value.set(deliverable.student_deliverable_id, data.components)
+      }
+    } catch (error) {
+      console.warn(
+        `Failed to fetch components for student deliverable ${deliverable.student_deliverable_id}:`,
+        error
+      )
+    }
+  }
+}
+
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -569,6 +860,6 @@ const formatDate = (dateStr: string) => {
 onMounted(() => {
   fetchProject()
   // Ensure Overview tab is selected by default
-  currentTab.value = 0
+  currentTab.value = 'overview'
 })
 </script>

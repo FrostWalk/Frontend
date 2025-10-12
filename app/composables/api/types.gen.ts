@@ -3004,6 +3004,10 @@ export type StudentsLoginHandlerErrors = {
      */
     401: JsonError;
     /**
+     * Account pending email confirmation
+     */
+    403: JsonError;
+    /**
      * Internal server error
      */
     500: JsonError;
