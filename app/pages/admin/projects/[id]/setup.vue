@@ -37,7 +37,7 @@
           <div v-for="(comp, index) in groupComponents" :key="index" class="flex gap-2">
             <UInput
               v-model="comp.name"
-              placeholder="Component name (e.g., Motor, Sensor)"
+              placeholder="Component name (e.g., Tool, World generator)"
               class="flex-1"
             />
             <UButton
@@ -59,7 +59,11 @@
         <h3 class="font-semibold mb-4">Create Student Components</h3>
         <div class="space-y-3">
           <div v-for="(comp, index) in studentComponents" :key="index" class="flex gap-2">
-            <UInput v-model="comp.name" placeholder="Component name" class="flex-1" />
+            <UInput
+              v-model="comp.name"
+              placeholder="Component name (e.g., Robot, Visualizer)"
+              class="flex-1"
+            />
             <UButton
               color="error"
               variant="ghost"

@@ -137,14 +137,30 @@ const onSubmit = async () => {
   loading.value = true
 
   try {
+    // Build the request body, only including deadline if it has a value
+    const body: {
+      name: string
+      max_group_size: number
+      max_student_uploads: number
+      deliverable_selection_deadline?: string | null
+      active: boolean
+    } = {
+      name: form.name,
+      max_group_size: form.max_group_size,
+      max_student_uploads: form.max_student_uploads,
+      active: form.active
+    }
+
+    // Only include deadline if it has a value, and convert to ISO 8601 with Z suffix
+    if (form.deliverable_selection_deadline && form.deliverable_selection_deadline.trim() !== '') {
+      // datetime-local returns format like "2025-12-15T23:59"
+      // Convert to ISO 8601 with seconds and Z suffix: "2025-12-15T23:59:59Z"
+      const date = new Date(form.deliverable_selection_deadline)
+      body.deliverable_selection_deadline = date.toISOString()
+    }
+
     const { data, error } = await createProjectHandler({
-      body: {
-        name: form.name,
-        max_group_size: form.max_group_size,
-        max_student_uploads: form.max_student_uploads,
-        deliverable_selection_deadline: form.deliverable_selection_deadline || null,
-        active: form.active
-      }
+      body
     })
 
     if (error) {
