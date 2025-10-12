@@ -1,4 +1,4 @@
-# Ferris Store - Frontend Application
+# Advanced programming - Frontend Application
 
 A comprehensive Nuxt 4 frontend application for managing student projects, groups, and deliverables.
 

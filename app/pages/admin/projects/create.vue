@@ -1,52 +1,115 @@
 <template>
-  <div class="max-w-3xl mx-auto">
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Create Project</h1>
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Create New Project</h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">
+        Set up a new project with configurations for groups and deliverables
+      </p>
+    </div>
 
-    <UCard>
-      <UForm :state="form" class="space-y-4" @submit="onSubmit">
-        <UFormField label="Project Name" name="name" required>
-          <UInput v-model="form.name" placeholder="Advanced Programming 2025" />
-        </UFormField>
+    <UForm :state="form" @submit="onSubmit">
+      <!-- Basic Information Section -->
+      <UCard class="mb-6">
+        <template #header>
+          <div class="flex items-center gap-2">
+            <Icon name="material-symbols:info" class="text-primary-500" size="20" />
+            <h2 class="text-lg font-semibold">Basic Information</h2>
+          </div>
+        </template>
 
-        <div class="grid grid-cols-2 gap-4">
-          <UFormField label="Max Group Size" name="max_group_size" required>
-            <UInput v-model.number="form.max_group_size" type="number" min="1" placeholder="4" />
-          </UFormField>
-
-          <UFormField label="Max Student Uploads" name="max_student_uploads" required>
-            <UInput
-              v-model.number="form.max_student_uploads"
-              type="number"
-              min="1"
-              placeholder="10"
-            />
+        <div class="space-y-4">
+          <UFormField label="Project Name" name="name" required>
+            <UInput v-model="form.name" placeholder="e.g., Advanced Programming 2025" size="lg" />
           </UFormField>
         </div>
+      </UCard>
 
-        <UFormField
-          label="Deliverable Selection Deadline"
-          name="deliverable_selection_deadline"
-          help="Optional: Set a deadline for deliverable selections"
-        >
-          <UInput v-model="form.deliverable_selection_deadline" type="datetime-local" />
-        </UFormField>
+      <!-- Configuration Section -->
+      <UCard class="mb-6">
+        <template #header>
+          <div class="flex items-center gap-2">
+            <Icon name="material-symbols:settings" class="text-primary-500" size="20" />
+            <h2 class="text-lg font-semibold">Configuration</h2>
+          </div>
+        </template>
+
+        <div class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <UFormField
+              label="Max Group Size"
+              name="max_group_size"
+              required
+              help="Maximum number of students per group"
+            >
+              <UInput
+                v-model.number="form.max_group_size"
+                type="number"
+                min="1"
+                placeholder="4"
+                size="lg"
+              />
+            </UFormField>
+
+            <UFormField
+              label="Max Student Uploads"
+              name="max_student_uploads"
+              required
+              help="Maximum uploads allowed per student"
+            >
+              <UInput
+                v-model.number="form.max_student_uploads"
+                type="number"
+                min="1"
+                placeholder="10"
+                size="lg"
+              />
+            </UFormField>
+          </div>
+
+          <UFormField
+            label="Deliverable Selection Deadline"
+            name="deliverable_selection_deadline"
+            help="Optional: Students must select their deliverable before this date"
+          >
+            <UInput v-model="form.deliverable_selection_deadline" type="datetime-local" size="lg" />
+          </UFormField>
+        </div>
+      </UCard>
+
+      <!-- Status Section -->
+      <UCard class="mb-6">
+        <template #header>
+          <div class="flex items-center gap-2">
+            <Icon name="material-symbols:toggle-on" class="text-primary-500" size="20" />
+            <h2 class="text-lg font-semibold">Status</h2>
+          </div>
+        </template>
 
         <UFormField label="Active Status" name="active">
-          <UToggle v-model="form.active" />
-          <template #help>
-            {{ form.active ? 'Project is active and visible to students' : 'Project is inactive' }}
-          </template>
+          <div class="flex items-center gap-3">
+            <USwitch v-model="form.active" size="lg" />
+            <span
+              class="text-sm font-medium"
+              :class="form.active ? 'text-green-600' : 'text-gray-500'"
+            >
+              {{ form.active ? 'Active - Visible to students' : 'Inactive - Hidden from students' }}
+            </span>
+          </div>
         </UFormField>
+      </UCard>
 
-        <div class="flex gap-3 pt-4">
-          <UButton type="submit" :loading="loading">
-            <Icon name="material-symbols:check" class="mr-2" />
-            Create Project
-          </UButton>
-          <UButton to="/admin/projects" color="neutral" variant="ghost"> Cancel </UButton>
-        </div>
-      </UForm>
-    </UCard>
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-3 mt-8">
+        <UButton to="/admin/projects" color="error" size="lg">
+          <Icon name="material-symbols:close" class="mr-2" />
+          Cancel
+        </UButton>
+        <UButton type="submit" :loading="loading" size="lg">
+          <Icon name="material-symbols:check" class="mr-2" />
+          Create Project
+        </UButton>
+      </div>
+    </UForm>
   </div>
 </template>
 
