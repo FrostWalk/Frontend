@@ -32,7 +32,12 @@
     </div>
 
     <div v-else class="grid gap-6">
-      <UCard v-for="project in projects" :key="project.project_id">
+      <UCard
+        v-for="project in projects"
+        :key="project.project_id"
+        class="cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all"
+        @click="navigateTo(`/admin/projects/${project.project_id}`)"
+      >
         <div class="flex justify-between items-start">
           <div class="flex-1">
             <div class="flex items-center gap-3 mb-2">
@@ -64,7 +69,7 @@
             </div>
           </div>
 
-          <UDropdownMenu :items="getProjectActions(project)">
+          <UDropdownMenu :items="getProjectActions(project)" @click.stop>
             <UButton color="neutral" variant="ghost" icon="material-symbols:more-vert" />
           </UDropdownMenu>
         </div>

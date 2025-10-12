@@ -11,25 +11,39 @@
 
     <div v-else-if="project">
       <div class="mb-6">
-        <div class="flex justify-between items-start">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ project.name }}</h1>
-            <p class="text-gray-600 mt-1">Year: {{ project.year }}</p>
-          </div>
-          <UBadge :color="project.active ? 'success' : 'neutral'" size="lg">
-            {{ project.active ? 'Active' : 'Inactive' }}
-          </UBadge>
-        </div>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ project.name }}</h1>
+        <p class="text-gray-600 mt-1">Year: {{ project.year }}</p>
       </div>
 
       <UTabs v-model="currentTab" :items="tabs">
         <template #overview>
           <UCard>
             <template #header>
-              <h3 class="font-semibold">Project Details</h3>
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold">Project Details</h3>
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  icon="material-symbols:edit"
+                  @click="openEditProjectModal"
+                >
+                  Edit Project
+                </UButton>
+              </div>
             </template>
 
             <div class="grid grid-cols-2 gap-4">
+              <div>
+                <p class="text-sm text-gray-500">Project Name</p>
+                <p class="font-medium">{{ project.name }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">Status</p>
+                <UBadge :color="project.active ? 'success' : 'neutral'" variant="soft">
+                  {{ project.active ? 'Active' : 'Inactive' }}
+                </UBadge>
+              </div>
               <div>
                 <p class="text-sm text-gray-500">Max Group Size</p>
                 <p class="font-medium">{{ project.max_group_size }}</p>
@@ -619,6 +633,63 @@
         </div>
       </template>
     </UModal>
+
+    <!-- Edit Project Modal -->
+    <UModal
+      v-model:open="showEditProjectModal"
+      title="Edit Project"
+      description="Modify project details and configuration"
+    >
+      <template #body>
+        <UForm :state="projectForm" class="space-y-4">
+          <UFormField label="Project Name" name="name" required>
+            <UInput v-model="projectForm.name" placeholder="Enter project name" />
+          </UFormField>
+
+          <div class="grid grid-cols-2 gap-4">
+            <UFormField label="Max Group Size" name="max_group_size" required>
+              <UInput v-model.number="projectForm.max_group_size" type="number" min="1" />
+            </UFormField>
+
+            <UFormField label="Max Student Uploads" name="max_student_uploads" required>
+              <UInput v-model.number="projectForm.max_student_uploads" type="number" min="1" />
+            </UFormField>
+          </div>
+
+          <UFormField label="Deliverable Selection Deadline" name="deliverable_selection_deadline">
+            <UInput v-model="projectForm.deliverable_selection_deadline" type="datetime-local" />
+          </UFormField>
+
+          <UFormField label="Active Status" name="active">
+            <div class="flex items-center gap-3">
+              <USwitch v-model="projectForm.active" />
+              <span
+                class="text-sm font-medium"
+                :class="projectForm.active ? 'text-green-600' : 'text-gray-500'"
+              >
+                {{
+                  projectForm.active
+                    ? 'Active - Visible to students'
+                    : 'Inactive - Hidden from students'
+                }}
+              </span>
+            </div>
+          </UFormField>
+        </UForm>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showEditProjectModal = false">
+            Cancel
+          </UButton>
+          <UButton :loading="editingProject" @click="updateProject">
+            <Icon name="material-symbols:save" class="mr-2" />
+            Save Changes
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -637,6 +708,7 @@ import type {
 } from '~/composables/api/types.gen'
 import {
   getOneProjectHandler,
+  updateProjectHandler,
   getProjectGroups,
   listCoordinators,
   getAllAdminsHandler,
@@ -673,6 +745,10 @@ const creatingCoordinator = ref(false)
 const showEditGroupDeliverableModal = ref(false)
 const showEditStudentDeliverableModal = ref(false)
 const editingDeliverable = ref(false)
+
+// Edit project modal
+const showEditProjectModal = ref(false)
+const editingProject = ref(false)
 
 const project = ref<Project | null>(null)
 const groupDeliverables = ref<GroupDeliverable[]>([])
@@ -717,6 +793,14 @@ const studentDeliverableForm = reactive({
   name: ''
 })
 
+const projectForm = reactive({
+  name: '',
+  max_group_size: 0,
+  max_student_uploads: 0,
+  deliverable_selection_deadline: '',
+  active: true
+})
+
 const currentTab = ref('overview')
 
 // Close modals when switching tabs
@@ -725,6 +809,7 @@ watch(currentTab, () => {
   showAssignModal.value = false
   showEditGroupDeliverableModal.value = false
   showEditStudentDeliverableModal.value = false
+  showEditProjectModal.value = false
 })
 const tabs = [
   {
@@ -953,6 +1038,80 @@ const createCoordinator = async () => {
     showError('Error', err)
   } finally {
     creatingCoordinator.value = false
+  }
+}
+
+// Edit project functions
+const openEditProjectModal = () => {
+  if (!project.value) return
+
+  projectForm.name = project.value.name
+  projectForm.max_group_size = project.value.max_group_size
+  projectForm.max_student_uploads = project.value.max_student_uploads
+  projectForm.active = project.value.active
+
+  // Format datetime for datetime-local input
+  if (project.value.deliverable_selection_deadline) {
+    const date = new Date(project.value.deliverable_selection_deadline)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    projectForm.deliverable_selection_deadline = `${year}-${month}-${day}T${hours}:${minutes}`
+  } else {
+    projectForm.deliverable_selection_deadline = ''
+  }
+
+  showEditProjectModal.value = true
+}
+
+const updateProject = async () => {
+  if (!project.value) return
+
+  editingProject.value = true
+
+  try {
+    // Build the request body
+    const body: {
+      name?: string
+      max_group_size?: number
+      max_student_uploads?: number
+      active?: boolean
+    } = {
+      name: projectForm.name,
+      max_group_size: projectForm.max_group_size,
+      max_student_uploads: projectForm.max_student_uploads,
+      active: projectForm.active
+    }
+
+    const { error } = await updateProjectHandler({
+      path: { id: project.value.project_id },
+      body
+    })
+
+    if (error) {
+      showError('Update Failed', error)
+      return
+    }
+
+    // Update local project data
+    project.value.name = projectForm.name
+    project.value.max_group_size = projectForm.max_group_size
+    project.value.max_student_uploads = projectForm.max_student_uploads
+    project.value.active = projectForm.active
+
+    toast.add({
+      title: 'Project Updated',
+      description: 'Project details updated successfully',
+      color: 'success'
+    })
+
+    showEditProjectModal.value = false
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    editingProject.value = false
   }
 }
 
