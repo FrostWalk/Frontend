@@ -21,7 +21,7 @@
             <template #header>
               <div class="flex items-center justify-between">
                 <h3 class="font-semibold">Project Details</h3>
-                <div class="flex gap-2">
+                <div v-if="roleId === roles.PROFESSOR || roleId === roles.ROOT" class="flex gap-2">
                   <UButton
                     color="neutral"
                     variant="ghost"
@@ -32,7 +32,6 @@
                     Edit Project
                   </UButton>
                   <UButton
-                    v-if="roleId === roles.PROFESSOR || roleId === roles.ROOT"
                     color="error"
                     variant="ghost"
                     size="sm"
@@ -868,43 +867,54 @@ watch(currentTab, () => {
   showEditProjectModal.value = false
   showDeleteProjectModal.value = false
 })
-const tabs = [
-  {
-    key: 'overview',
-    value: 'overview',
-    label: 'Overview',
-    icon: 'material-symbols:info',
-    slot: 'overview'
-  },
-  {
-    key: 'group-deliverables',
-    value: 'group-deliverables',
-    label: 'Group Deliverables',
-    icon: 'material-symbols:group-work',
-    slot: 'group-deliverables'
-  },
-  {
-    key: 'student-deliverables',
-    value: 'student-deliverables',
-    label: 'Student Deliverables',
-    icon: 'material-symbols:person',
-    slot: 'student-deliverables'
-  },
-  {
-    key: 'groups',
-    value: 'groups',
-    label: 'Groups',
-    icon: 'material-symbols:groups',
-    slot: 'groups'
-  },
-  {
-    key: 'coordinators',
-    value: 'coordinators',
-    label: 'Coordinators',
-    icon: 'material-symbols:admin-panel-settings',
-    slot: 'coordinators'
+// Tabs configuration - coordinators only see overview
+const overviewTab = {
+  key: 'overview',
+  value: 'overview',
+  label: 'Overview',
+  icon: 'material-symbols:info',
+  slot: 'overview'
+}
+
+const tabs = computed(() => {
+  // Coordinators only see the overview tab
+  if (roleId.value === roles.COORDINATOR) {
+    return [overviewTab]
   }
-]
+
+  // Full tabs for ROOT and PROFESSOR
+  return [
+    overviewTab,
+    {
+      key: 'group-deliverables',
+      value: 'group-deliverables',
+      label: 'Group Deliverables',
+      icon: 'material-symbols:group-work',
+      slot: 'group-deliverables'
+    },
+    {
+      key: 'student-deliverables',
+      value: 'student-deliverables',
+      label: 'Student Deliverables',
+      icon: 'material-symbols:person',
+      slot: 'student-deliverables'
+    },
+    {
+      key: 'groups',
+      value: 'groups',
+      label: 'Groups',
+      icon: 'material-symbols:groups',
+      slot: 'groups'
+    },
+    {
+      key: 'coordinators',
+      value: 'coordinators',
+      label: 'Coordinators',
+      icon: 'material-symbols:admin-panel-settings',
+      slot: 'coordinators'
+    }
+  ]
+})
 
 const projectId = parseInt(route.params.id as string)
 

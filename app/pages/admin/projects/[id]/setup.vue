@@ -390,7 +390,17 @@ import {
 } from '~/composables/api/sdk.gen'
 
 definePageMeta({
-  middleware: 'admin-auth',
+  middleware: [
+    'admin-auth',
+    async () => {
+      const { roleId, roles } = useAdminAuth()
+
+      // Only ROOT and PROFESSOR can access setup page
+      if (roleId.value === roles.COORDINATOR) {
+        return navigateTo('/admin/projects')
+      }
+    }
+  ],
   layout: 'admin'
 })
 
