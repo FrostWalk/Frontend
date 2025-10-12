@@ -732,6 +732,23 @@ export type UpdateGroupDeliverableSelectionResponse = {
     message: string;
 };
 
+export type UpdateMeAdminScheme = {
+    email?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
+    old_password: string;
+    password?: string | null;
+};
+
+export type UpdateMeStudentScheme = {
+    email?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
+    old_password: string;
+    password?: string | null;
+    university_id?: number | null;
+};
+
 export type UpdateProjectScheme = {
     active?: boolean | null;
     max_group_size?: number | null;
@@ -2823,6 +2840,41 @@ export type AdminsMeHandlerResponses = {
 
 export type AdminsMeHandlerResponse = AdminsMeHandlerResponses[keyof AdminsMeHandlerResponses];
 
+export type UpdateMeAdminHandlerData = {
+    body: UpdateMeAdminScheme;
+    path?: never;
+    query?: never;
+    url: '/v1/admins/users/me';
+};
+
+export type UpdateMeAdminHandlerErrors = {
+    /**
+     * Invalid data in request
+     */
+    400: JsonError;
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Email already exists
+     */
+    409: JsonError;
+    /**
+     * Internal server error occurred
+     */
+    500: JsonError;
+};
+
+export type UpdateMeAdminHandlerError = UpdateMeAdminHandlerErrors[keyof UpdateMeAdminHandlerErrors];
+
+export type UpdateMeAdminHandlerResponses = {
+    /**
+     * Admin profile updated successfully
+     */
+    200: unknown;
+};
+
 export type DeleteAdminHandlerData = {
     body?: never;
     path: {
@@ -3685,6 +3737,41 @@ export type StudentsMeHandlerResponses = {
 };
 
 export type StudentsMeHandlerResponse = StudentsMeHandlerResponses[keyof StudentsMeHandlerResponses];
+
+export type UpdateMeStudentHandlerData = {
+    body: UpdateMeStudentScheme;
+    path?: never;
+    query?: never;
+    url: '/v1/students/users/me';
+};
+
+export type UpdateMeStudentHandlerErrors = {
+    /**
+     * Invalid data in request
+     */
+    400: JsonError;
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Email already exists
+     */
+    409: JsonError;
+    /**
+     * Internal server error occurred
+     */
+    500: JsonError;
+};
+
+export type UpdateMeStudentHandlerError = UpdateMeStudentHandlerErrors[keyof UpdateMeStudentHandlerErrors];
+
+export type UpdateMeStudentHandlerResponses = {
+    /**
+     * Student profile updated successfully
+     */
+    200: unknown;
+};
 
 export type VersionInfoData = {
     body?: never;
