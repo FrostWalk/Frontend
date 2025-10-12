@@ -394,6 +394,7 @@
       v-model:open="showAssignModal"
       title="Assign Coordinator"
       description="Select and assign a coordinator to manage this project"
+      :ui="{ content: 'w-full sm:max-w-2xl overflow-visible' }"
     >
       <template #actions>
         <UButton
@@ -416,7 +417,7 @@
             class="animate-spin mx-auto text-primary-500"
           />
         </div>
-        <div v-else class="space-y-4">
+        <div v-else class="space-y-4 min-h-[300px]">
           <div v-if="coordinators.length === 0" class="text-center py-4">
             <p class="text-gray-600 mb-4">No coordinators available</p>
             <UButton color="primary" size="sm" @click="showCreateCoordinatorModal = true">
@@ -424,19 +425,30 @@
               Create New Coordinator
             </UButton>
           </div>
-          <div v-else class="space-y-3">
-            <USelectMenu
-              v-model="selectedAdmin"
-              :options="coordinators"
-              value-attribute="id"
-              option-attribute="email"
-              placeholder="Select a coordinator"
-            />
-            <p v-if="selectedAdmin" class="text-sm text-gray-600">
-              Selected: {{ selectedAdmin.first_name }} {{ selectedAdmin.last_name }} ({{
-                selectedAdmin.email
-              }})
-            </p>
+          <div v-else>
+            <UForm :state="{ coordinator: selectedCoordinator }" class="space-y-4">
+              <UFormField label="Select Coordinator" name="coordinator" required>
+                <USelectMenu
+                  v-model="selectedCoordinator"
+                  :items="coordinatorItems"
+                  placeholder="Choose a coordinator..."
+                  :loading="loadingAdmins"
+                  searchable
+                >
+                  <template #leading>
+                    <UAvatar
+                      v-if="selectedCoordinator"
+                      :text="`${selectedCoordinator.first_name[0]}${selectedCoordinator.last_name[0]}`"
+                      size="2xs"
+                    />
+                  </template>
+
+                  <template #item-leading="{ item }">
+                    <UAvatar :text="`${item.first_name[0]}${item.last_name[0]}`" size="xs" />
+                  </template>
+                </USelectMenu>
+              </UFormField>
+            </UForm>
           </div>
         </div>
       </template>
@@ -446,7 +458,7 @@
           <UButton color="neutral" variant="ghost" @click="showAssignModal = false">
             Cancel
           </UButton>
-          <UButton :loading="assigning" :disabled="!selectedAdmin" @click="assignCoordinator">
+          <UButton :loading="assigning" :disabled="!selectedCoordinator" @click="assignCoordinator">
             Assign
           </UButton>
         </div>
@@ -671,7 +683,17 @@ const studentComponents = ref<StudentDeliverableComponent[]>([])
 const groups = ref<GroupInfo[]>([])
 const coordinator = ref<CoordinatorDetail | null>(null)
 const coordinators = ref<AdminResponseScheme[]>([])
-const selectedAdmin = ref<AdminResponseScheme | null>(null)
+
+type CoordinatorItem = AdminResponseScheme & { label: string }
+const selectedCoordinator = ref<CoordinatorItem | undefined>(undefined)
+
+// Transform coordinators to include label for SelectMenu
+const coordinatorItems = computed(() =>
+  coordinators.value.map((coord) => ({
+    ...coord,
+    label: `${coord.first_name} ${coord.last_name}`
+  }))
+)
 
 // Component associations for deliverables
 const groupDeliverableComponents = ref<Map<number, GroupDeliverableComponentResponse[]>>(new Map())
@@ -812,7 +834,12 @@ const fetchCoordinator = async () => {
 const fetchAdmins = async () => {
   loadingAdmins.value = true
   try {
-    const { data } = await getAllAdminsHandler()
+    const { data, error } = await getAllAdminsHandler()
+
+    if (error) {
+      showError('Failed to fetch admins', error)
+      return
+    }
 
     if (data) {
       // Filter for coordinators only (role_id === 3)
@@ -824,19 +851,22 @@ const fetchAdmins = async () => {
 }
 
 watch(showAssignModal, (show) => {
-  if (show && coordinators.value.length === 0) {
+  if (show) {
+    // Always refresh coordinators when opening the assign modal
     fetchAdmins()
+    // Reset selection
+    selectedCoordinator.value = undefined
   }
 })
 
 const assignCoordinator = async () => {
-  if (!selectedAdmin.value) return
+  if (!selectedCoordinator.value) return
 
   assigning.value = true
   try {
     const { error } = await assignCoordinatorApi({
       path: { project_id: projectId },
-      body: { admin_id: selectedAdmin.value.id }
+      body: { admin_id: selectedCoordinator.value.id }
     })
 
     if (error) {
@@ -851,7 +881,7 @@ const assignCoordinator = async () => {
     })
 
     showAssignModal.value = false
-    selectedAdmin.value = null
+    selectedCoordinator.value = undefined
     await fetchCoordinator()
   } finally {
     assigning.value = false
