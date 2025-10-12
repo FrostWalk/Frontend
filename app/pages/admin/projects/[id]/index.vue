@@ -158,16 +158,14 @@
                   <div
                     class="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700"
                   >
-                    <UButton color="neutral" variant="ghost" size="sm" icon="material-symbols:edit">
-                      Edit
-                    </UButton>
                     <UButton
-                      color="primary"
-                      variant="soft"
+                      color="neutral"
+                      variant="ghost"
                       size="sm"
-                      icon="material-symbols:visibility"
+                      icon="material-symbols:edit"
+                      @click="openEditGroupDeliverableModal(deliverable)"
                     >
-                      View Details
+                      Edit
                     </UButton>
                   </div>
                 </div>
@@ -288,16 +286,14 @@
                   <div
                     class="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700"
                   >
-                    <UButton color="neutral" variant="ghost" size="sm" icon="material-symbols:edit">
-                      Edit
-                    </UButton>
                     <UButton
-                      color="secondary"
-                      variant="soft"
+                      color="neutral"
+                      variant="ghost"
                       size="sm"
-                      icon="material-symbols:visibility"
+                      icon="material-symbols:edit"
+                      @click="openEditStudentDeliverableModal(deliverable)"
                     >
-                      View Details
+                      Edit
                     </UButton>
                   </div>
                 </div>
@@ -506,6 +502,112 @@
         </div>
       </template>
     </UModal>
+
+    <!-- Edit Group Deliverable Modal -->
+    <UModal
+      v-model:open="showEditGroupDeliverableModal"
+      title="Edit Group Deliverable"
+      description="Modify the deliverable name and component quantities"
+    >
+      <template #body>
+        <UForm :state="groupDeliverableForm" class="space-y-4" @submit="updateGroupDeliverable">
+          <UFormField label="Deliverable Name" name="name" required>
+            <UInput v-model="groupDeliverableForm.name" placeholder="Enter deliverable name" />
+          </UFormField>
+
+          <!-- Components Section -->
+          <div v-if="getGroupComponentsForDeliverable(groupDeliverableForm.id).length > 0">
+            <h5 class="font-medium text-gray-900 dark:text-white mb-3">Component Quantities</h5>
+            <div class="space-y-3">
+              <div
+                v-for="component in getGroupComponentsForDeliverable(groupDeliverableForm.id)"
+                :key="component.id"
+                class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+              >
+                <div>
+                  <p class="font-medium">{{ component.component_name }}</p>
+                  <p class="text-sm text-gray-600">
+                    Component ID: {{ component.group_deliverable_component_id }}
+                  </p>
+                </div>
+                <UInput
+                  v-model.number="component.quantity"
+                  type="number"
+                  min="1"
+                  class="w-20"
+                  @blur="updateGroupComponentQuantity(component)"
+                />
+              </div>
+            </div>
+          </div>
+        </UForm>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showEditGroupDeliverableModal = false">
+            Cancel
+          </UButton>
+          <UButton :loading="editingDeliverable" @click="updateGroupDeliverable">
+            <Icon name="material-symbols:save" class="mr-2" />
+            Save Changes
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Edit Student Deliverable Modal -->
+    <UModal
+      v-model:open="showEditStudentDeliverableModal"
+      title="Edit Student Deliverable"
+      description="Modify the deliverable name and component quantities"
+    >
+      <template #body>
+        <UForm :state="studentDeliverableForm" class="space-y-4" @submit="updateStudentDeliverable">
+          <UFormField label="Deliverable Name" name="name" required>
+            <UInput v-model="studentDeliverableForm.name" placeholder="Enter deliverable name" />
+          </UFormField>
+
+          <!-- Components Section -->
+          <div v-if="getStudentComponentsForDeliverable(studentDeliverableForm.id).length > 0">
+            <h5 class="font-medium text-gray-900 dark:text-white mb-3">Component Quantities</h5>
+            <div class="space-y-3">
+              <div
+                v-for="component in getStudentComponentsForDeliverable(studentDeliverableForm.id)"
+                :key="component.id"
+                class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+              >
+                <div>
+                  <p class="font-medium">{{ component.component_name }}</p>
+                  <p class="text-sm text-gray-600">
+                    Component ID: {{ component.student_deliverable_component_id }}
+                  </p>
+                </div>
+                <UInput
+                  v-model.number="component.quantity"
+                  type="number"
+                  min="1"
+                  class="w-20"
+                  @blur="updateStudentComponentQuantity(component)"
+                />
+              </div>
+            </div>
+          </div>
+        </UForm>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showEditStudentDeliverableModal = false">
+            Cancel
+          </UButton>
+          <UButton :loading="editingDeliverable" @click="updateStudentDeliverable">
+            <Icon name="material-symbols:save" class="mr-2" />
+            Save Changes
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -531,7 +633,11 @@ import {
   removeCoordinator as removeCoordinatorApi,
   createAdminHandler,
   getComponentsForGroupDeliverableHandler,
-  getComponentsForStudentDeliverableHandler
+  getComponentsForStudentDeliverableHandler,
+  updateGroupDeliverableHandler,
+  updateStudentDeliverableHandler,
+  updateGroupDeliverableComponentHandler,
+  updateStudentDeliverableComponentHandler
 } from '~/composables/api/sdk.gen'
 
 definePageMeta({
@@ -551,6 +657,11 @@ const assigning = ref(false)
 const showAssignModal = ref(false)
 const showCreateCoordinatorModal = ref(false)
 const creatingCoordinator = ref(false)
+
+// Edit deliverable modals
+const showEditGroupDeliverableModal = ref(false)
+const showEditStudentDeliverableModal = ref(false)
+const editingDeliverable = ref(false)
 
 const project = ref<Project | null>(null)
 const groupDeliverables = ref<GroupDeliverable[]>([])
@@ -574,12 +685,25 @@ const coordinatorForm = reactive({
   last_name: ''
 })
 
+// Edit deliverable forms
+const groupDeliverableForm = reactive({
+  id: 0,
+  name: ''
+})
+
+const studentDeliverableForm = reactive({
+  id: 0,
+  name: ''
+})
+
 const currentTab = ref('overview')
 
 // Close modals when switching tabs
 watch(currentTab, () => {
   showCreateCoordinatorModal.value = false
   showAssignModal.value = false
+  showEditGroupDeliverableModal.value = false
+  showEditStudentDeliverableModal.value = false
 })
 const tabs = [
   {
@@ -800,6 +924,135 @@ const createCoordinator = async () => {
     showError('Error', err)
   } finally {
     creatingCoordinator.value = false
+  }
+}
+
+// Edit deliverable functions
+const openEditGroupDeliverableModal = (deliverable: GroupDeliverable) => {
+  groupDeliverableForm.id = deliverable.group_deliverable_id
+  groupDeliverableForm.name = deliverable.name
+  showEditGroupDeliverableModal.value = true
+}
+
+const openEditStudentDeliverableModal = (deliverable: StudentDeliverable) => {
+  studentDeliverableForm.id = deliverable.student_deliverable_id
+  studentDeliverableForm.name = deliverable.name
+  showEditStudentDeliverableModal.value = true
+}
+
+const updateGroupDeliverable = async () => {
+  editingDeliverable.value = true
+
+  try {
+    const { error } = await updateGroupDeliverableHandler({
+      path: { id: groupDeliverableForm.id },
+      body: { name: groupDeliverableForm.name }
+    })
+
+    if (error) {
+      showError('Update Failed', error)
+      return
+    }
+
+    // Update the local data
+    const deliverable = groupDeliverables.value.find(
+      (d) => d.group_deliverable_id === groupDeliverableForm.id
+    )
+    if (deliverable) {
+      deliverable.name = groupDeliverableForm.name
+    }
+
+    toast.add({
+      title: 'Deliverable Updated',
+      description: 'Group deliverable updated successfully',
+      color: 'success'
+    })
+
+    showEditGroupDeliverableModal.value = false
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    editingDeliverable.value = false
+  }
+}
+
+const updateStudentDeliverable = async () => {
+  editingDeliverable.value = true
+
+  try {
+    const { error } = await updateStudentDeliverableHandler({
+      path: { id: studentDeliverableForm.id },
+      body: { name: studentDeliverableForm.name }
+    })
+
+    if (error) {
+      showError('Update Failed', error)
+      return
+    }
+
+    // Update the local data
+    const deliverable = studentDeliverables.value.find(
+      (d) => d.student_deliverable_id === studentDeliverableForm.id
+    )
+    if (deliverable) {
+      deliverable.name = studentDeliverableForm.name
+    }
+
+    toast.add({
+      title: 'Deliverable Updated',
+      description: 'Student deliverable updated successfully',
+      color: 'success'
+    })
+
+    showEditStudentDeliverableModal.value = false
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    editingDeliverable.value = false
+  }
+}
+
+const updateGroupComponentQuantity = async (component: GroupDeliverableComponentResponse) => {
+  try {
+    const { error } = await updateGroupDeliverableComponentHandler({
+      path: { id: component.id },
+      body: { quantity: component.quantity }
+    })
+
+    if (error) {
+      showError('Component Update Failed', error)
+      return
+    }
+
+    toast.add({
+      title: 'Component Updated',
+      description: `Quantity updated to ${component.quantity}`,
+      color: 'success'
+    })
+  } catch (err) {
+    showError('Error', err)
+  }
+}
+
+const updateStudentComponentQuantity = async (component: StudentDeliverableComponentResponse) => {
+  try {
+    const { error } = await updateStudentDeliverableComponentHandler({
+      path: { id: component.id },
+      body: { quantity: component.quantity }
+    })
+
+    if (error) {
+      showError('Component Update Failed', error)
+      return
+    }
+
+    toast.add({
+      title: 'Component Updated',
+      description: `Quantity updated to ${component.quantity}`,
+      color: 'success'
+    })
+  } catch (err) {
+    showError('Error', err)
   }
 }
 
