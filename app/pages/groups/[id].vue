@@ -26,6 +26,12 @@
       <!-- Select Deliverable Modal -->
       <UModal
         v-model:open="isModalOpen"
+        :title="isEditMode ? 'Edit Group Deliverable' : 'Select Group Deliverable'"
+        :description="
+          isEditMode
+            ? 'Update your project details'
+            : 'Choose a deliverable and provide project details'
+        "
         :ui="{
           content: 'sm:max-w-5xl',
           body: 'p-6 sm:p-8'
