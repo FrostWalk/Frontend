@@ -98,6 +98,9 @@ steps:
   # ---------- TRIGGER UPGRADE ----------
   trigger-watchtower:
     image: curlimages/curl:latest
+    depends_on:
+      - docker-build-dev
+      - docker-build-release
     environment:
       WT_URL: https://wt.advancedprogramming.ovh/v1/update
       WT_TOKEN:
