@@ -1,40 +1,34 @@
-# Advanced programming - Frontend Application
+# Reporting Bugs
 
-A comprehensive Nuxt 4 frontend application for managing student projects, groups, and deliverables.
 
-## Features
+> [!IMPORTANT]  
+> Follow these steps to submit a bug report
 
-### Student Interface
+If you encounter a bug, please report it using our GitHub issue template:
 
-- Account registration with email confirmation
-- Project browsing and enrollment
-- Group creation and management
-- Group and individual deliverable selection
-- Real-time project tracking
+1. Go to the [Issues](https://github.com/FrostWalk/Frontend/issues) page
+2. Click on **New Issue**
+3. Select the **Bug Report** template
+4. Fill in all required sections:
+   - **Summary**: Clear description of the bug or unexpected behavior
+   - **Steps to Reproduce**: Detailed steps of what you did that caused the issue
+   - **Expected Behavior**: What you expected to happen
+   - **Actual Behavior**: What actually happened instead
+   - **Request ID**: The unique request ID from error messages (found in toasts)
+   - **Screenshots/Photos**: If applicable, to help explain the problem
+   - **Error Messages**: Any error messages from the browser console
+   - **Contact Information**: (If you want) Your email/Telegram so I can reach out if needed
 
-### Admin Interface
+This helps me understand and fix issues more efficiently.
 
-- Admin authentication and role-based access (Root, Professor, Coordinator)
-- Project creation and management
-- Deliverable and component configuration
-- Security code generation for group creation
-- Admin user management
-- Group monitoring and oversight
+---
 
-## Tech Stack
-
-- **Framework**: Nuxt 4.1.3
-- **UI Library**: NuxtUI 4.0.1 (built on Tailwind CSS)
-- **Icons**: @nuxt/icon with Material Symbols
-- **API Client**: Auto-generated from OpenAPI spec using @hey-api/openapi-ts
-- **Package Manager**: pnpm
-
-## Setup
+# Development
 
 ### Prerequisites
 
-- Node.js 18+ or 20+
-- pnpm 10+
+- Node.js
+- pnpm
 
 ### Installation
 
@@ -79,7 +73,7 @@ Start the development server on `http://localhost:3000`:
 pnpm dev
 ```
 
-### Code Quality
+### Linting and Type checking
 
 This project uses ESLint for linting and Prettier for code formatting:
 
@@ -93,161 +87,12 @@ pnpm run lint:fix
 # Format all files
 pnpm run format
 
-# Check formatting (useful for CI)
+# Check formatting
 pnpm run format:check
 
 # Type checking
 pnpm run typecheck
 ```
-
-See [LINTING_AND_FORMATTING.md](./LINTING_AND_FORMATTING.md) for detailed information about code quality tools.
-
-## Production Build
-
-Build the application for production:
-
-```bash
-pnpm build
-```
-
-Preview production build locally:
-
-```bash
-pnpm preview
-```
-
-## Deployment
-
-### Environment Configuration
-
-Set the `NUXT_PUBLIC_API_BASE_URL` environment variable based on your deployment environment:
-
-#### Development Deployment
-
-```bash
-export NUXT_PUBLIC_API_BASE_URL=https://dev.advancedprogramming.ovh/api
-pnpm build
-```
-
-Frontend accessible at: `https://dev.advancedprogramming.ovh/`
-
-#### Production Deployment
-
-```bash
-export NUXT_PUBLIC_API_BASE_URL=https://advancedprogramming.ovh/api
-pnpm build
-```
-
-Frontend accessible at: `https://advancedprogramming.ovh/`
-
-### Docker Example
-
-```dockerfile
-FROM node:20-alpine
-
-WORKDIR /app
-
-COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install
-
-COPY . .
-
-# Set API URL for build
-ENV NUXT_PUBLIC_API_BASE_URL=https://advancedprogramming.ovh/api
-
-RUN pnpm run generate:api
-RUN pnpm build
-
-EXPOSE 3000
-
-CMD ["node", ".output/server/index.mjs"]
-```
-
-## Project Structure
-
-```
-app/
-├── layouts/
-│   ├── default.vue       # Student layout with navigation
-│   ├── admin.vue         # Admin layout with role-based menu
-│   └── auth.vue          # Minimal layout for login/register
-├── pages/
-│   ├── index.vue         # Landing page with redirect logic
-│   ├── login.vue         # Student login
-│   ├── register.vue      # Student registration
-│   ├── confirm.vue       # Email confirmation
-│   ├── projects/         # Student project pages
-│   ├── groups/           # Group management pages
-│   └── admin/            # Admin interface
-│       ├── login.vue     # Admin login
-│       ├── projects/     # Project management
-│       ├── users/        # Admin user management
-│       ├── security-codes/ # Security code management
-│       └── groups/       # Group oversight
-├── middleware/
-│   ├── auth.ts           # Student authentication guard
-│   └── admin-auth.ts     # Admin authentication guard
-└── components/           # Reusable Vue components
-
-composables/
-├── api/                  # Generated API client (gitignored)
-├── useApi.ts             # API client wrapper with auth
-└── useAuth.ts            # Authentication state management
-```
-
-## Key Composables
-
-### `useApi()`
-
-Provides configured API client with automatic JWT token injection.
-
-### `useStudentAuth()`
-
-Manages student authentication state:
-
-- `login(credentials)` - Authenticate student
-- `logout()` - Clear session
-- `isAuthenticated` - Auth status
-- `user` - Current user data
-
-### `useAdminAuth()`
-
-Manages admin authentication state with role support:
-
-- `login(credentials)` - Authenticate admin
-- `logout()` - Clear session
-- `hasRole(roleId)` - Check admin role
-- `roles` - Role constants (ROOT, PROFESSOR, COORDINATOR)
-
-## Routes
-
-### Public Routes
-
-- `/` - Landing page
-- `/login` - Student login
-- `/register` - Student registration
-- `/confirm?t={token}` - Email confirmation
-- `/admin/login` - Admin login
-
-### Student Routes (Protected)
-
-- `/projects` - View enrolled projects
-- `/groups/create` - Create new group
-- `/groups/[id]` - Group details and management
-- `/groups/[id]/select-deliverable` - Select group deliverable
-- `/projects/[id]/select-deliverable` - Select individual deliverable
-
-### Admin Routes (Protected)
-
-- `/admin/projects` - Project list
-- `/admin/projects/create` - Create new project
-- `/admin/projects/[id]` - Project details with tabs
-- `/admin/projects/[id]/setup` - Setup wizard for deliverables
-- `/admin/users` - Admin user management
-- `/admin/users/create` - Create admin user
-- `/admin/security-codes` - Security code list
-- `/admin/security-codes/create` - Generate security code
-- `/admin/groups/[id]` - Group details (admin view)
 
 ## API Client
 
@@ -263,14 +108,6 @@ To regenerate after API changes:
 ```bash
 pnpm run generate:api
 ```
-
-## Development Tips
-
-1. **API Updates**: Run `pnpm run generate:api` whenever the backend API changes
-2. **Environment Variables**: Always restart dev server after changing `.env`
-3. **Type Safety**: The generated API client provides full type checking
-4. **Icons**: Browse Material Symbols at https://fonts.google.com/icons
-5. **UI Components**: Refer to NuxtUI documentation at https://ui.nuxt.com
 
 ## License
 
