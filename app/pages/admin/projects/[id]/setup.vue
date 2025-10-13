@@ -33,13 +33,26 @@
       <!-- Step 0: Group Components -->
       <div v-if="currentStep === 0">
         <h3 class="font-semibold mb-4">Create Group Components</h3>
+        <p class="text-sm text-gray-600 mb-4">
+          Mark components as "sellable" if groups can trade them with each other
+        </p>
         <div class="space-y-3">
-          <div v-for="(comp, index) in groupComponents" :key="index" class="flex gap-2">
+          <div
+            v-for="(comp, index) in groupComponents"
+            :key="index"
+            class="flex gap-2 items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+          >
             <UInput
               v-model="comp.name"
               placeholder="Component name (e.g., Tool, World generator)"
               class="flex-1"
             />
+            <div class="flex items-center gap-2 min-w-fit">
+              <UCheckbox v-model="comp.sellable" />
+              <span class="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                Sellable
+              </span>
+            </div>
             <UButton
               color="error"
               variant="ghost"
@@ -47,7 +60,7 @@
               @click="groupComponents.splice(index, 1)"
             />
           </div>
-          <UButton variant="soft" block @click="groupComponents.push({ name: '' })">
+          <UButton variant="soft" block @click="groupComponents.push({ name: '', sellable: true })">
             <Icon name="material-symbols:add" class="mr-2" />
             Add Component
           </UButton>
@@ -267,6 +280,12 @@
                 :key="index"
               >
                 {{ comp.name }}
+                <UBadge v-if="comp.sellable" color="success" variant="soft" size="xs" class="ml-2">
+                  Sellable
+                </UBadge>
+                <UBadge v-else color="neutral" variant="soft" size="xs" class="ml-2">
+                  Non-sellable
+                </UBadge>
               </li>
             </ul>
           </div>
@@ -428,7 +447,9 @@ const steps = [
   'Review & Finish'
 ]
 
-const groupComponents = ref<Array<{ name: string }>>([{ name: '' }])
+const groupComponents = ref<Array<{ name: string; sellable: boolean }>>([
+  { name: '', sellable: true }
+])
 const studentComponents = ref<Array<{ name: string }>>([{ name: '' }])
 interface ComponentWithQuantity {
   componentIndex: number
@@ -497,7 +518,10 @@ const loadGroupComponentsFromBackend = async () => {
 
   if (data && data.components && data.components.length > 0) {
     // Clear and populate with existing components
-    groupComponents.value = data.components.map((comp) => ({ name: comp.name }))
+    groupComponents.value = data.components.map((comp) => ({
+      name: comp.name,
+      sellable: comp.sellable
+    }))
     createdGroupComponentIds.value = data.components.map(
       (comp) => comp.group_deliverable_component_id
     )
@@ -544,7 +568,8 @@ const createGroupComponents = async () => {
       const { data, error } = await createGroupComponentHandler({
         body: {
           project_id: projectId,
-          name: comp.name
+          name: comp.name,
+          sellable: comp.sellable
         }
       })
 
@@ -721,7 +746,10 @@ onMounted(async () => {
     })
 
     if (groupData && groupData.components && groupData.components.length > 0) {
-      groupComponents.value = groupData.components.map((comp) => ({ name: comp.name }))
+      groupComponents.value = groupData.components.map((comp) => ({
+        name: comp.name,
+        sellable: comp.sellable
+      }))
       createdGroupComponentIds.value = groupData.components.map(
         (comp) => comp.group_deliverable_component_id
       )

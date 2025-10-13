@@ -111,11 +111,13 @@ export type CreateGroupComponentResponse = {
     group_deliverable_component_id: number;
     name: string;
     project_id: number;
+    sellable: boolean;
 };
 
 export type CreateGroupComponentScheme = {
     name: string;
     project_id: number;
+    sellable: boolean;
 };
 
 export type CreateGroupDeliverableComponentResponse = {
@@ -352,6 +354,7 @@ export type GroupComponentResponse = {
     group_deliverable_component_id: number;
     name: string;
     project_id: number;
+    sellable: boolean;
 };
 
 export type GroupDeliverable = {
@@ -364,6 +367,7 @@ export type GroupDeliverableComponent = {
     group_deliverable_component_id: number;
     name: string;
     project_id: number;
+    sellable: boolean;
 };
 
 export type GroupDeliverableComponentResponse = {
@@ -713,6 +717,7 @@ export type UpdateAdminScheme = {
 
 export type UpdateGroupComponentScheme = {
     name: string;
+    sellable: boolean;
 };
 
 export type UpdateGroupDeliverableComponentScheme = {
