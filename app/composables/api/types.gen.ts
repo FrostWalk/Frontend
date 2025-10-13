@@ -547,12 +547,6 @@ export type MemberInfo = {
     student_id: number;
 };
 
-export type MemberResponse = {
-    member?: null | MemberInfo;
-    message: string;
-    success: boolean;
-};
-
 export type Project = {
     active: boolean;
     deliverable_selection_deadline?: string | null;
@@ -3550,7 +3544,7 @@ export type RemoveMember2Data = {
 
 export type RemoveMember2Errors = {
     /**
-     * Invalid request data or business rule violation
+     * Cannot remove the group leader
      */
     400: JsonError;
     /**
@@ -3577,7 +3571,7 @@ export type RemoveMember2Responses = {
     /**
      * Member removed successfully
      */
-    200: MemberResponse;
+    204: void;
 };
 
 export type RemoveMember2Response = RemoveMember2Responses[keyof RemoveMember2Responses];
@@ -3628,7 +3622,7 @@ export type AddMember2Data = {
 
 export type AddMember2Errors = {
     /**
-     * Invalid request data or business rule violation
+     * Student email not confirmed or group at maximum capacity
      */
     400: JsonError;
     /**
@@ -3640,9 +3634,13 @@ export type AddMember2Errors = {
      */
     403: JsonError;
     /**
-     * Group not found
+     * Group or student not found
      */
     404: JsonError;
+    /**
+     * Student is already in a group for this project
+     */
+    409: JsonError;
     /**
      * Internal server error
      */
@@ -3655,7 +3653,7 @@ export type AddMember2Responses = {
     /**
      * Member added successfully
      */
-    200: MemberResponse;
+    200: MemberInfo;
 };
 
 export type AddMember2Response = AddMember2Responses[keyof AddMember2Responses];

@@ -6,7 +6,7 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "generate:api": "openapi-ts -i https://dev.advancedprogramming.ovh/api/swagger-openapi.json -o app/composables/api -c @hey-api/client-fetch",
+    "generate:api": "openapi-ts -i https://dev.advancedprogramming.ovh/api/swagger-openapi.json -o app/composables/api -c @hey-api/client-fetch && pnpm run format",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
@@ -33,7 +33,7 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.85.1",
+    "@hey-api/openapi-ts": "^0.85.2",
     "@iconify-json/material-symbols": "^1.2.41",
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
     "@types/node": "^24.7.2",
