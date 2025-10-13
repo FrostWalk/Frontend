@@ -59,6 +59,15 @@
                   <Icon name="material-symbols:account-circle" class="mr-2" />
                   Account
                 </NuxtLink>
+                <a
+                  href="https://github.com/FrostWalk/Frontend/blob/main/README.md#reporting-bugs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white opacity-80 hover:opacity-100"
+                >
+                  <Icon name="material-symbols:bug-report" class="mr-2" />
+                  Submit a bug
+                </a>
               </ClientOnly>
             </div>
           </div>

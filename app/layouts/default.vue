@@ -35,6 +35,15 @@
                 <Icon name="material-symbols:group-add" class="mr-2" />
                 Create Group
               </NuxtLink>
+              <a
+                href="https://github.com/FrostWalk/Frontend/blob/main/README.md#reporting-bugs"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
+              >
+                <Icon name="material-symbols:bug-report" class="mr-2" />
+                Submit a bug
+              </a>
             </div>
           </div>
           <div class="flex items-center">

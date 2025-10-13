@@ -1,6 +1,5 @@
 # Reporting Bugs
 
-
 > [!IMPORTANT]  
 > Follow these steps to submit a bug report
 
