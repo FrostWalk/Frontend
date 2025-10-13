@@ -242,6 +242,73 @@
           </div>
         </template>
 
+        <!-- Group Components Tab -->
+        <template #group-components>
+          <div class="space-y-6">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  Group Components
+                </h3>
+                <p class="text-sm text-gray-600 mt-1">
+                  {{ groupComponents.length }} component{{
+                    groupComponents.length !== 1 ? 's' : ''
+                  }}
+                  configured
+                </p>
+              </div>
+            </div>
+
+            <div
+              v-if="groupComponents.length === 0"
+              class="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg"
+            >
+              <Icon
+                name="material-symbols:extension-off"
+                size="48"
+                class="mx-auto text-gray-400 mb-4"
+              />
+              <p class="text-gray-600 mb-2">No group components configured</p>
+              <p class="text-sm text-gray-500">Set up components from the project setup page</p>
+            </div>
+
+            <div v-else class="grid gap-4">
+              <UCard
+                v-for="component in groupComponents"
+                :key="component.group_deliverable_component_id"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-4 flex-1">
+                    <Icon name="material-symbols:extension" size="24" class="text-primary-500" />
+                    <div class="flex-1">
+                      <h4 class="font-semibold">{{ component.name }}</h4>
+                      <p class="text-sm text-gray-600">
+                        ID: {{ component.group_deliverable_component_id }}
+                      </p>
+                    </div>
+                    <UBadge
+                      :color="component.sellable ? 'success' : 'neutral'"
+                      variant="soft"
+                      size="lg"
+                    >
+                      {{ component.sellable ? 'Sellable' : 'Non-sellable' }}
+                    </UBadge>
+                  </div>
+                  <UButton
+                    color="neutral"
+                    variant="ghost"
+                    size="sm"
+                    icon="material-symbols:edit"
+                    @click="openEditGroupComponentModal(component)"
+                  >
+                    Edit
+                  </UButton>
+                </div>
+              </UCard>
+            </div>
+          </div>
+        </template>
+
         <!-- Group Deliverables Tab -->
         <template #group-deliverables>
           <div class="space-y-6">
@@ -855,6 +922,49 @@
       </template>
     </UModal>
 
+    <!-- Edit Group Component Modal -->
+    <UModal
+      v-model:open="showEditGroupComponentModal"
+      title="Edit Group Component"
+      description="Modify the component name and sellable status"
+    >
+      <template #body>
+        <UForm :state="groupComponentForm" class="space-y-4" @submit="updateGroupComponent">
+          <UFormField label="Component Name" name="name" required>
+            <UInput v-model="groupComponentForm.name" placeholder="Enter component name" />
+          </UFormField>
+
+          <UFormField label="Sellable Status" name="sellable">
+            <div class="flex items-center gap-3">
+              <USwitch v-model="groupComponentForm.sellable" />
+              <span
+                class="text-sm font-medium"
+                :class="groupComponentForm.sellable ? 'text-green-600' : 'text-gray-500'"
+              >
+                {{
+                  groupComponentForm.sellable
+                    ? 'Sellable - Groups can trade this component'
+                    : 'Non-sellable - Groups cannot trade this component'
+                }}
+              </span>
+            </div>
+          </UFormField>
+        </UForm>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showEditGroupComponentModal = false">
+            Cancel
+          </UButton>
+          <UButton :loading="editingComponent" @click="updateGroupComponent">
+            <Icon name="material-symbols:save" class="mr-2" />
+            Save Changes
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
     <!-- Edit Project Modal -->
     <UModal
       v-model:open="showEditProjectModal"
@@ -942,7 +1052,8 @@ import {
   updateGroupDeliverableHandler,
   updateStudentDeliverableHandler,
   updateGroupDeliverableComponentHandler,
-  updateStudentDeliverableComponentHandler
+  updateStudentDeliverableComponentHandler,
+  updateGroupComponentHandler
 } from '~/composables/api/sdk.gen'
 
 definePageMeta({
@@ -967,6 +1078,10 @@ const creatingCoordinator = ref(false)
 const showEditGroupDeliverableModal = ref(false)
 const showEditStudentDeliverableModal = ref(false)
 const editingDeliverable = ref(false)
+
+// Edit group component modal
+const showEditGroupComponentModal = ref(false)
+const editingComponent = ref(false)
 
 // Edit project modal
 const showEditProjectModal = ref(false)
@@ -1019,6 +1134,13 @@ const studentDeliverableForm = reactive({
   name: ''
 })
 
+// Edit group component form
+const groupComponentForm = reactive({
+  id: 0,
+  name: '',
+  sellable: true
+})
+
 const projectForm = reactive({
   name: '',
   max_group_size: 0,
@@ -1035,6 +1157,7 @@ watch(currentTab, () => {
   showAssignModal.value = false
   showEditGroupDeliverableModal.value = false
   showEditStudentDeliverableModal.value = false
+  showEditGroupComponentModal.value = false
   showEditProjectModal.value = false
   showDeleteProjectModal.value = false
 })
@@ -1056,6 +1179,13 @@ const tabs = computed(() => {
   // Full tabs for ROOT and PROFESSOR
   return [
     overviewTab,
+    {
+      key: 'group-components',
+      value: 'group-components',
+      label: 'Group Components',
+      icon: 'material-symbols:extension',
+      slot: 'group-components'
+    },
     {
       key: 'group-deliverables',
       value: 'group-deliverables',
@@ -1380,6 +1510,54 @@ const deleteProject = async () => {
     showError('Error', err)
   } finally {
     deletingProject.value = false
+  }
+}
+
+// Edit group component functions
+const openEditGroupComponentModal = (component: GroupDeliverableComponent) => {
+  groupComponentForm.id = component.group_deliverable_component_id
+  groupComponentForm.name = component.name
+  groupComponentForm.sellable = component.sellable
+  showEditGroupComponentModal.value = true
+}
+
+const updateGroupComponent = async () => {
+  editingComponent.value = true
+
+  try {
+    const { error } = await updateGroupComponentHandler({
+      path: { id: groupComponentForm.id },
+      body: {
+        name: groupComponentForm.name,
+        sellable: groupComponentForm.sellable
+      }
+    })
+
+    if (error) {
+      showError('Update Failed', error)
+      return
+    }
+
+    // Update the local data
+    const component = groupComponents.value.find(
+      (c) => c.group_deliverable_component_id === groupComponentForm.id
+    )
+    if (component) {
+      component.name = groupComponentForm.name
+      component.sellable = groupComponentForm.sellable
+    }
+
+    toast.add({
+      title: 'Component Updated',
+      description: 'Group component updated successfully',
+      color: 'success'
+    })
+
+    showEditGroupComponentModal.value = false
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    editingComponent.value = false
   }
 }
 
