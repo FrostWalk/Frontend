@@ -114,7 +114,12 @@ const navigateToMyGroup = async () => {
 
     if (data && data.groups && data.groups.length > 0) {
       // Navigate to the first group the user is part of
-      navigateTo(`/groups/${data.groups[0].group.group_id}`)
+      const firstGroup = data.groups[0]
+      if (firstGroup?.group?.group_id) {
+        navigateTo(`/groups/${firstGroup.group.group_id}`)
+      } else {
+        navigateTo('/groups/create')
+      }
     } else {
       // No group found, redirect to create group
       navigateTo('/groups/create')
