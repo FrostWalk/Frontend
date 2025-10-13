@@ -1,0 +1,41 @@
+# Development workflow - builds and deploys dev image
+when:
+  - event: push
+    branch: development
+  - event: manual
+    branch: development
+
+clone:
+  git:
+    image: woodpeckerci/plugin-git
+
+steps:
+  # Build and push dev image
+  docker-build-dev:
+    image: woodpeckerci/plugin-docker-buildx
+    settings:
+      registry: ghcr.io
+      repo: ghcr.io/frostwalk/frontend
+      tags: dev
+      dockerfile: Dockerfile
+      labels:
+        - org.opencontainers.image.source=https://github.com/FrostWalk/Frontend
+        - org.opencontainers.image.licenses=MIT
+      default_labels: true
+      username:
+        from_secret: GHCR_USERNAME
+      password:
+        from_secret: GHCR_TOKEN
+
+  # Trigger watchtower after successful build
+  trigger-watchtower:
+    image: curlimages/curl:latest
+    depends_on:
+      - docker-build-dev
+    environment:
+      WT_URL: https://wt.advancedprogramming.ovh/v1/update
+      WT_TOKEN:
+        from_secret: WATCHTOWER_TOKEN
+    commands:
+      - 'curl -fsS -X POST -H "Authorization: Bearer $${WT_TOKEN}" "$WT_URL"'
+
