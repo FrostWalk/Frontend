@@ -29,9 +29,7 @@
         <UFormField label="Select Deliverable" name="student_deliverable_id" required>
           <USelectMenu
             v-model="selectedDeliverable"
-            :options="deliverables"
-            option-attribute="name"
-            value-attribute="student_deliverable_id"
+            :items="deliverableItems"
             placeholder="Choose a deliverable"
           />
         </UFormField>
@@ -79,13 +77,21 @@ const loading = ref(true)
 const submitting = ref(false)
 const deliverables = ref<StudentDeliverable[]>([])
 const components = ref<StudentDeliverableComponent[]>([])
-const selectedDeliverable = ref<StudentDeliverable | null>(null)
+const selectedDeliverable = ref<(StudentDeliverable & { label: string }) | undefined>(undefined)
 const currentSelection = ref<StudentDeliverableSelectionResponse | null>(null)
 const projectId = ref<number>(parseInt(route.params.id as string))
 
 const form = reactive({
   student_deliverable_id: null as number | null
 })
+
+// Transform deliverables for USelectMenu
+const deliverableItems = computed(() =>
+  deliverables.value.map((deliverable) => ({
+    ...deliverable,
+    label: deliverable.name
+  }))
+)
 
 const componentsForSelected = computed(() => {
   if (!selectedDeliverable.value) return []
@@ -119,10 +125,15 @@ const fetchData = async () => {
       if (selectionData) {
         currentSelection.value = selectionData
         // Pre-select the current deliverable
-        selectedDeliverable.value =
-          deliverables.value.find(
-            (d) => d.student_deliverable_id === selectionData.student_deliverable_id
-          ) || null
+        const currentDeliverable = deliverables.value.find(
+          (d) => d.student_deliverable_id === selectionData.student_deliverable_id
+        )
+        if (currentDeliverable) {
+          selectedDeliverable.value = {
+            ...currentDeliverable,
+            label: currentDeliverable.name
+          }
+        }
       }
     } catch {
       // No current selection, that's okay

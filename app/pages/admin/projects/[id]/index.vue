@@ -17,58 +17,229 @@
 
       <UTabs v-model="currentTab" :items="tabs">
         <template #overview>
-          <UCard>
-            <template #header>
-              <div class="flex items-center justify-between">
-                <h3 class="font-semibold">Project Details</h3>
-                <div v-if="roleId === roles.PROFESSOR || roleId === roles.ROOT" class="flex gap-2">
-                  <UButton
-                    color="neutral"
-                    variant="ghost"
-                    size="sm"
-                    icon="material-symbols:edit"
-                    @click="openEditProjectModal"
+          <div class="space-y-6">
+            <!-- Project Details Card -->
+            <UCard>
+              <template #header>
+                <div class="flex items-center justify-between">
+                  <h3 class="font-semibold">Project Details</h3>
+                  <div
+                    v-if="roleId === roles.PROFESSOR || roleId === roles.ROOT"
+                    class="flex gap-2"
                   >
-                    Edit Project
-                  </UButton>
-                  <UButton
-                    color="error"
-                    variant="ghost"
-                    size="sm"
-                    icon="material-symbols:delete"
-                    @click="showDeleteProjectModal = true"
-                  >
-                    Delete Project
-                  </UButton>
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      size="sm"
+                      icon="material-symbols:edit"
+                      @click="openEditProjectModal"
+                    >
+                      Edit Project
+                    </UButton>
+                    <UButton
+                      color="error"
+                      variant="ghost"
+                      size="sm"
+                      icon="material-symbols:delete"
+                      @click="showDeleteProjectModal = true"
+                    >
+                      Delete Project
+                    </UButton>
+                  </div>
+                </div>
+              </template>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <p class="text-sm text-gray-500">Project Name</p>
+                  <p class="font-medium">{{ project.name }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500">Status</p>
+                  <UBadge :color="project.active ? 'success' : 'neutral'" variant="soft">
+                    {{ project.active ? 'Active' : 'Inactive' }}
+                  </UBadge>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500">Max Group Size</p>
+                  <p class="font-medium">{{ project.max_group_size }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500">Max Student Uploads</p>
+                  <p class="font-medium">{{ project.max_student_uploads }}</p>
+                </div>
+                <div v-if="project.deliverable_selection_deadline" class="col-span-2">
+                  <p class="text-sm text-gray-500">Deliverable Selection Deadline</p>
+                  <p class="font-medium">
+                    {{ formatDate(project.deliverable_selection_deadline) }}
+                  </p>
                 </div>
               </div>
-            </template>
+            </UCard>
 
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <p class="text-sm text-gray-500">Project Name</p>
-                <p class="font-medium">{{ project.name }}</p>
+            <!-- Group Deliverables Section (for coordinators) -->
+            <UCard v-if="roleId === roles.COORDINATOR">
+              <template #header>
+                <div class="flex items-center gap-2">
+                  <Icon name="material-symbols:group-work" class="text-primary-500" size="20" />
+                  <h3 class="font-semibold">Group Deliverables</h3>
+                </div>
+              </template>
+
+              <div v-if="groupDeliverables.length === 0" class="text-center py-6 text-gray-600">
+                No group deliverables configured
               </div>
-              <div>
-                <p class="text-sm text-gray-500">Status</p>
-                <UBadge :color="project.active ? 'success' : 'neutral'" variant="soft">
-                  {{ project.active ? 'Active' : 'Inactive' }}
-                </UBadge>
+              <div v-else class="space-y-4">
+                <div
+                  v-for="deliverable in groupDeliverables"
+                  :key="deliverable.group_deliverable_id"
+                  class="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div>
+                      <h4 class="font-medium text-lg">{{ deliverable.name }}</h4>
+                      <p class="text-sm text-gray-600">
+                        ID: {{ deliverable.group_deliverable_id }}
+                      </p>
+                    </div>
+                    <UBadge color="primary" variant="soft">Group</UBadge>
+                  </div>
+
+                  <div
+                    v-if="
+                      getGroupComponentsForDeliverable(deliverable.group_deliverable_id).length > 0
+                    "
+                  >
+                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Components:
+                    </p>
+                    <div class="space-y-2">
+                      <div
+                        v-for="component in getGroupComponentsForDeliverable(
+                          deliverable.group_deliverable_id
+                        )"
+                        :key="component.id"
+                        class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"
+                      >
+                        <span class="text-sm">{{ component.component_name }}</span>
+                        <UBadge variant="soft" size="sm">Qty: {{ component.quantity }}</UBadge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p class="text-sm text-gray-500">Max Group Size</p>
-                <p class="font-medium">{{ project.max_group_size }}</p>
+            </UCard>
+
+            <!-- Student Deliverables Section (for coordinators) -->
+            <UCard v-if="roleId === roles.COORDINATOR">
+              <template #header>
+                <div class="flex items-center gap-2">
+                  <Icon name="material-symbols:person" class="text-secondary-500" size="20" />
+                  <h3 class="font-semibold">Student Deliverables</h3>
+                </div>
+              </template>
+
+              <div v-if="studentDeliverables.length === 0" class="text-center py-6 text-gray-600">
+                No student deliverables configured
               </div>
-              <div>
-                <p class="text-sm text-gray-500">Max Student Uploads</p>
-                <p class="font-medium">{{ project.max_student_uploads }}</p>
+              <div v-else class="space-y-4">
+                <div
+                  v-for="deliverable in studentDeliverables"
+                  :key="deliverable.student_deliverable_id"
+                  class="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div>
+                      <h4 class="font-medium text-lg">{{ deliverable.name }}</h4>
+                      <p class="text-sm text-gray-600">
+                        ID: {{ deliverable.student_deliverable_id }}
+                      </p>
+                    </div>
+                    <UBadge color="secondary" variant="soft">Student</UBadge>
+                  </div>
+
+                  <div
+                    v-if="
+                      getStudentComponentsForDeliverable(deliverable.student_deliverable_id)
+                        .length > 0
+                    "
+                  >
+                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Components:
+                    </p>
+                    <div class="space-y-2">
+                      <div
+                        v-for="component in getStudentComponentsForDeliverable(
+                          deliverable.student_deliverable_id
+                        )"
+                        :key="component.id"
+                        class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"
+                      >
+                        <span class="text-sm">{{ component.component_name }}</span>
+                        <UBadge variant="soft" size="sm">Qty: {{ component.quantity }}</UBadge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div v-if="project.deliverable_selection_deadline" class="col-span-2">
-                <p class="text-sm text-gray-500">Deliverable Selection Deadline</p>
-                <p class="font-medium">{{ formatDate(project.deliverable_selection_deadline) }}</p>
+            </UCard>
+
+            <!-- Groups Section (for coordinators) -->
+            <UCard v-if="roleId === roles.COORDINATOR">
+              <template #header>
+                <div class="flex items-center gap-2">
+                  <Icon name="material-symbols:groups" class="text-primary-500" size="20" />
+                  <h3 class="font-semibold">Enrolled Groups</h3>
+                </div>
+              </template>
+
+              <div v-if="loadingGroups" class="text-center py-6">
+                <Icon
+                  name="material-symbols:hourglass-empty"
+                  size="32"
+                  class="animate-spin mx-auto text-primary-500"
+                />
               </div>
-            </div>
-          </UCard>
+              <div v-else-if="groups.length === 0" class="text-center py-6 text-gray-600">
+                No groups enrolled yet
+              </div>
+              <div v-else class="space-y-3">
+                <div
+                  v-for="group in groups"
+                  :key="group.group_id"
+                  class="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <h4 class="font-medium">{{ group.name }}</h4>
+                      <p class="text-sm text-gray-600 mt-1">
+                        {{ group.member_count }} member(s) • Leader: {{ group.group_leader.name }}
+                      </p>
+                      <p v-if="group.deliverable_selected" class="text-sm text-green-600 mt-2">
+                        <Icon name="material-symbols:check-circle" class="inline" />
+                        Deliverable: {{ group.deliverable_selected.name }}
+                      </p>
+                      <UBadge
+                        v-if="group.time_expired && !group.deliverable_selected"
+                        color="error"
+                        class="mt-2"
+                      >
+                        Deadline Expired
+                      </UBadge>
+                    </div>
+                    <UButton
+                      :to="`/admin/groups/${group.group_id}`"
+                      color="neutral"
+                      variant="ghost"
+                      size="sm"
+                    >
+                      View Details
+                    </UButton>
+                  </div>
+                </div>
+              </div>
+            </UCard>
+          </div>
         </template>
 
         <!-- Group Deliverables Tab -->
@@ -877,7 +1048,7 @@ const overviewTab = {
 }
 
 const tabs = computed(() => {
-  // Coordinators only see the overview tab
+  // Coordinators only see the overview (no tabs)
   if (roleId.value === roles.COORDINATOR) {
     return [overviewTab]
   }

@@ -32,6 +32,14 @@
             <UInput v-model="profileForm.email" type="email" placeholder="Enter email" />
           </UFormField>
 
+          <UFormField label="University ID" name="university_id" required>
+            <UInput
+              v-model.number="profileForm.university_id"
+              type="number"
+              placeholder="Enter university ID"
+            />
+          </UFormField>
+
           <UFormField label="Current Password" name="current_password" required>
             <UInput
               v-model="profileForm.current_password"
@@ -103,14 +111,12 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p class="text-sm text-gray-500">Admin ID</p>
+            <p class="text-sm text-gray-500">Student ID</p>
             <p class="font-medium">{{ user?.id }}</p>
           </div>
           <div>
-            <p class="text-sm text-gray-500">Role</p>
-            <UBadge color="primary" variant="soft">
-              {{ getRoleName(roleId) }}
-            </UBadge>
+            <p class="text-sm text-gray-500">University ID</p>
+            <p class="font-medium">{{ user?.university_id }}</p>
           </div>
         </div>
       </UCard>
@@ -119,14 +125,13 @@
 </template>
 
 <script setup lang="ts">
-import { updateMeAdminHandler } from '~/composables/api/sdk.gen'
+import { updateMeStudentHandler } from '~/composables/api/sdk.gen'
 
 definePageMeta({
-  middleware: 'admin-auth',
-  layout: 'admin'
+  middleware: 'auth'
 })
 
-const { user, roleId, roles, updateUser } = useAdminAuth()
+const { user } = useStudentAuth()
 const toast = useToast()
 const { showError } = useErrorToast()
 
@@ -137,6 +142,7 @@ const profileForm = reactive({
   first_name: '',
   last_name: '',
   email: '',
+  university_id: 0,
   current_password: ''
 })
 
@@ -146,18 +152,12 @@ const passwordForm = reactive({
   confirm_password: ''
 })
 
-const getRoleName = (id: number | null): string => {
-  if (id === roles.ROOT) return 'Root'
-  if (id === roles.PROFESSOR) return 'Professor'
-  if (id === roles.COORDINATOR) return 'Coordinator'
-  return 'Unknown'
-}
-
 const loadProfileData = () => {
   if (user.value) {
     profileForm.first_name = user.value.first_name
     profileForm.last_name = user.value.last_name
     profileForm.email = user.value.email
+    profileForm.university_id = user.value.university_id
   }
 }
 
@@ -177,12 +177,13 @@ const updateProfile = async () => {
   updatingProfile.value = true
 
   try {
-    const { error } = await updateMeAdminHandler({
+    const { error } = await updateMeStudentHandler({
       body: {
         old_password: profileForm.current_password,
         first_name: profileForm.first_name,
         last_name: profileForm.last_name,
-        email: profileForm.email
+        email: profileForm.email,
+        university_id: profileForm.university_id
       }
     })
 
@@ -191,14 +192,17 @@ const updateProfile = async () => {
       return
     }
 
-    // Update Pinia store and localStorage
-    const updatedUser = {
-      ...user.value,
-      first_name: profileForm.first_name,
-      last_name: profileForm.last_name,
-      email: profileForm.email
+    // Update localStorage
+    if (import.meta.client && typeof localStorage !== 'undefined') {
+      const updatedUser = {
+        ...user.value,
+        first_name: profileForm.first_name,
+        last_name: profileForm.last_name,
+        email: profileForm.email,
+        university_id: profileForm.university_id
+      }
+      localStorage.setItem('student_user', JSON.stringify(updatedUser))
     }
-    updateUser(updatedUser)
 
     // Clear password field after successful update
     profileForm.current_password = ''
@@ -208,6 +212,9 @@ const updateProfile = async () => {
       description: 'Your profile information has been updated successfully',
       color: 'success'
     })
+
+    // Reload user data
+    navigateTo('/account', { replace: true })
   } catch (err) {
     showError('Error', err)
   } finally {
@@ -251,7 +258,7 @@ const changePassword = async () => {
   changingPassword.value = true
 
   try {
-    const { error } = await updateMeAdminHandler({
+    const { error } = await updateMeStudentHandler({
       body: {
         old_password: passwordForm.current_password,
         password: passwordForm.new_password

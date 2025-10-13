@@ -1,6 +1,12 @@
 import { client } from '~/composables/api/client.gen'
 
 export default defineNuxtPlugin(() => {
+  // Set the base URL from runtime config
+  const config = useRuntimeConfig()
+  client.setConfig({
+    baseUrl: config.public.apiBaseUrl
+  })
+
   // Request interceptor to inject JWT tokens
   client.interceptors.request.use((request) => {
     if (!import.meta.client) {

@@ -732,6 +732,23 @@ export type UpdateGroupDeliverableSelectionResponse = {
     message: string;
 };
 
+export type UpdateMeAdminScheme = {
+    email?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
+    old_password: string;
+    password?: string | null;
+};
+
+export type UpdateMeStudentScheme = {
+    email?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
+    old_password: string;
+    password?: string | null;
+    university_id?: number | null;
+};
+
 export type UpdateProjectScheme = {
     active?: boolean | null;
     max_group_size?: number | null;
@@ -2823,6 +2840,41 @@ export type AdminsMeHandlerResponses = {
 
 export type AdminsMeHandlerResponse = AdminsMeHandlerResponses[keyof AdminsMeHandlerResponses];
 
+export type UpdateMeAdminHandlerData = {
+    body: UpdateMeAdminScheme;
+    path?: never;
+    query?: never;
+    url: '/v1/admins/users/me';
+};
+
+export type UpdateMeAdminHandlerErrors = {
+    /**
+     * Invalid data in request
+     */
+    400: JsonError;
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Email already exists
+     */
+    409: JsonError;
+    /**
+     * Internal server error occurred
+     */
+    500: JsonError;
+};
+
+export type UpdateMeAdminHandlerError = UpdateMeAdminHandlerErrors[keyof UpdateMeAdminHandlerErrors];
+
+export type UpdateMeAdminHandlerResponses = {
+    /**
+     * Admin profile updated successfully
+     */
+    200: unknown;
+};
+
 export type DeleteAdminHandlerData = {
     body?: never;
     path: {
@@ -3235,6 +3287,123 @@ export type GetStudentDeliverableSelectionResponses = {
 
 export type GetStudentDeliverableSelectionResponse = GetStudentDeliverableSelectionResponses[keyof GetStudentDeliverableSelectionResponses];
 
+export type GetGroupDeliverableSelectionData = {
+    body?: never;
+    path: {
+        group_id: number;
+    };
+    query?: never;
+    url: '/v1/students/group-deliverable-selections/{group_id}';
+};
+
+export type GetGroupDeliverableSelectionErrors = {
+    /**
+     * No deliverable selected yet or group not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type GetGroupDeliverableSelectionError = GetGroupDeliverableSelectionErrors[keyof GetGroupDeliverableSelectionErrors];
+
+export type GetGroupDeliverableSelectionResponses = {
+    /**
+     * Deliverable selection found
+     */
+    200: GroupDeliverableSelectionResponse;
+};
+
+export type GetGroupDeliverableSelectionResponse = GetGroupDeliverableSelectionResponses[keyof GetGroupDeliverableSelectionResponses];
+
+export type UpdateGroupDeliverableSelectionData = {
+    body: UpdateGroupDeliverableSelectionRequest;
+    path: {
+        group_id: number;
+    };
+    query?: never;
+    url: '/v1/students/group-deliverable-selections/{group_id}';
+};
+
+export type UpdateGroupDeliverableSelectionErrors = {
+    /**
+     * Invalid request
+     */
+    400: JsonError;
+    /**
+     * Not authorized - must be group leader
+     */
+    403: JsonError;
+    /**
+     * Selection not found
+     */
+    404: JsonError;
+    /**
+     * Link already in use by another group
+     */
+    409: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type UpdateGroupDeliverableSelectionError = UpdateGroupDeliverableSelectionErrors[keyof UpdateGroupDeliverableSelectionErrors];
+
+export type UpdateGroupDeliverableSelectionResponses = {
+    /**
+     * Selection updated successfully
+     */
+    200: UpdateGroupDeliverableSelectionResponse;
+};
+
+export type UpdateGroupDeliverableSelectionResponse2 = UpdateGroupDeliverableSelectionResponses[keyof UpdateGroupDeliverableSelectionResponses];
+
+export type CreateGroupDeliverableSelectionData = {
+    body: CreateGroupDeliverableSelectionRequest;
+    path: {
+        group_id: number;
+    };
+    query?: never;
+    url: '/v1/students/group-deliverable-selections/{group_id}';
+};
+
+export type CreateGroupDeliverableSelectionErrors = {
+    /**
+     * Invalid request
+     */
+    400: JsonError;
+    /**
+     * Not authorized - must be group leader
+     */
+    403: JsonError;
+    /**
+     * Group or deliverable not found
+     */
+    404: JsonError;
+    /**
+     * Group already has a selection or link already in use
+     */
+    409: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type CreateGroupDeliverableSelectionError = CreateGroupDeliverableSelectionErrors[keyof CreateGroupDeliverableSelectionErrors];
+
+export type CreateGroupDeliverableSelectionResponses = {
+    /**
+     * Deliverable selected successfully
+     */
+    201: CreateGroupDeliverableSelectionResponse;
+};
+
+export type CreateGroupDeliverableSelectionResponse2 = CreateGroupDeliverableSelectionResponses[keyof CreateGroupDeliverableSelectionResponses];
+
 export type GetGroupsData = {
     body?: never;
     path?: never;
@@ -3364,123 +3533,6 @@ export type DeleteGroupResponses = {
 };
 
 export type DeleteGroupResponse2 = DeleteGroupResponses[keyof DeleteGroupResponses];
-
-export type GetGroupDeliverableSelectionData = {
-    body?: never;
-    path: {
-        group_id: number;
-    };
-    query?: never;
-    url: '/v1/students/groups/{group_id}/deliverable-selection';
-};
-
-export type GetGroupDeliverableSelectionErrors = {
-    /**
-     * No deliverable selected yet or group not found
-     */
-    404: JsonError;
-    /**
-     * Internal server error
-     */
-    500: JsonError;
-};
-
-export type GetGroupDeliverableSelectionError = GetGroupDeliverableSelectionErrors[keyof GetGroupDeliverableSelectionErrors];
-
-export type GetGroupDeliverableSelectionResponses = {
-    /**
-     * Deliverable selection found
-     */
-    200: GroupDeliverableSelectionResponse;
-};
-
-export type GetGroupDeliverableSelectionResponse = GetGroupDeliverableSelectionResponses[keyof GetGroupDeliverableSelectionResponses];
-
-export type UpdateGroupDeliverableSelectionData = {
-    body: UpdateGroupDeliverableSelectionRequest;
-    path: {
-        group_id: number;
-    };
-    query?: never;
-    url: '/v1/students/groups/{group_id}/deliverable-selection';
-};
-
-export type UpdateGroupDeliverableSelectionErrors = {
-    /**
-     * Invalid request
-     */
-    400: JsonError;
-    /**
-     * Not authorized - must be group leader
-     */
-    403: JsonError;
-    /**
-     * Selection not found
-     */
-    404: JsonError;
-    /**
-     * Link already in use by another group
-     */
-    409: JsonError;
-    /**
-     * Internal server error
-     */
-    500: JsonError;
-};
-
-export type UpdateGroupDeliverableSelectionError = UpdateGroupDeliverableSelectionErrors[keyof UpdateGroupDeliverableSelectionErrors];
-
-export type UpdateGroupDeliverableSelectionResponses = {
-    /**
-     * Selection updated successfully
-     */
-    200: UpdateGroupDeliverableSelectionResponse;
-};
-
-export type UpdateGroupDeliverableSelectionResponse2 = UpdateGroupDeliverableSelectionResponses[keyof UpdateGroupDeliverableSelectionResponses];
-
-export type CreateGroupDeliverableSelectionData = {
-    body: CreateGroupDeliverableSelectionRequest;
-    path: {
-        group_id: number;
-    };
-    query?: never;
-    url: '/v1/students/groups/{group_id}/deliverable-selection';
-};
-
-export type CreateGroupDeliverableSelectionErrors = {
-    /**
-     * Invalid request
-     */
-    400: JsonError;
-    /**
-     * Not authorized - must be group leader
-     */
-    403: JsonError;
-    /**
-     * Group or deliverable not found
-     */
-    404: JsonError;
-    /**
-     * Group already has a selection or link already in use
-     */
-    409: JsonError;
-    /**
-     * Internal server error
-     */
-    500: JsonError;
-};
-
-export type CreateGroupDeliverableSelectionError = CreateGroupDeliverableSelectionErrors[keyof CreateGroupDeliverableSelectionErrors];
-
-export type CreateGroupDeliverableSelectionResponses = {
-    /**
-     * Deliverable selected successfully
-     */
-    201: CreateGroupDeliverableSelectionResponse;
-};
-
-export type CreateGroupDeliverableSelectionResponse2 = CreateGroupDeliverableSelectionResponses[keyof CreateGroupDeliverableSelectionResponses];
 
 export type RemoveMember2Data = {
     body: RemoveMemberRequest;
@@ -3685,6 +3737,41 @@ export type StudentsMeHandlerResponses = {
 };
 
 export type StudentsMeHandlerResponse = StudentsMeHandlerResponses[keyof StudentsMeHandlerResponses];
+
+export type UpdateMeStudentHandlerData = {
+    body: UpdateMeStudentScheme;
+    path?: never;
+    query?: never;
+    url: '/v1/students/users/me';
+};
+
+export type UpdateMeStudentHandlerErrors = {
+    /**
+     * Invalid data in request
+     */
+    400: JsonError;
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Email already exists
+     */
+    409: JsonError;
+    /**
+     * Internal server error occurred
+     */
+    500: JsonError;
+};
+
+export type UpdateMeStudentHandlerError = UpdateMeStudentHandlerErrors[keyof UpdateMeStudentHandlerErrors];
+
+export type UpdateMeStudentHandlerResponses = {
+    /**
+     * Student profile updated successfully
+     */
+    200: unknown;
+};
 
 export type VersionInfoData = {
     body?: never;
