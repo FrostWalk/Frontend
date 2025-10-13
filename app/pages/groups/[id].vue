@@ -248,11 +248,13 @@
           <div>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Description</p>
             <div
-              class="prose prose-sm dark:prose-invert max-w-none bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
+              class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
             >
-              <pre class="whitespace-pre-wrap font-sans text-sm">{{
-                deliverableSelection.markdown_text
-              }}</pre>
+              <MDC
+                :value="deliverableSelection.markdown_text"
+                tag="article"
+                class="prose prose-sm dark:prose-invert max-w-none"
+              />
             </div>
           </div>
         </div>
