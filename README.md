@@ -9,14 +9,20 @@ If you encounter a bug, please report it using our GitHub issue template:
 2. Click on **New Issue**
 3. Select the **Bug Report** template
 4. Fill in all required sections:
-   - **Summary**: Clear description of the bug or unexpected behavior
-   - **Steps to Reproduce**: Detailed steps of what you did that caused the issue
-   - **Expected Behavior**: What you expected to happen
-   - **Actual Behavior**: What actually happened instead
-   - **Request ID**: The unique request ID from error messages (found in toasts)
-   - **Screenshots/Photos**: If applicable, to help explain the problem
-   - **Error Messages**: Any error messages from the browser console
-   - **Contact Information**: (If you want) Your email/Telegram so I can reach out if needed
+   - **Bug Description**
+     - Summary: Clear description of the bug or unexpected behavior
+   - **Steps to Reproduce**
+     - What Did You Do?: Detailed steps of what you did that caused the issue
+     - Expected Behavior: What you expected to happen
+     - Actual Behavior: What actually happened instead
+   - **Technical Details**
+     - Request ID: The unique request ID from error messages (found in toasts)
+   - **Supporting Information**
+     - Error Messages: Any error messages from the browser console
+     - Screenshots/Photos: If applicable, to help explain the problem
+     - Additional Information: Your role within the application (Group member, Group leader, Coordinator, etc.)
+   - **Contact Information**
+     - Email: Your email address so I can reach out if needed
 
 This helps me understand and fix issues more efficiently.
 
