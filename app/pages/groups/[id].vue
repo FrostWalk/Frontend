@@ -26,6 +26,12 @@
       <!-- Select Deliverable Modal -->
       <UModal
         v-model:open="isModalOpen"
+        :title="isEditMode ? 'Edit Group Deliverable' : 'Select Group Deliverable'"
+        :description="
+          isEditMode
+            ? 'Update your project details'
+            : 'Choose a deliverable and provide project details'
+        "
         :ui="{
           content: 'sm:max-w-5xl',
           body: 'p-6 sm:p-8'
@@ -248,11 +254,13 @@
           <div>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Description</p>
             <div
-              class="prose prose-sm dark:prose-invert max-w-none bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
+              class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
             >
-              <pre class="whitespace-pre-wrap font-sans text-sm">{{
-                deliverableSelection.markdown_text
-              }}</pre>
+              <MDC
+                :value="deliverableSelection.markdown_text"
+                tag="article"
+                class="prose prose-sm dark:prose-invert max-w-none"
+              />
             </div>
           </div>
         </div>
@@ -290,20 +298,32 @@
           <h3 class="font-semibold">Add Member</h3>
         </template>
 
-        <UForm :state="addMemberForm" class="space-y-4" @submit="addMember">
-          <UFormField label="Student Email" name="email" required>
-            <UInput
-              v-model="addMemberForm.email"
-              type="email"
-              placeholder="student@studenti.unitn.it"
-            />
-          </UFormField>
+        <div class="space-y-6">
+          <UAlert
+            icon="material-symbols:info"
+            color="primary"
+            variant="soft"
+            title="Registration Required"
+            description="The student must already have registered an account with this email address. If they have not done so, remind them to do so."
+          />
 
-          <UButton type="submit" :loading="addingMember">
-            <Icon name="material-symbols:person-add" class="mr-2" />
-            Add Member
-          </UButton>
-        </UForm>
+          <UForm :state="addMemberForm" class="space-y-4" @submit="addMember">
+            <UFormField label="Student Email" name="email" required>
+              <UInput
+                v-model="addMemberForm.email"
+                type="email"
+                placeholder="student@studenti.unitn.it"
+                size="lg"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UButton type="submit" :loading="addingMember" size="lg">
+              <Icon name="material-symbols:person-add" class="mr-2" />
+              Add Member
+            </UButton>
+          </UForm>
+        </div>
       </UCard>
     </div>
   </div>
@@ -322,7 +342,8 @@ import {
   addMember2 as addMemberApi,
   getStudentProjects,
   createGroupDeliverableSelection,
-  updateGroupDeliverableSelection
+  updateGroupDeliverableSelection,
+  allowedDomainsHandler
 } from '~/composables/api/sdk.gen'
 
 definePageMeta({
@@ -340,6 +361,7 @@ const addingMember = ref(false)
 const groupData = ref<{ group_id: number; group_name: string } | null>(null)
 const members = ref<GroupMemberInfo[]>([])
 const deliverableSelection = ref<GroupDeliverableSelectionResponse | null>(null)
+const allowedDomains = ref<string[]>([])
 
 // Modal state
 const isModalOpen = ref(false)
@@ -562,24 +584,73 @@ const onSubmitDeliverable = async () => {
   }
 }
 
+const validateEmail = (email: string): { valid: boolean; error?: string } => {
+  // Check if email is empty
+  if (!email || !email.trim()) {
+    return { valid: false, error: 'Email is required' }
+  }
+
+  // Check basic email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    return { valid: false, error: 'Invalid email address format' }
+  }
+
+  // Check if email domain is allowed
+  if (allowedDomains.value.length > 0) {
+    const domain = email.split('@')[1]?.toLowerCase()
+    const isAllowed = allowedDomains.value.some((allowed) => allowed.toLowerCase() === domain)
+    if (!isAllowed) {
+      return {
+        valid: false,
+        error: `Email domain must be one of: ${allowedDomains.value.join(', ')}`
+      }
+    }
+  }
+
+  return { valid: true }
+}
+
 const addMember = async () => {
+  // Validate email before making API call
+  const validation = validateEmail(addMemberForm.email)
+  if (!validation.valid) {
+    toast.add({
+      title: 'Invalid Email',
+      description: validation.error || 'Please enter a valid email address',
+      color: 'error'
+    })
+    return
+  }
+
   addingMember.value = true
   try {
     const groupId = parseInt(route.params.id as string)
-    const { data, error } = await addMemberApi({
+    const { data, error, response } = await addMemberApi({
       path: { group_id: groupId },
       body: { email: addMemberForm.email }
     })
 
     if (error) {
+      // Handle 404 specifically - student not found
+      if (response?.status === 404) {
+        toast.add({
+          title: 'Student Not Found',
+          description: `No registered student found with email "${addMemberForm.email}". Please ensure the student has created an account first.`,
+          color: 'error'
+        })
+        return
+      }
+
+      // Handle other errors
       showError('Failed to Add Member', error)
       return
     }
 
-    if (data?.success) {
+    if (data) {
       toast.add({
         title: 'Member Added',
-        description: data.message,
+        description: `${data.first_name} ${data.last_name} has been added to the group as ${data.role}`,
         color: 'success'
       })
       addMemberForm.email = ''
@@ -592,7 +663,18 @@ const addMember = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // Fetch allowed domains for email validation
+  try {
+    const { data: domainsData } = await allowedDomainsHandler()
+    if (domainsData?.domains) {
+      allowedDomains.value = domainsData.domains
+    }
+  } catch (err) {
+    console.error('Failed to fetch allowed domains:', err)
+  }
+
+  // Fetch group data
   fetchGroupData()
 })
 </script>

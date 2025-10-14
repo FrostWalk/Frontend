@@ -33,21 +33,34 @@
       <!-- Step 0: Group Components -->
       <div v-if="currentStep === 0">
         <h3 class="font-semibold mb-4">Create Group Components</h3>
+        <p class="text-sm text-gray-600 mb-4">
+          Mark components as "sellable" if groups can trade them with each other
+        </p>
         <div class="space-y-3">
-          <div v-for="(comp, index) in groupComponents" :key="index" class="flex gap-2">
+          <div
+            v-for="(comp, index) in setupStore.groupComponents"
+            :key="index"
+            class="flex gap-2 items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+          >
             <UInput
               v-model="comp.name"
               placeholder="Component name (e.g., Tool, World generator)"
               class="flex-1"
             />
+            <div class="flex items-center gap-2 min-w-fit">
+              <UCheckbox v-model="comp.sellable" />
+              <span class="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                Sellable
+              </span>
+            </div>
             <UButton
               color="error"
               variant="ghost"
               icon="material-symbols:delete"
-              @click="groupComponents.splice(index, 1)"
+              @click="setupStore.removeGroupComponent(index)"
             />
           </div>
-          <UButton variant="soft" block @click="groupComponents.push({ name: '' })">
+          <UButton variant="soft" block @click="setupStore.addGroupComponent()">
             <Icon name="material-symbols:add" class="mr-2" />
             Add Component
           </UButton>
@@ -58,7 +71,11 @@
       <div v-if="currentStep === 1">
         <h3 class="font-semibold mb-4">Create Student Components</h3>
         <div class="space-y-3">
-          <div v-for="(comp, index) in studentComponents" :key="index" class="flex gap-2">
+          <div
+            v-for="(comp, index) in setupStore.studentComponents"
+            :key="index"
+            class="flex gap-2"
+          >
             <UInput
               v-model="comp.name"
               placeholder="Component name (e.g., Robot, Visualizer)"
@@ -68,10 +85,10 @@
               color="error"
               variant="ghost"
               icon="material-symbols:delete"
-              @click="studentComponents.splice(index, 1)"
+              @click="setupStore.removeStudentComponent(index)"
             />
           </div>
-          <UButton variant="soft" block @click="studentComponents.push({ name: '' })">
+          <UButton variant="soft" block @click="setupStore.addStudentComponent()">
             <Icon name="material-symbols:add" class="mr-2" />
             Add Component
           </UButton>
@@ -86,7 +103,7 @@
         </p>
         <div class="space-y-6">
           <div
-            v-for="(deliv, delivIndex) in groupDeliverables"
+            v-for="(deliv, delivIndex) in setupStore.groupDeliverables"
             :key="delivIndex"
             class="border rounded-lg p-4 space-y-4"
           >
@@ -96,11 +113,11 @@
                 color="error"
                 variant="ghost"
                 icon="material-symbols:delete"
-                @click="groupDeliverables.splice(delivIndex, 1)"
+                @click="setupStore.removeGroupDeliverable(delivIndex)"
               />
             </div>
 
-            <div v-if="groupComponents.filter((c) => c.name.trim()).length > 0">
+            <div v-if="setupStore.groupComponents.filter((c) => c.name.trim()).length > 0">
               <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                 Components in this deliverable:
               </label>
@@ -113,7 +130,7 @@
                   class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 p-2 rounded"
                 >
                   <span class="text-sm flex-1">
-                    {{ groupComponents[comp.componentIndex]?.name }}
+                    {{ setupStore.groupComponents[comp.componentIndex]?.name }}
                   </span>
                   <UInput
                     v-model.number="comp.quantity"
@@ -127,14 +144,14 @@
                     variant="ghost"
                     icon="material-symbols:close"
                     size="sm"
-                    @click="deliv.components.splice(compIdx, 1)"
+                    @click="setupStore.removeGroupComponentFromDeliverable(delivIndex, compIdx)"
                   />
                 </div>
               </div>
 
               <!-- Add Component Buttons -->
               <div class="flex flex-wrap gap-2">
-                <template v-for="(comp, compIndex) in groupComponents" :key="compIndex">
+                <template v-for="(comp, compIndex) in setupStore.groupComponents" :key="compIndex">
                   <UButton
                     v-if="
                       comp.name.trim() &&
@@ -154,11 +171,7 @@
               No group components created. Go back to add components first.
             </div>
           </div>
-          <UButton
-            variant="soft"
-            block
-            @click="groupDeliverables.push({ name: '', components: [] })"
-          >
+          <UButton variant="soft" block @click="setupStore.addGroupDeliverable()">
             <Icon name="material-symbols:add" class="mr-2" />
             Add Deliverable
           </UButton>
@@ -173,7 +186,7 @@
         </p>
         <div class="space-y-6">
           <div
-            v-for="(deliv, delivIndex) in studentDeliverables"
+            v-for="(deliv, delivIndex) in setupStore.studentDeliverables"
             :key="delivIndex"
             class="border rounded-lg p-4 space-y-4"
           >
@@ -183,11 +196,11 @@
                 color="error"
                 variant="ghost"
                 icon="material-symbols:delete"
-                @click="studentDeliverables.splice(delivIndex, 1)"
+                @click="setupStore.removeStudentDeliverable(delivIndex)"
               />
             </div>
 
-            <div v-if="studentComponents.filter((c) => c.name.trim()).length > 0">
+            <div v-if="setupStore.studentComponents.filter((c) => c.name.trim()).length > 0">
               <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                 Components in this deliverable:
               </label>
@@ -200,7 +213,7 @@
                   class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 p-2 rounded"
                 >
                   <span class="text-sm flex-1">
-                    {{ studentComponents[comp.componentIndex]?.name }}
+                    {{ setupStore.studentComponents[comp.componentIndex]?.name }}
                   </span>
                   <UInput
                     v-model.number="comp.quantity"
@@ -214,14 +227,17 @@
                     variant="ghost"
                     icon="material-symbols:close"
                     size="sm"
-                    @click="deliv.components.splice(compIdx, 1)"
+                    @click="setupStore.removeStudentComponentFromDeliverable(delivIndex, compIdx)"
                   />
                 </div>
               </div>
 
               <!-- Add Component Buttons -->
               <div class="flex flex-wrap gap-2">
-                <template v-for="(comp, compIndex) in studentComponents" :key="compIndex">
+                <template
+                  v-for="(comp, compIndex) in setupStore.studentComponents"
+                  :key="compIndex"
+                >
                   <UButton
                     v-if="
                       comp.name.trim() &&
@@ -241,11 +257,7 @@
               No student components created. Go back to add components first.
             </div>
           </div>
-          <UButton
-            variant="soft"
-            block
-            @click="studentDeliverables.push({ name: '', components: [] })"
-          >
+          <UButton variant="soft" block @click="setupStore.addStudentDeliverable()">
             <Icon name="material-symbols:add" class="mr-2" />
             Add Deliverable
           </UButton>
@@ -259,14 +271,22 @@
           <!-- Group Components -->
           <div>
             <h4 class="font-medium text-gray-900 dark:text-white mb-2">
-              Group Components ({{ groupComponents.filter((c) => c.name.trim()).length }})
+              Group Components ({{
+                setupStore.groupComponents.filter((c) => c.name.trim()).length
+              }})
             </h4>
             <ul class="list-disc list-inside text-sm text-gray-600 dark:text-gray-400">
               <li
-                v-for="(comp, index) in groupComponents.filter((c) => c.name.trim())"
+                v-for="(comp, index) in setupStore.groupComponents.filter((c) => c.name.trim())"
                 :key="index"
               >
                 {{ comp.name }}
+                <UBadge v-if="comp.sellable" color="success" variant="soft" size="xs" class="ml-2">
+                  Sellable
+                </UBadge>
+                <UBadge v-else color="neutral" variant="soft" size="xs" class="ml-2">
+                  Non-sellable
+                </UBadge>
               </li>
             </ul>
           </div>
@@ -274,11 +294,13 @@
           <!-- Student Components -->
           <div>
             <h4 class="font-medium text-gray-900 dark:text-white mb-2">
-              Student Components ({{ studentComponents.filter((c) => c.name.trim()).length }})
+              Student Components ({{
+                setupStore.studentComponents.filter((c) => c.name.trim()).length
+              }})
             </h4>
             <ul class="list-disc list-inside text-sm text-gray-600 dark:text-gray-400">
               <li
-                v-for="(comp, index) in studentComponents.filter((c) => c.name.trim())"
+                v-for="(comp, index) in setupStore.studentComponents.filter((c) => c.name.trim())"
                 :key="index"
               >
                 {{ comp.name }}
@@ -289,11 +311,13 @@
           <!-- Group Deliverables -->
           <div>
             <h4 class="font-medium text-gray-900 dark:text-white mb-2">
-              Group Deliverables ({{ groupDeliverables.filter((d) => d.name.trim()).length }})
+              Group Deliverables ({{
+                setupStore.groupDeliverables.filter((d) => d.name.trim()).length
+              }})
             </h4>
             <div class="space-y-3">
               <div
-                v-for="(deliv, index) in groupDeliverables.filter((d) => d.name.trim())"
+                v-for="(deliv, index) in setupStore.groupDeliverables.filter((d) => d.name.trim())"
                 :key="index"
                 class="border-l-2 border-primary-500 pl-3"
               >
@@ -302,7 +326,8 @@
                   <p class="font-medium">Components:</p>
                   <ul class="list-disc list-inside ml-2">
                     <li v-for="(comp, idx) in deliv.components" :key="idx">
-                      {{ groupComponents[comp.componentIndex]?.name }} (Qty: {{ comp.quantity }})
+                      {{ setupStore.groupComponents[comp.componentIndex]?.name }} (Qty:
+                      {{ comp.quantity }})
                     </li>
                   </ul>
                 </div>
@@ -314,11 +339,15 @@
           <!-- Student Deliverables -->
           <div>
             <h4 class="font-medium text-gray-900 dark:text-white mb-2">
-              Student Deliverables ({{ studentDeliverables.filter((d) => d.name.trim()).length }})
+              Student Deliverables ({{
+                setupStore.studentDeliverables.filter((d) => d.name.trim()).length
+              }})
             </h4>
             <div class="space-y-3">
               <div
-                v-for="(deliv, index) in studentDeliverables.filter((d) => d.name.trim())"
+                v-for="(deliv, index) in setupStore.studentDeliverables.filter((d) =>
+                  d.name.trim()
+                )"
                 :key="index"
                 class="border-l-2 border-primary-500 pl-3"
               >
@@ -327,7 +356,8 @@
                   <p class="font-medium">Components:</p>
                   <ul class="list-disc list-inside ml-2">
                     <li v-for="(comp, idx) in deliv.components" :key="idx">
-                      {{ studentComponents[comp.componentIndex]?.name }} (Qty: {{ comp.quantity }})
+                      {{ setupStore.studentComponents[comp.componentIndex]?.name }} (Qty:
+                      {{ comp.quantity }})
                     </li>
                   </ul>
                 </div>
@@ -339,8 +369,8 @@
           <UAlert
             icon="material-symbols:check-circle"
             color="success"
-            title="Setup Complete!"
-            description="All components and deliverables have been successfully created. Click 'Finish Setup' to view the project."
+            title="Ready to Create!"
+            description="Review your configuration above. When you click 'Finish Setup', all components and deliverables will be created in the database."
           />
         </div>
       </div>
@@ -351,7 +381,7 @@
             v-if="currentStep > 0"
             color="neutral"
             variant="ghost"
-            :disabled="nextStepLoading"
+            :disabled="submitting"
             @click="currentStep--"
           >
             <Icon name="material-symbols:arrow-back" class="mr-2" />
@@ -359,11 +389,7 @@
           </UButton>
           <div v-else />
 
-          <UButton
-            v-if="currentStep < steps.length - 1"
-            :loading="nextStepLoading"
-            @click="nextStep"
-          >
+          <UButton v-if="currentStep < steps.length - 1" @click="nextStep">
             Next
             <Icon name="material-symbols:arrow-forward" class="ml-2" />
           </UButton>
@@ -378,16 +404,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  createGroupComponentHandler,
-  createStudentComponentHandler,
-  createGroupDeliverableHandler,
-  createStudentDeliverableHandler,
-  createGroupDeliverableComponentHandler,
-  createStudentDeliverableComponentHandler,
-  getGroupComponentsForProjectHandler,
-  getStudentComponentsForProjectHandler
-} from '~/composables/api/sdk.gen'
+import { useProjectSetupStore } from '~/stores/projectSetup'
 
 definePageMeta({
   middleware: [
@@ -411,14 +428,19 @@ const { showError } = useErrorToast()
 const projectId = parseInt(route.params.id as string)
 const currentStep = ref(0)
 const submitting = ref(false)
-const nextStepLoading = ref(false)
 
-// Store created IDs as we progress through steps
-const createdGroupComponentIds = ref<number[]>([])
-const createdStudentComponentIds = ref<number[]>([])
+// Use Pinia store
+const setupStore = useProjectSetupStore()
 
-// Track which steps have been completed (items created)
-const completedSteps = ref<Set<number>>(new Set())
+// Initialize store with project ID
+onMounted(() => {
+  setupStore.initializeProject(projectId)
+})
+
+// Clean up store on unmount
+onUnmounted(() => {
+  setupStore.$reset()
+})
 
 const steps = [
   'Group Components',
@@ -428,275 +450,30 @@ const steps = [
   'Review & Finish'
 ]
 
-const groupComponents = ref<Array<{ name: string }>>([{ name: '' }])
-const studentComponents = ref<Array<{ name: string }>>([{ name: '' }])
-interface ComponentWithQuantity {
-  componentIndex: number
-  quantity: number
-}
-
-const groupDeliverables = ref<Array<{ name: string; components: ComponentWithQuantity[] }>>([
-  { name: '', components: [] }
-])
-const studentDeliverables = ref<Array<{ name: string; components: ComponentWithQuantity[] }>>([
-  { name: '', components: [] }
-])
-
-const nextStep = async () => {
-  nextStepLoading.value = true
-
-  try {
-    // Skip if step already completed
-    if (!completedSteps.value.has(currentStep.value)) {
-      switch (currentStep.value) {
-        case 0: // Create group components
-          await createGroupComponents()
-          break
-        case 1: // Create student components
-          await createStudentComponents()
-          break
-        case 2: // Create group deliverables with components
-          await createGroupDeliverablesWithComponents()
-          break
-        case 3: // Create student deliverables with components
-          await createStudentDeliverablesWithComponents()
-          break
-      }
-
-      // Mark step as completed
-      completedSteps.value.add(currentStep.value)
-    }
-
-    // Advance to next step
-    currentStep.value++
-
-    // Load components when entering deliverable creation steps
-    if (currentStep.value === 2 && createdGroupComponentIds.value.length === 0) {
-      await loadGroupComponentsFromBackend()
-    } else if (currentStep.value === 3 && createdStudentComponentIds.value.length === 0) {
-      await loadStudentComponentsFromBackend()
-    }
-  } catch (err) {
-    showError('Creation Failed', err)
-    // Stay on current step
-    currentStep.value--
-  } finally {
-    nextStepLoading.value = false
-  }
-}
-
-// Load existing group components from backend
-const loadGroupComponentsFromBackend = async () => {
-  const { data, error } = await getGroupComponentsForProjectHandler({
-    path: { project_id: projectId }
-  })
-
-  if (error) {
-    throw error
-  }
-
-  if (data && data.components && data.components.length > 0) {
-    // Clear and populate with existing components
-    groupComponents.value = data.components.map((comp) => ({ name: comp.name }))
-    createdGroupComponentIds.value = data.components.map(
-      (comp) => comp.group_deliverable_component_id
-    )
-
-    toast.add({
-      title: 'Group Components Loaded',
-      description: `Loaded ${data.components.length} existing group component(s)`,
-      color: 'info'
-    })
-  }
-}
-
-// Load existing student components from backend
-const loadStudentComponentsFromBackend = async () => {
-  const { data, error } = await getStudentComponentsForProjectHandler({
-    path: { project_id: projectId }
-  })
-
-  if (error) {
-    throw error
-  }
-
-  if (data && data.components && data.components.length > 0) {
-    // Clear and populate with existing components
-    studentComponents.value = data.components.map((comp) => ({ name: comp.name }))
-    createdStudentComponentIds.value = data.components.map(
-      (comp) => comp.student_deliverable_component_id
-    )
-
-    toast.add({
-      title: 'Student Components Loaded',
-      description: `Loaded ${data.components.length} existing student component(s)`,
-      color: 'info'
-    })
-  }
-}
-
-// Step 0: Create group components
-const createGroupComponents = async () => {
-  createdGroupComponentIds.value = []
-
-  for (const comp of groupComponents.value) {
-    if (comp.name.trim()) {
-      const { data, error } = await createGroupComponentHandler({
-        body: {
-          project_id: projectId,
-          name: comp.name
-        }
-      })
-
-      if (error) throw error
-
-      if (data) {
-        createdGroupComponentIds.value.push(data.group_deliverable_component_id)
-      }
-    }
-  }
-
-  toast.add({
-    title: 'Group Components Created',
-    description: `Created ${createdGroupComponentIds.value.length} group component(s)`,
-    color: 'success'
-  })
-}
-
-// Step 1: Create student components
-const createStudentComponents = async () => {
-  createdStudentComponentIds.value = []
-
-  for (const comp of studentComponents.value) {
-    if (comp.name.trim()) {
-      const { data, error } = await createStudentComponentHandler({
-        body: {
-          project_id: projectId,
-          name: comp.name
-        }
-      })
-
-      if (error) throw error
-
-      if (data) {
-        createdStudentComponentIds.value.push(data.student_deliverable_component_id)
-      }
-    }
-  }
-
-  toast.add({
-    title: 'Student Components Created',
-    description: `Created ${createdStudentComponentIds.value.length} student component(s)`,
-    color: 'success'
-  })
-}
-
-// Step 2: Create group deliverables with component associations
-const createGroupDeliverablesWithComponents = async () => {
-  for (const deliv of groupDeliverables.value) {
-    if (deliv.name.trim()) {
-      const { data, error } = await createGroupDeliverableHandler({
-        body: {
-          project_id: projectId,
-          name: deliv.name
-        }
-      })
-
-      if (error) throw error
-
-      // Associate selected components with this deliverable
-      if (data && deliv.components.length > 0) {
-        for (const component of deliv.components) {
-          const componentId = createdGroupComponentIds.value[component.componentIndex]
-          if (componentId) {
-            const { error: compError } = await createGroupDeliverableComponentHandler({
-              body: {
-                group_deliverable_id: data.group_deliverable_id,
-                group_deliverable_component_id: componentId,
-                quantity: component.quantity
-              }
-            })
-
-            if (compError) throw compError
-          }
-        }
-      }
-    }
-  }
-
-  toast.add({
-    title: 'Group Deliverables Created',
-    description: `Created ${groupDeliverables.value.filter((d) => d.name.trim()).length} group deliverable(s)`,
-    color: 'success'
-  })
-}
-
-// Step 3: Create student deliverables with component associations
-const createStudentDeliverablesWithComponents = async () => {
-  for (const deliv of studentDeliverables.value) {
-    if (deliv.name.trim()) {
-      const { data, error } = await createStudentDeliverableHandler({
-        body: {
-          project_id: projectId,
-          name: deliv.name
-        }
-      })
-
-      if (error) throw error
-
-      // Associate selected components with this deliverable
-      if (data && deliv.components.length > 0) {
-        for (const component of deliv.components) {
-          const componentId = createdStudentComponentIds.value[component.componentIndex]
-          if (componentId) {
-            const { error: compError } = await createStudentDeliverableComponentHandler({
-              body: {
-                student_deliverable_id: data.student_deliverable_id,
-                student_deliverable_component_id: componentId,
-                quantity: component.quantity
-              }
-            })
-
-            if (compError) throw compError
-          }
-        }
-      }
-    }
-  }
-
-  toast.add({
-    title: 'Student Deliverables Created',
-    description: `Created ${studentDeliverables.value.filter((d) => d.name.trim()).length} student deliverable(s)`,
-    color: 'success'
-  })
+const nextStep = () => {
+  // Simply advance to next step without creating anything in the database
+  currentStep.value++
 }
 
 // Add a group component to a deliverable with default quantity
 const addGroupComponentToDeliverable = (deliverableIndex: number, componentIndex: unknown) => {
-  const deliv = groupDeliverables.value[deliverableIndex]
-  if (!deliv || componentIndex === null || typeof componentIndex !== 'number') return
-
-  deliv.components.push({
-    componentIndex,
-    quantity: 1
-  })
+  if (componentIndex === null || typeof componentIndex !== 'number') return
+  setupStore.addGroupComponentToDeliverable(deliverableIndex, componentIndex)
 }
 
 // Add a student component to a deliverable with default quantity
 const addStudentComponentToDeliverable = (deliverableIndex: number, componentIndex: unknown) => {
-  const deliv = studentDeliverables.value[deliverableIndex]
-  if (!deliv || componentIndex === null || typeof componentIndex !== 'number') return
-
-  deliv.components.push({
-    componentIndex,
-    quantity: 1
-  })
+  if (componentIndex === null || typeof componentIndex !== 'number') return
+  setupStore.addStudentComponentToDeliverable(deliverableIndex, componentIndex)
 }
 
 const finishSetup = async () => {
   submitting.value = true
 
   try {
+    // Create everything in the database
+    await setupStore.createAllInDatabase()
+
     toast.add({
       title: 'Setup Complete',
       description: 'All project components and deliverables have been created',
@@ -706,43 +483,9 @@ const finishSetup = async () => {
     // Redirect to project details page
     await navigateTo(`/admin/projects/${projectId}`)
   } catch (err) {
-    showError('Navigation Failed', err)
+    showError('Setup Failed', err)
   } finally {
     submitting.value = false
   }
 }
-
-// Load existing components on mount (in case user is resuming setup)
-onMounted(async () => {
-  try {
-    // Try to load group components
-    const { data: groupData } = await getGroupComponentsForProjectHandler({
-      path: { project_id: projectId }
-    })
-
-    if (groupData && groupData.components && groupData.components.length > 0) {
-      groupComponents.value = groupData.components.map((comp) => ({ name: comp.name }))
-      createdGroupComponentIds.value = groupData.components.map(
-        (comp) => comp.group_deliverable_component_id
-      )
-      completedSteps.value.add(0) // Mark step 0 as completed
-    }
-
-    // Try to load student components
-    const { data: studentData } = await getStudentComponentsForProjectHandler({
-      path: { project_id: projectId }
-    })
-
-    if (studentData && studentData.components && studentData.components.length > 0) {
-      studentComponents.value = studentData.components.map((comp) => ({ name: comp.name }))
-      createdStudentComponentIds.value = studentData.components.map(
-        (comp) => comp.student_deliverable_component_id
-      )
-      completedSteps.value.add(1) // Mark step 1 as completed
-    }
-  } catch (err) {
-    // Silently fail - user can create components from scratch
-    console.error('Failed to load existing components:', err)
-  }
-})
 </script>

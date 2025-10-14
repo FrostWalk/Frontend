@@ -24,7 +24,8 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxt/test-utils',
     '@nuxt/icon',
-    '@pinia/nuxt'
+    '@pinia/nuxt',
+    '@nuxtjs/mdc'
   ],
 
   icon: {

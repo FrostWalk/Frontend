@@ -20,6 +20,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 
 /**
  * Get application health status
+ *
  * Comprehensive health check that includes database connectivity and application status
  */
 export const healthCheck = <ThrowOnError extends boolean = false>(options?: Options<HealthCheckData, ThrowOnError>) => {
@@ -31,6 +32,7 @@ export const healthCheck = <ThrowOnError extends boolean = false>(options?: Opti
 
 /**
  * Get service liveness status
+ *
  * Simple liveness check that returns 200 OK if the service is running
  */
 export const livenessCheck = <ThrowOnError extends boolean = false>(options?: Options<LivenessCheckData, ThrowOnError>) => {
@@ -42,6 +44,7 @@ export const livenessCheck = <ThrowOnError extends boolean = false>(options?: Op
 
 /**
  * Requests a password reset for an admin account
+ *
  * This endpoint sends a password reset email to the specified email address if an admin
  * account with that email exists. The email contains a secure link to reset the password.
  */
@@ -58,6 +61,7 @@ export const forgotPasswordHandler = <ThrowOnError extends boolean = false>(opti
 
 /**
  * Authenticates an admin and returns a JWT.
+ *
  * This endpoint validates user credentials and issues a JWT upon successful authentication.
  */
 export const adminsLoginHandler = <ThrowOnError extends boolean = false>(options: Options<AdminsLoginHandlerData, ThrowOnError>) => {
@@ -73,6 +77,7 @@ export const adminsLoginHandler = <ThrowOnError extends boolean = false>(options
 
 /**
  * Resets an admin's password using a valid reset token
+ *
  * This endpoint validates the password reset token and updates the admin's password.
  * The token is sent to the admin's email via the forgot-password endpoint.
  */
@@ -89,6 +94,7 @@ export const resetPasswordHandler = <ThrowOnError extends boolean = false>(optio
 
 /**
  * Get all group components.
+ *
  * Returns all group components across all projects.
  */
 export const getAllGroupComponentsHandler = <ThrowOnError extends boolean = false>(options?: Options<GetAllGroupComponentsHandlerData, ThrowOnError>) => {
@@ -106,6 +112,7 @@ export const getAllGroupComponentsHandler = <ThrowOnError extends boolean = fals
 
 /**
  * Creates a new group component.
+ *
  * This endpoint allows authenticated admins to create a new group component for a specific project.
  */
 export const createGroupComponentHandler = <ThrowOnError extends boolean = false>(options: Options<CreateGroupComponentHandlerData, ThrowOnError>) => {
@@ -127,6 +134,7 @@ export const createGroupComponentHandler = <ThrowOnError extends boolean = false
 
 /**
  * Get all group components for a specific project.
+ *
  * Returns all group components associated with the specified project.
  */
 export const getGroupComponentsForProjectHandler = <ThrowOnError extends boolean = false>(options: Options<GetGroupComponentsForProjectHandlerData, ThrowOnError>) => {
@@ -144,6 +152,7 @@ export const getGroupComponentsForProjectHandler = <ThrowOnError extends boolean
 
 /**
  * Deletes a group component.
+ *
  * This endpoint allows authenticated admins to remove a group component by ID.
  */
 export const deleteGroupComponentHandler = <ThrowOnError extends boolean = false>(options: Options<DeleteGroupComponentHandlerData, ThrowOnError>) => {
@@ -161,6 +170,7 @@ export const deleteGroupComponentHandler = <ThrowOnError extends boolean = false
 
 /**
  * Get a specific group component by ID.
+ *
  * Returns the details of the specified group component.
  */
 export const getGroupComponentHandler = <ThrowOnError extends boolean = false>(options: Options<GetGroupComponentHandlerData, ThrowOnError>) => {
@@ -178,6 +188,7 @@ export const getGroupComponentHandler = <ThrowOnError extends boolean = false>(o
 
 /**
  * Updates a group component.
+ *
  * This endpoint allows authenticated admins to modify the name of a group component by ID.
  */
 export const updateGroupComponentHandler = <ThrowOnError extends boolean = false>(options: Options<UpdateGroupComponentHandlerData, ThrowOnError>) => {
@@ -199,6 +210,7 @@ export const updateGroupComponentHandler = <ThrowOnError extends boolean = false
 
 /**
  * Get all deliverables that use a specific group component.
+ *
  * Returns all group deliverables that use the specified component along with their quantities.
  */
 export const getDeliverablesForGroupComponentHandler = <ThrowOnError extends boolean = false>(options: Options<GetDeliverablesForGroupComponentHandlerData, ThrowOnError>) => {
@@ -216,6 +228,7 @@ export const getDeliverablesForGroupComponentHandler = <ThrowOnError extends boo
 
 /**
  * Get all group deliverables.
+ *
  * Returns all group deliverables across all projects.
  */
 export const getAllGroupDeliverablesHandler = <ThrowOnError extends boolean = false>(options?: Options<GetAllGroupDeliverablesHandlerData, ThrowOnError>) => {
@@ -233,6 +246,7 @@ export const getAllGroupDeliverablesHandler = <ThrowOnError extends boolean = fa
 
 /**
  * Creates a new group deliverable.
+ *
  * This endpoint allows authenticated admins to create a new group deliverable for a specific project.
  */
 export const createGroupDeliverableHandler = <ThrowOnError extends boolean = false>(options: Options<CreateGroupDeliverableHandlerData, ThrowOnError>) => {
@@ -254,6 +268,7 @@ export const createGroupDeliverableHandler = <ThrowOnError extends boolean = fal
 
 /**
  * Creates a new group deliverable-component relationship.
+ *
  * This endpoint allows authenticated admins to add components to group deliverables with specified quantities.
  */
 export const createGroupDeliverableComponentHandler = <ThrowOnError extends boolean = false>(options: Options<CreateGroupDeliverableComponentHandlerData, ThrowOnError>) => {
@@ -275,6 +290,7 @@ export const createGroupDeliverableComponentHandler = <ThrowOnError extends bool
 
 /**
  * Get all components for a specific group deliverable.
+ *
  * Returns all components associated with the specified group deliverable along with their quantities.
  */
 export const getComponentsForDeliverableHandler = <ThrowOnError extends boolean = false>(options: Options<GetComponentsForDeliverableHandlerData, ThrowOnError>) => {
@@ -292,6 +308,7 @@ export const getComponentsForDeliverableHandler = <ThrowOnError extends boolean 
 
 /**
  * Get all deliverables that use a specific group component.
+ *
  * Returns all group deliverables that use the specified component along with their quantities.
  */
 export const getDeliverablesForComponentHandler = <ThrowOnError extends boolean = false>(options: Options<GetDeliverablesForComponentHandlerData, ThrowOnError>) => {
@@ -309,6 +326,7 @@ export const getDeliverablesForComponentHandler = <ThrowOnError extends boolean 
 
 /**
  * Removes a component from a group deliverable.
+ *
  * This endpoint allows authenticated admins to remove the relationship between a component and a group deliverable by ID.
  */
 export const deleteGroupDeliverableComponentHandler = <ThrowOnError extends boolean = false>(options: Options<DeleteGroupDeliverableComponentHandlerData, ThrowOnError>) => {
@@ -326,6 +344,7 @@ export const deleteGroupDeliverableComponentHandler = <ThrowOnError extends bool
 
 /**
  * Updates the quantity of a component in a group deliverable.
+ *
  * This endpoint allows authenticated admins to modify the quantity of a component in a group deliverable by ID.
  */
 export const updateGroupDeliverableComponentHandler = <ThrowOnError extends boolean = false>(options: Options<UpdateGroupDeliverableComponentHandlerData, ThrowOnError>) => {
@@ -347,6 +366,7 @@ export const updateGroupDeliverableComponentHandler = <ThrowOnError extends bool
 
 /**
  * Get all group deliverables for a specific project.
+ *
  * Returns all group deliverables associated with the specified project.
  */
 export const getGroupDeliverablesForProjectHandler = <ThrowOnError extends boolean = false>(options: Options<GetGroupDeliverablesForProjectHandlerData, ThrowOnError>) => {
@@ -364,6 +384,7 @@ export const getGroupDeliverablesForProjectHandler = <ThrowOnError extends boole
 
 /**
  * Deletes a group deliverable.
+ *
  * This endpoint allows authenticated admins to remove a group deliverable by ID.
  */
 export const deleteGroupDeliverableHandler = <ThrowOnError extends boolean = false>(options: Options<DeleteGroupDeliverableHandlerData, ThrowOnError>) => {
@@ -381,6 +402,7 @@ export const deleteGroupDeliverableHandler = <ThrowOnError extends boolean = fal
 
 /**
  * Get a specific group deliverable by ID.
+ *
  * Returns the details of the specified group deliverable.
  */
 export const getGroupDeliverableHandler = <ThrowOnError extends boolean = false>(options: Options<GetGroupDeliverableHandlerData, ThrowOnError>) => {
@@ -398,6 +420,7 @@ export const getGroupDeliverableHandler = <ThrowOnError extends boolean = false>
 
 /**
  * Updates a group deliverable.
+ *
  * This endpoint allows authenticated admins to modify the name of a group deliverable by ID.
  */
 export const updateGroupDeliverableHandler = <ThrowOnError extends boolean = false>(options: Options<UpdateGroupDeliverableHandlerData, ThrowOnError>) => {
@@ -419,6 +442,7 @@ export const updateGroupDeliverableHandler = <ThrowOnError extends boolean = fal
 
 /**
  * Get all components for a specific group deliverable.
+ *
  * Returns all components associated with the specified group deliverable along with their quantities.
  */
 export const getComponentsForGroupDeliverableHandler = <ThrowOnError extends boolean = false>(options: Options<GetComponentsForGroupDeliverableHandlerData, ThrowOnError>) => {
@@ -436,6 +460,7 @@ export const getComponentsForGroupDeliverableHandler = <ThrowOnError extends boo
 
 /**
  * List all groups in a project with their members and deliverable selections
+ *
  * This endpoint allows admins to view all groups in a project with member counts,
  * group leaders, and their chosen deliverables. Includes time_expired field for
  * groups that haven't selected a deliverable by the deadline.
@@ -455,6 +480,7 @@ export const getProjectGroups = <ThrowOnError extends boolean = false>(options: 
 
 /**
  * Get detailed information about a specific group
+ *
  * This endpoint allows admins to view comprehensive details about a group including:
  * - All members with their roles
  * - The group's deliverable selection (if any)
@@ -475,6 +501,7 @@ export const getGroupDetails = <ThrowOnError extends boolean = false>(options: O
 
 /**
  * Transfer group leadership (Admin/Coordinator)
+ *
  * This endpoint allows admins and coordinators to change the Group Leader of a group.
  * Can optionally remove the old leader or demote them to member.
  */
@@ -497,6 +524,7 @@ export const transferLeadership = <ThrowOnError extends boolean = false>(options
 
 /**
  * Add a member to a group (Admin/Coordinator)
+ *
  * This endpoint allows admins and coordinators to manually add students to groups.
  * Can add students as members or group leaders.
  */
@@ -519,6 +547,7 @@ export const addMember = <ThrowOnError extends boolean = false>(options: Options
 
 /**
  * Remove a member from a group (Admin/Coordinator)
+ *
  * This endpoint allows admins and coordinators to remove any member from a group,
  * including the Group Leader. Must delete the student's deliverable selection when removed.
  */
@@ -537,6 +566,7 @@ export const removeMember = <ThrowOnError extends boolean = false>(options: Opti
 
 /**
  * Get all projects details
+ *
  * Returns all projects for Professors/Root, or only assigned projects for Coordinators
  */
 export const getAllProjectsHandler = <ThrowOnError extends boolean = false>(options?: Options<GetAllProjectsHandlerData, ThrowOnError>) => {
@@ -590,6 +620,7 @@ export const deleteProjectHandler = <ThrowOnError extends boolean = false>(optio
 
 /**
  * Get project details by id with deliverables and components
+ *
  * Coordinators can only view projects they are assigned to. Professors/Root can view any project.
  */
 export const getOneProjectHandler = <ThrowOnError extends boolean = false>(options: Options<GetOneProjectHandlerData, ThrowOnError>) => {
@@ -627,6 +658,7 @@ export const updateProjectHandler = <ThrowOnError extends boolean = false>(optio
 
 /**
  * Get the coordinator assigned to a project
+ *
  * This endpoint allows admins to view the coordinator assigned to a specific project.
  * Returns null if no coordinator is assigned.
  */
@@ -645,6 +677,7 @@ export const listCoordinators = <ThrowOnError extends boolean = false>(options: 
 
 /**
  * Assign a coordinator to a project
+ *
  * This endpoint allows Professors and Root admins to assign Coordinators to specific projects.
  * Only admins with the Coordinator role can be assigned.
  * **Constraint**: At most one coordinator can be assigned per project.
@@ -668,6 +701,7 @@ export const assignCoordinator = <ThrowOnError extends boolean = false>(options:
 
 /**
  * Remove a coordinator from a project
+ *
  * This endpoint allows Professors and Root admins to remove coordinator assignments from projects.
  */
 export const removeCoordinator = <ThrowOnError extends boolean = false>(options: Options<RemoveCoordinatorData, ThrowOnError>) => {
@@ -685,6 +719,7 @@ export const removeCoordinator = <ThrowOnError extends boolean = false>(options:
 
 /**
  * List all group deliverable selections for a project
+ *
  * This endpoint allows admins to view all group deliverable selections for a specific project,
  * including which deliverables each group has chosen and their submission details.
  */
@@ -703,6 +738,7 @@ export const getGroupDeliverableSelections = <ThrowOnError extends boolean = fal
 
 /**
  * List all student deliverable selections for a project
+ *
  * This endpoint allows admins to view all student deliverable selections for a specific project,
  * including which deliverables each student has chosen.
  */
@@ -737,6 +773,7 @@ export const getAllCodesHandler = <ThrowOnError extends boolean = false>(options
 
 /**
  * Generate a unique code for a project
+ *
  * Coordinators can only create codes for projects they are assigned to. Professors/Root can create codes for any project.
  */
 export const createCodeHandler = <ThrowOnError extends boolean = false>(options: Options<CreateCodeHandlerData, ThrowOnError>) => {
@@ -758,6 +795,7 @@ export const createCodeHandler = <ThrowOnError extends boolean = false>(options:
 
 /**
  * Get all student components.
+ *
  * Returns all student components across all projects.
  */
 export const getAllStudentComponentsHandler = <ThrowOnError extends boolean = false>(options?: Options<GetAllStudentComponentsHandlerData, ThrowOnError>) => {
@@ -775,6 +813,7 @@ export const getAllStudentComponentsHandler = <ThrowOnError extends boolean = fa
 
 /**
  * Creates a new student component.
+ *
  * This endpoint allows authenticated admins to create a new student component for a specific project.
  */
 export const createStudentComponentHandler = <ThrowOnError extends boolean = false>(options: Options<CreateStudentComponentHandlerData, ThrowOnError>) => {
@@ -796,6 +835,7 @@ export const createStudentComponentHandler = <ThrowOnError extends boolean = fal
 
 /**
  * Get all student components for a specific project.
+ *
  * Returns all student components associated with the specified project.
  */
 export const getStudentComponentsForProjectHandler = <ThrowOnError extends boolean = false>(options: Options<GetStudentComponentsForProjectHandlerData, ThrowOnError>) => {
@@ -813,6 +853,7 @@ export const getStudentComponentsForProjectHandler = <ThrowOnError extends boole
 
 /**
  * Deletes a student component.
+ *
  * This endpoint allows authenticated admins to remove a student component by ID.
  */
 export const deleteStudentComponentHandler = <ThrowOnError extends boolean = false>(options: Options<DeleteStudentComponentHandlerData, ThrowOnError>) => {
@@ -830,6 +871,7 @@ export const deleteStudentComponentHandler = <ThrowOnError extends boolean = fal
 
 /**
  * Get a specific student component by ID.
+ *
  * Returns the details of the specified student component.
  */
 export const getStudentComponentHandler = <ThrowOnError extends boolean = false>(options: Options<GetStudentComponentHandlerData, ThrowOnError>) => {
@@ -847,6 +889,7 @@ export const getStudentComponentHandler = <ThrowOnError extends boolean = false>
 
 /**
  * Updates a student component.
+ *
  * This endpoint allows authenticated admins to modify the name of a student component by ID.
  */
 export const updateStudentComponentHandler = <ThrowOnError extends boolean = false>(options: Options<UpdateStudentComponentHandlerData, ThrowOnError>) => {
@@ -868,6 +911,7 @@ export const updateStudentComponentHandler = <ThrowOnError extends boolean = fal
 
 /**
  * Get all deliverables that use a specific student component.
+ *
  * Returns all student deliverables that use the specified component along with their quantities.
  */
 export const getDeliverablesForStudentComponentHandler = <ThrowOnError extends boolean = false>(options: Options<GetDeliverablesForStudentComponentHandlerData, ThrowOnError>) => {
@@ -885,6 +929,7 @@ export const getDeliverablesForStudentComponentHandler = <ThrowOnError extends b
 
 /**
  * Get all student deliverables.
+ *
  * Returns all student deliverables across all projects.
  */
 export const getAllStudentDeliverablesHandler = <ThrowOnError extends boolean = false>(options?: Options<GetAllStudentDeliverablesHandlerData, ThrowOnError>) => {
@@ -902,6 +947,7 @@ export const getAllStudentDeliverablesHandler = <ThrowOnError extends boolean = 
 
 /**
  * Creates a new student deliverable.
+ *
  * This endpoint allows authenticated admins to create a new student deliverable for a specific project.
  */
 export const createStudentDeliverableHandler = <ThrowOnError extends boolean = false>(options: Options<CreateStudentDeliverableHandlerData, ThrowOnError>) => {
@@ -923,6 +969,7 @@ export const createStudentDeliverableHandler = <ThrowOnError extends boolean = f
 
 /**
  * Creates a new student deliverable-component relationship.
+ *
  * This endpoint allows authenticated admins to add components to student deliverables with specified quantities.
  */
 export const createStudentDeliverableComponentHandler = <ThrowOnError extends boolean = false>(options: Options<CreateStudentDeliverableComponentHandlerData, ThrowOnError>) => {
@@ -944,6 +991,7 @@ export const createStudentDeliverableComponentHandler = <ThrowOnError extends bo
 
 /**
  * Get all components for a specific student deliverable.
+ *
  * Returns all components associated with the specified student deliverable along with their quantities.
  */
 export const getComponentsForDeliverableHandler2 = <ThrowOnError extends boolean = false>(options: Options<GetComponentsForDeliverableHandler2Data, ThrowOnError>) => {
@@ -961,6 +1009,7 @@ export const getComponentsForDeliverableHandler2 = <ThrowOnError extends boolean
 
 /**
  * Get all deliverables that use a specific student component.
+ *
  * Returns all student deliverables that use the specified component along with their quantities.
  */
 export const getDeliverablesForComponentHandler2 = <ThrowOnError extends boolean = false>(options: Options<GetDeliverablesForComponentHandler2Data, ThrowOnError>) => {
@@ -978,6 +1027,7 @@ export const getDeliverablesForComponentHandler2 = <ThrowOnError extends boolean
 
 /**
  * Removes a component from a student deliverable.
+ *
  * This endpoint allows authenticated admins to remove the relationship between a component and a student deliverable by ID.
  */
 export const deleteStudentDeliverableComponentHandler = <ThrowOnError extends boolean = false>(options: Options<DeleteStudentDeliverableComponentHandlerData, ThrowOnError>) => {
@@ -995,6 +1045,7 @@ export const deleteStudentDeliverableComponentHandler = <ThrowOnError extends bo
 
 /**
  * Updates the quantity of a component in a student deliverable.
+ *
  * This endpoint allows authenticated admins to modify the quantity of a component in a student deliverable by ID.
  */
 export const updateStudentDeliverableComponentHandler = <ThrowOnError extends boolean = false>(options: Options<UpdateStudentDeliverableComponentHandlerData, ThrowOnError>) => {
@@ -1016,6 +1067,7 @@ export const updateStudentDeliverableComponentHandler = <ThrowOnError extends bo
 
 /**
  * Get all student deliverables for a specific project.
+ *
  * Returns all student deliverables associated with the specified project.
  */
 export const getStudentDeliverablesForProjectHandler = <ThrowOnError extends boolean = false>(options: Options<GetStudentDeliverablesForProjectHandlerData, ThrowOnError>) => {
@@ -1033,6 +1085,7 @@ export const getStudentDeliverablesForProjectHandler = <ThrowOnError extends boo
 
 /**
  * Deletes a student deliverable.
+ *
  * This endpoint allows authenticated admins to remove a student deliverable by ID.
  */
 export const deleteStudentDeliverableHandler = <ThrowOnError extends boolean = false>(options: Options<DeleteStudentDeliverableHandlerData, ThrowOnError>) => {
@@ -1050,6 +1103,7 @@ export const deleteStudentDeliverableHandler = <ThrowOnError extends boolean = f
 
 /**
  * Get a specific student deliverable by ID.
+ *
  * Returns the details of the specified student deliverable.
  */
 export const getStudentDeliverableHandler = <ThrowOnError extends boolean = false>(options: Options<GetStudentDeliverableHandlerData, ThrowOnError>) => {
@@ -1067,6 +1121,7 @@ export const getStudentDeliverableHandler = <ThrowOnError extends boolean = fals
 
 /**
  * Updates a student deliverable.
+ *
  * This endpoint allows authenticated admins to modify the name of a student deliverable by ID.
  */
 export const updateStudentDeliverableHandler = <ThrowOnError extends boolean = false>(options: Options<UpdateStudentDeliverableHandlerData, ThrowOnError>) => {
@@ -1088,6 +1143,7 @@ export const updateStudentDeliverableHandler = <ThrowOnError extends boolean = f
 
 /**
  * Get all components for a specific student deliverable.
+ *
  * Returns all components associated with the specified student deliverable along with their quantities.
  */
 export const getComponentsForStudentDeliverableHandler = <ThrowOnError extends boolean = false>(options: Options<GetComponentsForStudentDeliverableHandlerData, ThrowOnError>) => {
@@ -1105,6 +1161,7 @@ export const getComponentsForStudentDeliverableHandler = <ThrowOnError extends b
 
 /**
  * Handler for retrieving a list of admin users
+ *
  * Returns array with all the data of the admins except passwords
  */
 export const getAllAdminsHandler = <ThrowOnError extends boolean = false>(options?: Options<GetAllAdminsHandlerData, ThrowOnError>) => {
@@ -1122,6 +1179,7 @@ export const getAllAdminsHandler = <ThrowOnError extends boolean = false>(option
 
 /**
  * Creates a new admin user.
+ *
  * This endpoint allows authenticated users to create new admin accounts. Only users with the root role can create other root users.
  * A random password is automatically generated and sent to the admin via email.
  */
@@ -1144,6 +1202,7 @@ export const createAdminHandler = <ThrowOnError extends boolean = false>(options
 
 /**
  * Retrieves the profile information of the currently authenticated admin.
+ *
  * This endpoint is designed to return detailed information about the admin making the request.
  * It extracts the admin's data from the request context, which should be populated by middleware
  * responsible for authentication and authorization.
@@ -1163,6 +1222,7 @@ export const adminsMeHandler = <ThrowOnError extends boolean = false>(options?: 
 
 /**
  * Updates the currently authenticated admin's profile.
+ *
  * This endpoint allows admins to update their own profile details including name, email, and password.
  */
 export const updateMeAdminHandler = <ThrowOnError extends boolean = false>(options: Options<UpdateMeAdminHandlerData, ThrowOnError>) => {
@@ -1200,6 +1260,7 @@ export const deleteAdminHandler = <ThrowOnError extends boolean = false>(options
 
 /**
  * Handler for retrieving a single admin user by ID
+ *
  * Returns detailed information about a specific admin user
  * without including sensitive fields like passwords.
  */
@@ -1218,6 +1279,7 @@ export const getOneAdminHandler = <ThrowOnError extends boolean = false>(options
 
 /**
  * Updates an existing admin user.
+ *
  * This endpoint allows authenticated admins to update their own or other admin's details. Only root admins can modify roles.
  */
 export const updateAdminHandler = <ThrowOnError extends boolean = false>(options: Options<UpdateAdminHandlerData, ThrowOnError>) => {
@@ -1239,6 +1301,7 @@ export const updateAdminHandler = <ThrowOnError extends boolean = false>(options
 
 /**
  * Get allowed email domains for registration
+ *
  * Returns a list of email domains that can be used to create student accounts. This endpoint does not require authentication.
  */
 export const allowedDomainsHandler = <ThrowOnError extends boolean = false>(options?: Options<AllowedDomainsHandlerData, ThrowOnError>) => {
@@ -1250,6 +1313,7 @@ export const allowedDomainsHandler = <ThrowOnError extends boolean = false>(opti
 
 /**
  * Confirms a student account using email verification token
+ *
  * This endpoint verifies the email confirmation token sent to the student's email
  * and activates their account by setting is_pending to false.
  */
@@ -1262,6 +1326,7 @@ export const confirmStudentHandler = <ThrowOnError extends boolean = false>(opti
 
 /**
  * Requests a password reset for a student account
+ *
  * This endpoint sends a password reset email to the specified email address if a student
  * account with that email exists. The email contains a secure link to reset the password.
  */
@@ -1278,6 +1343,7 @@ export const forgotPasswordHandler2 = <ThrowOnError extends boolean = false>(opt
 
 /**
  * Authenticates a student and returns a JWT.
+ *
  * This endpoint validates user credentials and issues a JWT upon successful authentication.
  */
 export const studentsLoginHandler = <ThrowOnError extends boolean = false>(options: Options<StudentsLoginHandlerData, ThrowOnError>) => {
@@ -1293,6 +1359,7 @@ export const studentsLoginHandler = <ThrowOnError extends boolean = false>(optio
 
 /**
  * Resets a student's password using a valid reset token
+ *
  * This endpoint validates the password reset token and updates the student's password.
  * The token is sent to the student's email via the forgot-password endpoint.
  */
@@ -1309,6 +1376,7 @@ export const resetPasswordHandler2 = <ThrowOnError extends boolean = false>(opti
 
 /**
  * Creates a new student account
+ *
  * This endpoint allows students to register to the app.
  */
 export const studentSignupHandler = <ThrowOnError extends boolean = false>(options: Options<StudentSignupHandlerData, ThrowOnError>) => {
@@ -1453,6 +1521,7 @@ export const createGroupDeliverableSelection = <ThrowOnError extends boolean = f
 
 /**
  * Get all groups where the student is a member
+ *
  * This endpoint allows authenticated students to retrieve all groups they are members of.
  */
 export const getGroups = <ThrowOnError extends boolean = false>(options?: Options<GetGroupsData, ThrowOnError>) => {
@@ -1470,6 +1539,7 @@ export const getGroups = <ThrowOnError extends boolean = false>(options?: Option
 
 /**
  * Create a new group for a project
+ *
  * This endpoint allows authenticated students to create a group using a valid security code.
  * The security code must be valid and not expired for the specified project.
  * Each student can only create one group per project.
@@ -1494,6 +1564,7 @@ export const createGroup = <ThrowOnError extends boolean = false>(options: Optio
 
 /**
  * Check if a group name already exists in a project
+ *
  * This endpoint allows students to check if a group name is already taken
  * within a specific project before creating a group.
  */
@@ -1516,6 +1587,7 @@ export const checkName = <ThrowOnError extends boolean = false>(options: Options
 
 /**
  * Delete a group
+ *
  * This endpoint allows authenticated students to delete a group they lead.
  * This will also remove all group members.
  */
@@ -1534,6 +1606,7 @@ export const deleteGroup = <ThrowOnError extends boolean = false>(options: Optio
 
 /**
  * Remove a member from a group
+ *
  * This endpoint allows GroupLeaders to remove members from their group.
  */
 export const removeMember2 = <ThrowOnError extends boolean = false>(options: Options<RemoveMember2Data, ThrowOnError>) => {
@@ -1555,6 +1628,7 @@ export const removeMember2 = <ThrowOnError extends boolean = false>(options: Opt
 
 /**
  * List all members of a group with their roles
+ *
  * This endpoint allows students to view all members of a group with their roles.
  * Any authenticated student can view group members.
  */
@@ -1573,6 +1647,7 @@ export const listGroupMembers = <ThrowOnError extends boolean = false>(options: 
 
 /**
  * Add a member to a group
+ *
  * This endpoint allows GroupLeaders to add new members to their group.
  */
 export const addMember2 = <ThrowOnError extends boolean = false>(options: Options<AddMember2Data, ThrowOnError>) => {
@@ -1594,6 +1669,7 @@ export const addMember2 = <ThrowOnError extends boolean = false>(options: Option
 
 /**
  * Get all the projects of student with deliverables and components
+ *
  * This endpoint allows authenticated students to retrieve all the projects in which they have a role,
  * along with all deliverables and components for each project
  */
@@ -1612,6 +1688,7 @@ export const getStudentProjects = <ThrowOnError extends boolean = false>(options
 
 /**
  * Validate a security code and return project information
+ *
  * This endpoint allows students to validate a security code and get information about
  * the project associated with it. All security codes are for GroupLeader role.
  */
@@ -1634,6 +1711,7 @@ export const validateCode = <ThrowOnError extends boolean = false>(options: Opti
 
 /**
  * Retrieves the profile information of the currently authenticated student.
+ *
  * This endpoint is designed to return detailed information about the student making the request.
  * It extracts the student's data from the request context, which should be populated by middleware
  * responsible for authentication and authorization.
@@ -1653,6 +1731,7 @@ export const studentsMeHandler = <ThrowOnError extends boolean = false>(options?
 
 /**
  * Updates the currently authenticated student's profile.
+ *
  * This endpoint allows students to update their own profile details including name, email, and password.
  */
 export const updateMeStudentHandler = <ThrowOnError extends boolean = false>(options: Options<UpdateMeStudentHandlerData, ThrowOnError>) => {
@@ -1668,6 +1747,7 @@ export const updateMeStudentHandler = <ThrowOnError extends boolean = false>(opt
 
 /**
  * Get application version information
+ *
  * Returns comprehensive version information including git tag, commit hash, and build details
  */
 export const versionInfo = <ThrowOnError extends boolean = false>(options?: Options<VersionInfoData, ThrowOnError>) => {

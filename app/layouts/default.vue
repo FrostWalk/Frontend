@@ -20,7 +20,7 @@
                 Projects
               </NuxtLink>
               <button
-                class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
+                class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white cursor-pointer"
                 @click="navigateToMyGroup"
               >
                 <Icon name="material-symbols:groups" class="mr-2" />
@@ -60,11 +60,11 @@
 
                 <div
                   v-if="isDropdownOpen"
-                  class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
+                  class="absolute right-0 mt-2 min-w-56 w-max rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
                 >
                   <div class="py-1">
                     <div
-                      class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700"
+                      class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 whitespace-nowrap"
                     >
                       {{ user?.email || '' }}
                     </div>
