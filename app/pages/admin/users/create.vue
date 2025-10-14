@@ -17,13 +17,7 @@
         </UFormField>
 
         <UFormField label="Role" name="admin_role_id" required>
-          <USelectMenu
-            v-model="selectedRole"
-            :options="roleOptions"
-            option-attribute="label"
-            value-attribute="value"
-            placeholder="Select a role"
-          />
+          <USelectMenu v-model="selectedRole" :items="roleOptions" placeholder="Select a role" />
           <p v-if="selectedRole" class="text-sm text-gray-600 mt-1">
             Selected: {{ selectedRole.label }}
           </p>
