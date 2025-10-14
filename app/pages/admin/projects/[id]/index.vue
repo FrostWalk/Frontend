@@ -309,6 +309,66 @@
           </div>
         </template>
 
+        <!-- Student Components Tab -->
+        <template #student-components>
+          <div class="space-y-6">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  Student Components
+                </h3>
+                <p class="text-sm text-gray-600 mt-1">
+                  {{ studentComponents.length }} component{{
+                    studentComponents.length !== 1 ? 's' : ''
+                  }}
+                  configured
+                </p>
+              </div>
+            </div>
+
+            <div
+              v-if="studentComponents.length === 0"
+              class="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg"
+            >
+              <Icon
+                name="material-symbols:widgets-off"
+                size="48"
+                class="mx-auto text-gray-400 mb-4"
+              />
+              <p class="text-gray-600 mb-2">No student components configured</p>
+              <p class="text-sm text-gray-500">Set up components from the project setup page</p>
+            </div>
+
+            <div v-else class="grid gap-4">
+              <UCard
+                v-for="component in studentComponents"
+                :key="component.student_deliverable_component_id"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-4 flex-1">
+                    <Icon name="material-symbols:widgets" size="24" class="text-primary-500" />
+                    <div class="flex-1">
+                      <h4 class="font-semibold">{{ component.name }}</h4>
+                      <p class="text-sm text-gray-600">
+                        ID: {{ component.student_deliverable_component_id }}
+                      </p>
+                    </div>
+                  </div>
+                  <UButton
+                    color="neutral"
+                    variant="ghost"
+                    size="sm"
+                    icon="material-symbols:edit"
+                    @click="openEditStudentComponentModal(component)"
+                  >
+                    Edit
+                  </UButton>
+                </div>
+              </UCard>
+            </div>
+          </div>
+        </template>
+
         <!-- Group Deliverables Tab -->
         <template #group-deliverables>
           <div class="space-y-6">
@@ -965,6 +1025,33 @@
       </template>
     </UModal>
 
+    <!-- Edit Student Component Modal -->
+    <UModal
+      v-model:open="showEditStudentComponentModal"
+      title="Edit Student Component"
+      description="Modify the component name"
+    >
+      <template #body>
+        <UForm :state="studentComponentForm" class="space-y-4" @submit="updateStudentComponent">
+          <UFormField label="Component Name" name="name" required>
+            <UInput v-model="studentComponentForm.name" placeholder="Enter component name" />
+          </UFormField>
+        </UForm>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showEditStudentComponentModal = false">
+            Cancel
+          </UButton>
+          <UButton :loading="editingStudentComponent" @click="updateStudentComponent">
+            <Icon name="material-symbols:save" class="mr-2" />
+            Save Changes
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
     <!-- Edit Project Modal -->
     <UModal
       v-model:open="showEditProjectModal"
@@ -1083,6 +1170,10 @@ const editingDeliverable = ref(false)
 const showEditGroupComponentModal = ref(false)
 const editingComponent = ref(false)
 
+// Edit student component modal
+const showEditStudentComponentModal = ref(false)
+const editingStudentComponent = ref(false)
+
 // Edit project modal
 const showEditProjectModal = ref(false)
 const editingProject = ref(false)
@@ -1141,6 +1232,11 @@ const groupComponentForm = reactive({
   sellable: true
 })
 
+const studentComponentForm = reactive({
+  id: 0,
+  name: ''
+})
+
 const projectForm = reactive({
   name: '',
   max_group_size: 0,
@@ -1185,6 +1281,13 @@ const tabs = computed(() => {
       label: 'Group Components',
       icon: 'material-symbols:extension',
       slot: 'group-components'
+    },
+    {
+      key: 'student-components',
+      value: 'student-components',
+      label: 'Student Components',
+      icon: 'material-symbols:widgets',
+      slot: 'student-components'
     },
     {
       key: 'group-deliverables',
@@ -1558,6 +1661,50 @@ const updateGroupComponent = async () => {
     showError('Error', err)
   } finally {
     editingComponent.value = false
+  }
+}
+
+const openEditStudentComponentModal = (component: StudentDeliverableComponent) => {
+  studentComponentForm.id = component.student_deliverable_component_id
+  studentComponentForm.name = component.name
+  showEditStudentComponentModal.value = true
+}
+
+const updateStudentComponent = async () => {
+  editingStudentComponent.value = true
+
+  try {
+    const { error } = await updateStudentComponentHandler({
+      path: { id: studentComponentForm.id },
+      body: {
+        name: studentComponentForm.name
+      }
+    })
+
+    if (error) {
+      showError('Update Failed', error)
+      return
+    }
+
+    // Update the local data
+    const component = studentComponents.value.find(
+      (c) => c.student_deliverable_component_id === studentComponentForm.id
+    )
+    if (component) {
+      component.name = studentComponentForm.name
+    }
+
+    toast.add({
+      title: 'Component Updated',
+      description: 'Student component updated successfully',
+      color: 'success'
+    })
+
+    showEditStudentComponentModal.value = false
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    editingStudentComponent.value = false
   }
 }
 
