@@ -14,7 +14,7 @@ clone:
       tags: true
 
 steps:
-  # Discover release tag
+  # Discover release tag and commit hash
   compute-release-tag:
     image: alpine/git:latest
     commands:
@@ -33,9 +33,16 @@ steps:
           fi
         fi
 
-        printf "%s\n%s\n" "$TAG" "latest" > .tags
+        # Extract commit hash
+        COMMIT_HASH=$(git rev-parse --short HEAD)
+        
+        printf "%s\n%s\n" "$${TAG}" "latest" > .tags
+        echo "APP_VERSION=$${TAG}" >> .env
+        echo "APP_COMMIT_HASH=$${COMMIT_HASH}" >> .env
         echo "Release tags:"
         cat .tags
+        echo "Version: $${TAG}"
+        echo "Commit hash: $${COMMIT_HASH}"
 
   # Build and push release image
   docker-build-release:
@@ -47,6 +54,9 @@ steps:
       repo: ghcr.io/frostwalk/frontend
       tags_file: .tags
       dockerfile: Dockerfile
+      build_args:
+        - APP_VERSION=$${APP_VERSION}
+        - APP_COMMIT_HASH=$${APP_COMMIT_HASH}
       labels:
         - org.opencontainers.image.source=https://github.com/FrostWalk/Frontend
         - org.opencontainers.image.licenses=MIT

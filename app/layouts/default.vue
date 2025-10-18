@@ -95,6 +95,10 @@
     <main class="flex-1 max-w-7xl w-full mx-auto py-6 sm:px-6 lg:px-8">
       <slot />
     </main>
+
+    <footer class="mt-auto">
+      <AppVersion />
+    </footer>
   </div>
 </template>
 

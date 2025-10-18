@@ -10,14 +10,29 @@ clone:
     image: woodpeckerci/plugin-git
 
 steps:
+  # Extract commit hash and version for dev build
+  extract-commit-hash:
+    image: alpine/git:latest
+    commands:
+      - COMMIT_HASH=$(git rev-parse --short HEAD)
+      - VERSION="dev-$${COMMIT_HASH}"
+      - echo "COMMIT_HASH=$${COMMIT_HASH}" >> .env
+      - echo "APP_VERSION=$${VERSION}" >> .env
+      - echo "APP_COMMIT_HASH=$${COMMIT_HASH}" >> .env
+
   # Build and push dev image
   docker-build-dev:
     image: woodpeckerci/plugin-docker-buildx
+    depends_on:
+      - extract-commit-hash
     settings:
       registry: ghcr.io
       repo: ghcr.io/frostwalk/frontend
       tags: dev
       dockerfile: Dockerfile
+      build_args:
+        - APP_VERSION=$${APP_VERSION}
+        - APP_COMMIT_HASH=$${APP_COMMIT_HASH}
       labels:
         - org.opencontainers.image.source=https://github.com/FrostWalk/Frontend
         - org.opencontainers.image.licenses=MIT
@@ -38,4 +53,3 @@ steps:
         from_secret: WATCHTOWER_TOKEN
     commands:
       - 'curl -fsS -X POST -H "Authorization: Bearer $${WT_TOKEN}" "$WT_URL"'
-
