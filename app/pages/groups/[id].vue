@@ -17,7 +17,11 @@
           </h1>
           <p class="text-gray-600">{{ members.length }} member(s)</p>
         </div>
-        <UButton v-if="isLeader" color="primary" @click="openDeliverableModal">
+        <UButton
+          v-if="isLeader && !deliverableSelection"
+          color="primary"
+          @click="openDeliverableModal"
+        >
           <Icon name="material-symbols:assignment" class="mr-2" />
           Select Group Deliverable
         </UButton>
@@ -184,15 +188,14 @@
       <!-- Component Implementation Details Modal -->
       <UModal
         v-model:open="isComponentModalOpen"
-        title="Manage Component Details"
-        description="Add repository links and descriptions for each component"
         :ui="{
-          content: 'sm:max-w-4xl',
-          body: 'p-6 sm:p-8'
+          content: 'sm:max-w-6xl',
+          body: 'p-0'
         }"
+        :close-button="true"
       >
         <template #header>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 p-6 pb-0">
             <div class="p-2 bg-primary-100 dark:bg-primary-900/20 rounded-lg">
               <Icon
                 name="material-symbols:widgets"
@@ -221,27 +224,100 @@
             <p class="mt-4 text-gray-600 text-lg">Loading components...</p>
           </div>
 
-          <div v-else class="space-y-6">
-            <UTabs :items="componentTabs" class="w-full">
-              <template #default="{ item }">
-                <div class="space-y-6">
-                  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                    <h4 class="font-semibold text-gray-900 dark:text-white mb-2">
-                      {{ item.name }}
-                    </h4>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ item.description }}</p>
+          <div v-else class="p-6 space-y-6">
+            <!-- Progress indicator -->
+            <div
+              class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800"
+            >
+              <div class="flex items-center gap-2 mb-2">
+                <Icon
+                  name="material-symbols:info"
+                  size="20"
+                  class="text-blue-600 dark:text-blue-400"
+                />
+                <span class="font-medium text-blue-900 dark:text-blue-100">Workflow</span>
+              </div>
+              <p class="text-sm text-blue-800 dark:text-blue-200">
+                Add implementation details for each component of your selected deliverable. Each
+                component can have its own repository and detailed description.
+              </p>
+            </div>
+
+            <!-- Component Cards -->
+            <div class="grid gap-6">
+              <div
+                v-for="(item, index) in componentTabs"
+                :key="item.id"
+                class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <!-- Component Header -->
+                <div class="flex items-start justify-between mb-6">
+                  <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0">
+                      <div
+                        class="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center"
+                      >
+                        <span class="text-white font-bold text-lg">{{ index + 1 }}</span>
+                      </div>
+                    </div>
+                    <div class="flex-1">
+                      <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        {{ item.name }}
+                      </h4>
+                      <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {{ item.description }}
+                      </p>
+                    </div>
                   </div>
 
+                  <!-- Status Badge -->
+                  <UBadge
+                    :color="
+                      componentImplementationDetails.find(
+                        (d) => d.group_deliverable_component_id === item.id
+                      )
+                        ? 'success'
+                        : 'neutral'
+                    "
+                    variant="soft"
+                    size="sm"
+                  >
+                    <Icon
+                      :name="
+                        componentImplementationDetails.find(
+                          (d) => d.group_deliverable_component_id === item.id
+                        )
+                          ? 'material-symbols:check-circle'
+                          : 'material-symbols:radio-button-unchecked'
+                      "
+                      class="mr-1"
+                      size="14"
+                    />
+                    {{
+                      componentImplementationDetails.find(
+                        (d) => d.group_deliverable_component_id === item.id
+                      )
+                        ? 'Configured'
+                        : 'Not configured'
+                    }}
+                  </UBadge>
+                </div>
+
+                <!-- Form Fields -->
+                <div class="space-y-6">
+                  <!-- Repository Link -->
                   <UFormField
-                    :label="`Repository Link for ${item.name}`"
+                    :label="`Repository Link`"
                     :name="`repo_${item.id}`"
-                    description="GitHub, GitLab, or other repository URL"
+                    description="GitHub, GitLab, or other repository URL for this component"
+                    class="w-full"
                   >
                     <UInput
                       type="url"
                       placeholder="https://github.com/your-group/component-name"
                       size="lg"
                       icon="material-symbols:link"
+                      class="w-full"
                       :model-value="componentForms[item.id]?.repository_link || ''"
                       @update:model-value="
                         (value) => updateComponentForm(item.id, 'repository_link', value)
@@ -249,15 +325,18 @@
                     />
                   </UFormField>
 
+                  <!-- Description -->
                   <UFormField
-                    :label="`Description for ${item.name}`"
+                    :label="`Implementation Description`"
                     :name="`desc_${item.id}`"
-                    description="Describe this component's implementation (Markdown supported)"
+                    description="Describe how this component is implemented (Markdown supported)"
+                    class="w-full"
                   >
                     <UTextarea
-                      :rows="8"
-                      placeholder="# Component Overview&#10;&#10;## Implementation&#10;Describe how this component is implemented...&#10;&#10;## Key Features&#10;- Feature 1&#10;- Feature 2"
+                      :rows="6"
+                      placeholder="# Component Overview&#10;&#10;## Implementation&#10;Describe how this component is implemented...&#10;&#10;## Key Features&#10;- Feature 1&#10;- Feature 2&#10;&#10;## Technical Details&#10;Add any technical implementation notes here..."
                       size="lg"
+                      class="w-full"
                       :model-value="componentForms[item.id]?.markdown_description || ''"
                       @update:model-value="
                         (value) => updateComponentForm(item.id, 'markdown_description', value)
@@ -265,54 +344,74 @@
                     />
                   </UFormField>
 
-                  <div class="flex justify-end gap-3">
-                    <UButton
-                      v-if="
-                        componentImplementationDetails.find(
-                          (d) => d.group_deliverable_component_id === item.id
-                        )
-                      "
-                      color="error"
-                      variant="outline"
-                      size="lg"
-                      @click="deleteComponentDetail(item.id)"
-                    >
-                      <Icon name="material-symbols:delete" class="mr-2" />
-                      Delete Details
-                    </UButton>
-                    <UButton
-                      :loading="submittingComponent"
-                      :disabled="
-                        !componentForms[item.id]?.repository_link ||
-                        !componentForms[item.id]?.markdown_description
-                      "
-                      color="primary"
-                      size="lg"
-                      @click="saveComponentDetail(item.id)"
-                    >
-                      <Icon name="material-symbols:save" class="mr-2" />
-                      Save Details
-                    </UButton>
+                  <!-- Action Buttons -->
+                  <div
+                    class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700"
+                  >
+                    <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                      <Icon name="material-symbols:info" size="16" />
+                      <span>Component {{ index + 1 }} of {{ componentTabs.length }}</span>
+                    </div>
+
+                    <div class="flex gap-3">
+                      <UButton
+                        v-if="
+                          componentImplementationDetails.find(
+                            (d) => d.group_deliverable_component_id === item.id
+                          )
+                        "
+                        color="error"
+                        variant="outline"
+                        size="lg"
+                        @click="deleteComponentDetail(item.id)"
+                      >
+                        <Icon name="material-symbols:delete" class="mr-2" />
+                        Delete
+                      </UButton>
+                      <UButton
+                        :loading="submittingComponent"
+                        :disabled="
+                          !componentForms[item.id]?.repository_link ||
+                          !componentForms[item.id]?.markdown_description
+                        "
+                        color="primary"
+                        size="lg"
+                        @click="saveComponentDetail(item.id)"
+                      >
+                        <Icon name="material-symbols:save" class="mr-2" />
+                        {{
+                          componentImplementationDetails.find(
+                            (d) => d.group_deliverable_component_id === item.id
+                          )
+                            ? 'Update'
+                            : 'Save'
+                        }}
+                        Details
+                      </UButton>
+                    </div>
                   </div>
                 </div>
-              </template>
-            </UTabs>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div v-if="componentTabs.length === 0" class="text-center py-12">
+              <Icon name="material-symbols:widgets" size="64" class="mx-auto text-gray-400 mb-4" />
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                No Components Found
+              </h3>
+              <p class="text-gray-500 dark:text-gray-400">
+                This deliverable doesn't have any components defined yet.
+              </p>
+            </div>
           </div>
         </template>
 
         <template #footer>
-          <div class="flex items-center justify-between w-full">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Each component can have its own repository and description
-            </p>
-            <div class="flex gap-3">
-              <UButton
-                color="neutral"
-                variant="outline"
-                label="Close"
-                size="lg"
-                @click="isComponentModalOpen = false"
-              />
+          <div class="p-6 pt-0">
+            <div class="text-sm text-gray-500 dark:text-gray-400">
+              <Icon name="material-symbols:lightbulb" class="mr-1" size="16" />
+              Tip: You can save each component individually or configure them all at once
             </div>
           </div>
         </template>
@@ -349,56 +448,157 @@
 
           <!-- Component Implementation Details -->
           <div v-if="componentImplementationDetails.length > 0">
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Component Details</p>
-            <div class="space-y-4">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Component Implementation Details
+              </h4>
+              <div class="flex items-center gap-2">
+                <UBadge color="success" variant="soft" size="sm">
+                  {{ configuredComponentsCount }} component{{
+                    configuredComponentsCount !== 1 ? 's' : ''
+                  }}
+                  configured
+                </UBadge>
+                <UBadge v-if="pendingComponentsCount > 0" color="warning" variant="soft" size="sm">
+                  {{ pendingComponentsCount }} component{{
+                    pendingComponentsCount !== 1 ? 's' : ''
+                  }}
+                  pending
+                </UBadge>
+              </div>
+            </div>
+
+            <div class="grid gap-4">
               <div
-                v-for="detail in componentImplementationDetails"
+                v-for="(detail, index) in componentImplementationDetails"
                 :key="detail.id"
-                class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
+                class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-5 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200"
               >
-                <div class="flex items-center justify-between mb-3">
-                  <h4 class="font-semibold text-gray-900 dark:text-white">
-                    {{ detail.component_name }}
-                  </h4>
+                <!-- Component Header -->
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0">
+                      <div
+                        class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center"
+                      >
+                        <span class="text-white font-bold text-sm">{{ index + 1 }}</span>
+                      </div>
+                    </div>
+                    <div class="flex-1">
+                      <h5 class="font-semibold text-gray-900 dark:text-white text-lg mb-1">
+                        {{ detail.component_name }}
+                      </h5>
+                      <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                        <Icon
+                          name="material-symbols:check-circle"
+                          size="16"
+                          class="text-green-500"
+                        />
+                        <span>Implementation details configured</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <UButton
                     v-if="isLeader"
                     color="primary"
                     variant="ghost"
-                    size="xs"
+                    size="sm"
                     @click="editComponentDetail(detail)"
                   >
-                    <Icon name="material-symbols:edit" size="16" />
+                    <Icon name="material-symbols:edit" size="16" class="mr-1" />
+                    Edit
                   </UButton>
                 </div>
 
-                <div v-if="detail.repository_link" class="mb-3">
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Repository</p>
+                <!-- Repository Link -->
+                <div v-if="detail.repository_link" class="mb-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <Icon
+                      name="material-symbols:link"
+                      size="16"
+                      class="text-gray-500 dark:text-gray-400"
+                    />
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >Repository</span
+                    >
+                  </div>
                   <a
                     :href="detail.repository_link"
                     target="_blank"
-                    class="text-primary-500 hover:text-primary-600 flex items-center gap-1 font-medium text-sm"
+                    class="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium text-sm bg-primary-50 dark:bg-primary-900/20 px-3 py-2 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
                   >
-                    {{ detail.repository_link }}
+                    <span class="truncate max-w-xs">{{ detail.repository_link }}</span>
                     <Icon name="material-symbols:open-in-new" size="14" />
                   </a>
                 </div>
 
+                <!-- Description -->
                 <div v-if="detail.markdown_description">
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Description</p>
-                  <div class="prose prose-sm dark:prose-invert max-w-none">
-                    <MDC :value="detail.markdown_description" tag="div" />
+                  <div class="flex items-center gap-2 mb-3">
+                    <Icon
+                      name="material-symbols:description"
+                      size="16"
+                      class="text-gray-500 dark:text-gray-400"
+                    />
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >Implementation Description</span
+                    >
+                  </div>
+                  <div
+                    class="prose prose-sm dark:prose-invert max-w-none bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
+                  >
+                    <MDC
+                      :value="
+                        isDescriptionExpanded(detail.id)
+                          ? detail.markdown_description
+                          : truncateText(detail.markdown_description)
+                      "
+                      tag="div"
+                    />
+                    <div
+                      v-if="detail.markdown_description.length > 200"
+                      class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600"
+                    >
+                      <UButton
+                        :color="isDescriptionExpanded(detail.id) ? 'neutral' : 'primary'"
+                        :variant="isDescriptionExpanded(detail.id) ? 'outline' : 'solid'"
+                        size="sm"
+                        @click="toggleDescription(detail.id)"
+                      >
+                        <Icon
+                          :name="
+                            isDescriptionExpanded(detail.id)
+                              ? 'material-symbols:expand-less'
+                              : 'material-symbols:expand-more'
+                          "
+                          class="mr-1"
+                          size="16"
+                        />
+                        {{ isDescriptionExpanded(detail.id) ? 'Show Less' : 'Show All' }}
+                      </UButton>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
-            <Icon name="material-symbols:widgets" size="48" class="mx-auto mb-3 opacity-50" />
-            <p>No component details added yet</p>
-            <p class="text-sm">
-              Group leaders can add repository links and descriptions for each component
-            </p>
+          <div v-else class="text-center py-12">
+            <div
+              class="bg-gray-50 dark:bg-gray-800 rounded-xl p-8 border-2 border-dashed border-gray-300 dark:border-gray-600"
+            >
+              <Icon name="material-symbols:widgets" size="48" class="mx-auto mb-4 text-gray-400" />
+              <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                No Component Details Yet
+              </h4>
+              <p class="text-gray-500 dark:text-gray-400 mb-4">
+                Component implementation details haven't been added yet
+              </p>
+              <p class="text-sm text-gray-400 dark:text-gray-500">
+                Group leaders can add repository links and descriptions for each component
+              </p>
+            </div>
           </div>
         </div>
       </UCard>
@@ -429,8 +629,29 @@
         </div>
       </UCard>
 
+      <!-- Group at Max Capacity Message -->
+      <UCard v-if="isLeader && isGroupAtMaxCapacity" class="mb-6">
+        <template #header>
+          <div class="flex items-center gap-2">
+            <Icon name="material-symbols:group-work" class="text-amber-500" size="20" />
+            <h3 class="font-semibold text-amber-700 dark:text-amber-300">
+              Group at Maximum Capacity
+            </h3>
+          </div>
+        </template>
+        <div class="space-y-4">
+          <UAlert
+            icon="material-symbols:info"
+            color="warning"
+            variant="soft"
+            title="Maximum Group Size Reached"
+            :description="`This group has reached its maximum capacity of ${projectData?.max_group_size || 'unknown'} members. You cannot add more members at this time.`"
+          />
+        </div>
+      </UCard>
+
       <!-- Add Member (Leader Only) -->
-      <UCard v-if="isLeader">
+      <UCard v-if="isLeader && !isGroupAtMaxCapacity">
         <template #header>
           <h3 class="font-semibold">Add Member</h3>
         </template>
@@ -472,7 +693,8 @@ import type {
   GroupDeliverableSelectionResponse,
   GroupDeliverable,
   GroupDeliverableComponent,
-  ComponentImplementationDetail
+  ComponentImplementationDetail,
+  Project
 } from '~/composables/api/types.gen'
 import {
   listGroupMembers,
@@ -503,6 +725,7 @@ const groupData = ref<{ group_id: number; group_name: string } | null>(null)
 const members = ref<GroupMemberInfo[]>([])
 const deliverableSelection = ref<GroupDeliverableSelectionResponse | null>(null)
 const allowedDomains = ref<string[]>([])
+const projectData = ref<Project | null>(null)
 
 // Modal state
 const isModalOpen = ref(false)
@@ -521,6 +744,7 @@ const componentImplementationDetails = ref<ComponentImplementationDetail[]>([])
 const componentForms = ref<
   Record<number, { repository_link: string; markdown_description: string }>
 >({})
+const expandedDescriptions = ref<Set<number>>(new Set())
 
 const addMemberForm = reactive({
   email: ''
@@ -566,6 +790,30 @@ const componentTabs = computed(() => {
       description: `Manage implementation details for ${component.name}`,
       label: component.name
     }))
+})
+
+const configuredComponentsCount = computed(() => {
+  return componentImplementationDetails.value.length
+})
+
+const totalComponentsCount = computed(() => {
+  // If we have a deliverable selection but no components loaded yet, return 0
+  if (deliverableSelection.value && components.value.length === 0) {
+    return 0
+  }
+  return componentTabs.value.length
+})
+
+const pendingComponentsCount = computed(() => {
+  const total = totalComponentsCount.value
+  const configured = configuredComponentsCount.value
+  const pending = total - configured
+  return Math.max(0, pending) // Ensure we don't return negative numbers
+})
+
+const isGroupAtMaxCapacity = computed(() => {
+  if (!projectData.value) return false
+  return members.value.length >= projectData.value.max_group_size
 })
 
 const fetchGroupData = async () => {
@@ -614,6 +862,25 @@ const fetchGroupData = async () => {
     } catch {
       // No component details yet, that's okay
     }
+
+    // Load deliverables and components data if we have a deliverable selection
+    if (deliverableSelection.value) {
+      try {
+        const { data, error } = await getStudentProjects()
+        if (error) {
+          console.warn('Failed to load project data:', error)
+        } else if (data && data.projects.length > 0) {
+          const project = data.projects[0]
+          if (project) {
+            deliverables.value = project.group_deliverables
+            components.value = project.group_components
+            projectData.value = project.project
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load project data:', err)
+      }
+    }
   } catch (err) {
     showError('Error', err)
   } finally {
@@ -655,6 +922,22 @@ const openComponentDetailsModal = async () => {
   loadingComponents.value = true
 
   try {
+    // First, ensure we have the necessary data loaded
+    if (!deliverables.value.length || !components.value.length) {
+      const { data, error } = await getStudentProjects()
+      if (error) {
+        showError('Error', error)
+        return
+      }
+      if (data && data.projects.length > 0) {
+        const project = data.projects[0]
+        if (project) {
+          deliverables.value = project.group_deliverables
+          components.value = project.group_components
+        }
+      }
+    }
+
     // Initialize component forms
     componentTabs.value.forEach((tab) => {
       const existingDetail = componentImplementationDetails.value.find(
@@ -798,6 +1081,23 @@ const updateComponentForm = (
     componentForms.value[componentId] = { repository_link: '', markdown_description: '' }
   }
   componentForms.value[componentId][field] = value
+}
+
+const toggleDescription = (componentId: number) => {
+  if (expandedDescriptions.value.has(componentId)) {
+    expandedDescriptions.value.delete(componentId)
+  } else {
+    expandedDescriptions.value.add(componentId)
+  }
+}
+
+const isDescriptionExpanded = (componentId: number) => {
+  return expandedDescriptions.value.has(componentId)
+}
+
+const truncateText = (text: string, maxLength: number = 200) => {
+  if (text.length <= maxLength) return text
+  return text.substring(0, maxLength) + '...'
 }
 
 const deleteComponentDetail = async (componentId: number) => {
