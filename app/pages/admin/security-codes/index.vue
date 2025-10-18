@@ -90,8 +90,20 @@
                     Edit
                   </UButton>
 
+                  <!-- Expire Button -->
+                  <UButton
+                    v-if="!isExpired(code.expiration)"
+                    color="warning"
+                    variant="ghost"
+                    size="sm"
+                    @click="openExpireModal(code)"
+                  >
+                    <Icon name="material-symbols:schedule" size="16" class="mr-1" />
+                    Expire
+                  </UButton>
+
                   <!-- Delete Button -->
-                  <UButton color="error" variant="ghost" size="sm" @click="deleteCode(code)">
+                  <UButton color="error" variant="ghost" size="sm" @click="openDeleteModal(code)">
                     <Icon name="material-symbols:delete" size="16" class="mr-1" />
                     Delete
                   </UButton>
@@ -125,7 +137,7 @@
         </div>
       </template>
 
-      <div class="p-6">
+      <template #body>
         <div v-if="selectedCode" class="space-y-6">
           <!-- Code Info -->
           <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
@@ -183,7 +195,82 @@
             </div>
           </UForm>
         </div>
-      </div>
+      </template>
+    </UModal>
+
+    <!-- Delete Confirmation Modal -->
+    <UModal v-model:open="isDeleteModalOpen" title="Delete Security Code" :dismissible="false">
+      <template #body>
+        <div class="text-center space-y-4">
+          <div class="flex items-center justify-center mb-4">
+            <Icon name="material-symbols:warning" size="48" class="text-red-500" />
+          </div>
+
+          <div v-if="selectedCode">
+            <p class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              Are you sure you want to delete this security code?
+            </p>
+            <div class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+              <code class="text-lg font-mono font-bold text-primary-600">{{
+                selectedCode.code
+              }}</code>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">
+              This action cannot be undone. The security code will be permanently removed.
+            </p>
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <UButton color="neutral" variant="ghost" @click="isDeleteModalOpen = false">
+            Cancel
+          </UButton>
+          <UButton color="error" @click="confirmDelete">
+            <Icon name="material-symbols:delete" class="mr-2" />
+            Delete Code
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Expire Confirmation Modal -->
+    <UModal v-model:open="isExpireModalOpen" title="Expire Security Code" :dismissible="false">
+      <template #body>
+        <div class="text-center space-y-4">
+          <div class="flex items-center justify-center mb-4">
+            <Icon name="material-symbols:schedule" size="48" class="text-orange-500" />
+          </div>
+
+          <div v-if="selectedCode">
+            <p class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              Are you sure you want to expire this security code?
+            </p>
+            <div class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+              <code class="text-lg font-mono font-bold text-primary-600">{{
+                selectedCode.code
+              }}</code>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">
+              This will make the security code immediately unusable. You can still edit the
+              expiration date later if needed.
+            </p>
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <UButton color="neutral" variant="ghost" @click="isExpireModalOpen = false">
+            Cancel
+          </UButton>
+          <UButton color="warning" @click="confirmExpire">
+            <Icon name="material-symbols:schedule" class="mr-2" />
+            Expire Code
+          </UButton>
+        </div>
+      </template>
     </UModal>
   </div>
 </template>
@@ -209,6 +296,11 @@ const expirationForm = reactive({
   expiration: ''
 })
 const expirationFormError = ref('')
+
+// Confirmation modal states
+const isDeleteModalOpen = ref(false)
+const isExpireModalOpen = ref(false)
+const actionType = ref<'delete' | 'expire' | null>(null)
 
 const fetchCodes = async () => {
   loading.value = true
@@ -269,6 +361,18 @@ const editExpiration = (code: SecurityCodeWithNames) => {
   isEditModalOpen.value = true
 }
 
+const openDeleteModal = (code: SecurityCodeWithNames) => {
+  selectedCode.value = code
+  actionType.value = 'delete'
+  isDeleteModalOpen.value = true
+}
+
+const openExpireModal = (code: SecurityCodeWithNames) => {
+  selectedCode.value = code
+  actionType.value = 'expire'
+  isExpireModalOpen.value = true
+}
+
 const updateExpiration = async () => {
   if (!selectedCode.value || !expirationForm.expiration) return
 
@@ -276,9 +380,13 @@ const updateExpiration = async () => {
   expirationFormError.value = ''
 
   try {
+    // Convert datetime-local to ISO 8601 format (same as creation page)
+    const expirationDate = new Date(expirationForm.expiration)
+    const expirationISO = expirationDate.toISOString()
+
     const { error } = await updateCodeHandler({
       path: { security_code_id: selectedCode.value.security_code_id },
-      body: { expiration: expirationForm.expiration }
+      body: { expiration: expirationISO }
     })
 
     if (error) {
@@ -308,18 +416,12 @@ const updateExpiration = async () => {
   }
 }
 
-const deleteCode = async (code: SecurityCodeWithNames) => {
-  if (
-    !confirm(
-      `Are you sure you want to delete security code "${code.code}"? This action cannot be undone.`
-    )
-  ) {
-    return
-  }
+const confirmDelete = async () => {
+  if (!selectedCode.value) return
 
   try {
     const { error } = await deleteCodeHandler({
-      path: { security_code_id: code.security_code_id }
+      path: { security_code_id: selectedCode.value.security_code_id }
     })
 
     if (error) {
@@ -329,14 +431,61 @@ const deleteCode = async (code: SecurityCodeWithNames) => {
 
     toast.add({
       title: 'Security Code Deleted',
-      description: `Security code "${code.code}" has been deleted successfully`,
+      description: `Security code "${selectedCode.value.code}" has been deleted successfully`,
       color: 'success'
     })
 
     // Update local data
-    codes.value = codes.value.filter((c) => c.security_code_id !== code.security_code_id)
+    codes.value = codes.value.filter(
+      (c) => c.security_code_id !== selectedCode.value!.security_code_id
+    )
+
+    // Close modal
+    isDeleteModalOpen.value = false
+    selectedCode.value = null
+    actionType.value = null
   } catch (err) {
     showError('Delete Failed', err)
+  }
+}
+
+const confirmExpire = async () => {
+  if (!selectedCode.value) return
+
+  try {
+    // Set expiration to current time to make it expire immediately
+    const currentTime = new Date().toISOString()
+
+    const { error } = await updateCodeHandler({
+      path: { security_code_id: selectedCode.value.security_code_id },
+      body: { expiration: currentTime }
+    })
+
+    if (error) {
+      showError('Expire Failed', error)
+      return
+    }
+
+    toast.add({
+      title: 'Security Code Expired',
+      description: `Security code "${selectedCode.value.code}" has been expired successfully`,
+      color: 'warning'
+    })
+
+    // Update local data
+    const codeIndex = codes.value.findIndex(
+      (c) => c.security_code_id === selectedCode.value!.security_code_id
+    )
+    if (codeIndex !== -1 && codes.value[codeIndex]) {
+      codes.value[codeIndex].expiration = currentTime
+    }
+
+    // Close modal
+    isExpireModalOpen.value = false
+    selectedCode.value = null
+    actionType.value = null
+  } catch (err) {
+    showError('Expire Failed', err)
   }
 }
 

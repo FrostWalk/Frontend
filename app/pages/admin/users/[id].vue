@@ -96,7 +96,7 @@
               type="email"
               placeholder="Enter email address"
               size="lg"
-              icon="material-symbols:email"
+              icon="material-symbols:mail"
             />
           </UFormField>
 
