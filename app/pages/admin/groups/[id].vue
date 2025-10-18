@@ -17,70 +17,6 @@
         </p>
       </div>
 
-      <!-- Group Deliverable Selection -->
-      <UCard v-if="groupDetails.deliverable_selection" class="mb-6">
-        <template #header>
-          <div class="flex items-center">
-            <Icon
-              name="material-symbols:assignment-turned-in"
-              class="mr-2 text-green-500"
-              size="24"
-            />
-            <h3 class="font-semibold">Group Deliverable Selection</h3>
-          </div>
-        </template>
-
-        <div class="space-y-4">
-          <div>
-            <p class="text-sm text-gray-600">Deliverable</p>
-            <p class="font-medium">{{ groupDetails.deliverable_selection.name }}</p>
-          </div>
-
-          <!-- Component Implementation Details -->
-          <div
-            v-if="groupDetails.deliverable_selection.component_implementation_details.length > 0"
-          >
-            <p class="text-sm text-gray-600 mb-3">Component Details</p>
-            <div class="space-y-4">
-              <div
-                v-for="detail in groupDetails.deliverable_selection
-                  .component_implementation_details"
-                :key="detail.id"
-                class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
-              >
-                <h4 class="font-semibold text-gray-900 dark:text-white mb-3">
-                  {{ detail.component_name }}
-                </h4>
-
-                <div v-if="detail.repository_link" class="mb-3">
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Repository</p>
-                  <a
-                    :href="detail.repository_link"
-                    target="_blank"
-                    class="text-primary-500 hover:text-primary-600 flex items-center gap-1 font-medium text-sm"
-                  >
-                    {{ detail.repository_link }}
-                    <Icon name="material-symbols:open-in-new" size="14" />
-                  </a>
-                </div>
-
-                <div v-if="detail.markdown_description">
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Description</p>
-                  <div class="prose prose-sm dark:prose-invert max-w-none">
-                    <MDC :value="detail.markdown_description" tag="div" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
-            <Icon name="material-symbols:widgets" size="48" class="mx-auto mb-3 opacity-50" />
-            <p>No component details added yet</p>
-          </div>
-        </div>
-      </UCard>
-
       <!-- Group Members -->
       <UCard class="mb-6">
         <template #header>
@@ -135,6 +71,99 @@
           </div>
         </div>
       </UCard>
+
+      <!-- Group Deliverable Selection -->
+      <UCard v-if="groupDetails.deliverable_selection" class="mb-6">
+        <template #header>
+          <div class="flex items-center">
+            <Icon
+              name="material-symbols:assignment-turned-in"
+              class="mr-2 text-green-500"
+              size="24"
+            />
+            <h3 class="font-semibold">Group Deliverable Selection</h3>
+          </div>
+        </template>
+
+        <div class="space-y-4">
+          <div>
+            <p class="text-sm text-gray-600">Deliverable</p>
+            <p class="font-medium">{{ groupDetails.deliverable_selection.name }}</p>
+          </div>
+
+          <!-- Component Implementation Details -->
+          <div
+            v-if="groupDetails.deliverable_selection.component_implementation_details.length > 0"
+          >
+            <p class="text-sm text-gray-600 mb-3">Component Details</p>
+            <div class="space-y-4">
+              <div
+                v-for="detail in groupDetails.deliverable_selection
+                  .component_implementation_details"
+                :key="detail.id"
+                class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
+              >
+                <h4 class="font-semibold text-gray-900 dark:text-white mb-3">
+                  {{ detail.component_name }}
+                </h4>
+
+                <div v-if="detail.repository_link" class="mb-3">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Repository</p>
+                  <a
+                    :href="detail.repository_link"
+                    target="_blank"
+                    class="text-primary-500 hover:text-primary-600 flex items-center gap-1 font-medium text-sm"
+                  >
+                    {{ detail.repository_link }}
+                    <Icon name="material-symbols:open-in-new" size="14" />
+                  </a>
+                </div>
+
+                <div v-if="detail.markdown_description">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Description</p>
+                  <div class="prose prose-sm dark:prose-invert max-w-none">
+                    <MDC
+                      :value="
+                        isDescriptionExpanded(detail.id)
+                          ? detail.markdown_description
+                          : truncateText(detail.markdown_description)
+                      "
+                      tag="div"
+                    />
+                    <div
+                      v-if="detail.markdown_description.length > 200"
+                      class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600"
+                    >
+                      <UButton
+                        :color="isDescriptionExpanded(detail.id) ? 'neutral' : 'primary'"
+                        :variant="isDescriptionExpanded(detail.id) ? 'outline' : 'solid'"
+                        size="sm"
+                        @click="toggleDescription(detail.id)"
+                      >
+                        <Icon
+                          :name="
+                            isDescriptionExpanded(detail.id)
+                              ? 'material-symbols:expand-less'
+                              : 'material-symbols:expand-more'
+                          "
+                          class="mr-1"
+                          size="16"
+                        />
+                        {{ isDescriptionExpanded(detail.id) ? 'Show Less' : 'Show All' }}
+                      </UButton>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
+            <Icon name="material-symbols:widgets" size="48" class="mx-auto mb-3 opacity-50" />
+            <p>No component details added yet</p>
+          </div>
+        </div>
+      </UCard>
     </div>
   </div>
 </template>
@@ -153,8 +182,26 @@ const { showError } = useErrorToast()
 
 const loading = ref(true)
 const groupDetails = ref<GroupDetailsResponse | null>(null)
+const expandedDescriptions = ref<Set<number>>(new Set())
 
 const groupId = parseInt(route.params.id as string)
+
+const truncateText = (text: string, maxLength: number = 200) => {
+  if (text.length <= maxLength) return text
+  return text.substring(0, maxLength) + '...'
+}
+
+const toggleDescription = (componentId: number) => {
+  if (expandedDescriptions.value.has(componentId)) {
+    expandedDescriptions.value.delete(componentId)
+  } else {
+    expandedDescriptions.value.add(componentId)
+  }
+}
+
+const isDescriptionExpanded = (componentId: number) => {
+  return expandedDescriptions.value.has(componentId)
+}
 
 const fetchGroupDetails = async () => {
   loading.value = true

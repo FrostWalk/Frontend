@@ -268,6 +268,10 @@ export type DatabaseStatus = {
     status: string;
 };
 
+export type DeleteCodeResponse = {
+    message: string;
+};
+
 export type DeleteComponentImplementationDetailRequest = {
     group_deliverable_component_id: number;
 };
@@ -755,6 +759,18 @@ export type UpdateAdminScheme = {
     first_name?: string | null;
     last_name?: string | null;
     password?: string | null;
+};
+
+export type UpdateCodeResponse = {
+    code: string;
+    expiration: string;
+    project_id: number;
+    security_code_id: number;
+};
+
+export type UpdateCodeScheme = {
+    code?: string | null;
+    expiration: string;
 };
 
 export type UpdateComponentImplementationDetailRequest = {
@@ -2173,6 +2189,80 @@ export type CreateCodeHandlerResponses = {
 };
 
 export type CreateCodeHandlerResponse = CreateCodeHandlerResponses[keyof CreateCodeHandlerResponses];
+
+export type DeleteCodeHandlerData = {
+    body?: never;
+    path: {
+        security_code_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/security-codes/{security_code_id}';
+};
+
+export type DeleteCodeHandlerErrors = {
+    /**
+     * Access denied
+     */
+    403: JsonError;
+    /**
+     * Security code not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type DeleteCodeHandlerError = DeleteCodeHandlerErrors[keyof DeleteCodeHandlerErrors];
+
+export type DeleteCodeHandlerResponses = {
+    /**
+     * Code deleted successfully
+     */
+    200: DeleteCodeResponse;
+};
+
+export type DeleteCodeHandlerResponse = DeleteCodeHandlerResponses[keyof DeleteCodeHandlerResponses];
+
+export type UpdateCodeHandlerData = {
+    body: UpdateCodeScheme;
+    path: {
+        security_code_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/security-codes/{security_code_id}';
+};
+
+export type UpdateCodeHandlerErrors = {
+    /**
+     * Invalid data in request
+     */
+    400: JsonError;
+    /**
+     * Access denied
+     */
+    403: JsonError;
+    /**
+     * Security code not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type UpdateCodeHandlerError = UpdateCodeHandlerErrors[keyof UpdateCodeHandlerErrors];
+
+export type UpdateCodeHandlerResponses = {
+    /**
+     * Code updated successfully
+     */
+    200: UpdateCodeResponse;
+};
+
+export type UpdateCodeHandlerResponse = UpdateCodeHandlerResponses[keyof UpdateCodeHandlerResponses];
 
 export type GetAllStudentComponentsHandlerData = {
     body?: never;
