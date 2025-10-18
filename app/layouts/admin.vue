@@ -78,7 +78,7 @@
                 <div class="text-xs opacity-80">{{ getRoleName(roleId) }}</div>
               </div>
               <button
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 transition-colors"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-primary-500 hover:bg-red-600 transition-colors"
                 @click="logout"
               >
                 <Icon name="material-symbols:logout" size="18" />
