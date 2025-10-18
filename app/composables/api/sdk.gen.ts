@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AddMember2Data, AddMember2Errors, AddMember2Responses, AddMemberData, AddMemberErrors, AddMemberResponses, AdminsLoginHandlerData, AdminsLoginHandlerErrors, AdminsLoginHandlerResponses, AdminsMeHandlerData, AdminsMeHandlerErrors, AdminsMeHandlerResponses, AllowedDomainsHandlerData, AllowedDomainsHandlerResponses, AssignCoordinatorData, AssignCoordinatorErrors, AssignCoordinatorResponses, CheckNameData, CheckNameErrors, CheckNameResponses, ConfirmStudentHandlerData, ConfirmStudentHandlerErrors, ConfirmStudentHandlerResponses, CreateAdminHandlerData, CreateAdminHandlerErrors, CreateAdminHandlerResponses, CreateCodeHandlerData, CreateCodeHandlerErrors, CreateCodeHandlerResponses, CreateGroupComponentHandlerData, CreateGroupComponentHandlerErrors, CreateGroupComponentHandlerResponses, CreateGroupData, CreateGroupDeliverableComponentHandlerData, CreateGroupDeliverableComponentHandlerErrors, CreateGroupDeliverableComponentHandlerResponses, CreateGroupDeliverableHandlerData, CreateGroupDeliverableHandlerErrors, CreateGroupDeliverableHandlerResponses, CreateGroupDeliverableSelectionData, CreateGroupDeliverableSelectionErrors, CreateGroupDeliverableSelectionResponses, CreateGroupErrors, CreateGroupResponses, CreateProjectHandlerData, CreateProjectHandlerErrors, CreateProjectHandlerResponses, CreateStudentComponentHandlerData, CreateStudentComponentHandlerErrors, CreateStudentComponentHandlerResponses, CreateStudentDeliverableComponentHandlerData, CreateStudentDeliverableComponentHandlerErrors, CreateStudentDeliverableComponentHandlerResponses, CreateStudentDeliverableHandlerData, CreateStudentDeliverableHandlerErrors, CreateStudentDeliverableHandlerResponses, CreateStudentDeliverableSelectionData, CreateStudentDeliverableSelectionErrors, CreateStudentDeliverableSelectionResponses, DeleteAdminHandlerData, DeleteAdminHandlerErrors, DeleteAdminHandlerResponses, DeleteGroupComponentHandlerData, DeleteGroupComponentHandlerErrors, DeleteGroupComponentHandlerResponses, DeleteGroupData, DeleteGroupDeliverableComponentHandlerData, DeleteGroupDeliverableComponentHandlerErrors, DeleteGroupDeliverableComponentHandlerResponses, DeleteGroupDeliverableHandlerData, DeleteGroupDeliverableHandlerErrors, DeleteGroupDeliverableHandlerResponses, DeleteGroupErrors, DeleteGroupResponses, DeleteProjectHandlerData, DeleteProjectHandlerErrors, DeleteProjectHandlerResponses, DeleteStudentComponentHandlerData, DeleteStudentComponentHandlerErrors, DeleteStudentComponentHandlerResponses, DeleteStudentDeliverableComponentHandlerData, DeleteStudentDeliverableComponentHandlerErrors, DeleteStudentDeliverableComponentHandlerResponses, DeleteStudentDeliverableHandlerData, DeleteStudentDeliverableHandlerErrors, DeleteStudentDeliverableHandlerResponses, DeleteStudentDeliverableSelectionData, DeleteStudentDeliverableSelectionErrors, DeleteStudentDeliverableSelectionResponses, ForgotPasswordHandler2Data, ForgotPasswordHandler2Errors, ForgotPasswordHandler2Responses, ForgotPasswordHandlerData, ForgotPasswordHandlerErrors, ForgotPasswordHandlerResponses, GetAllAdminsHandlerData, GetAllAdminsHandlerErrors, GetAllAdminsHandlerResponses, GetAllCodesHandlerData, GetAllCodesHandlerErrors, GetAllCodesHandlerResponses, GetAllGroupComponentsHandlerData, GetAllGroupComponentsHandlerErrors, GetAllGroupComponentsHandlerResponses, GetAllGroupDeliverablesHandlerData, GetAllGroupDeliverablesHandlerErrors, GetAllGroupDeliverablesHandlerResponses, GetAllProjectsHandlerData, GetAllProjectsHandlerErrors, GetAllProjectsHandlerResponses, GetAllStudentComponentsHandlerData, GetAllStudentComponentsHandlerErrors, GetAllStudentComponentsHandlerResponses, GetAllStudentDeliverablesHandlerData, GetAllStudentDeliverablesHandlerErrors, GetAllStudentDeliverablesHandlerResponses, GetComponentsForDeliverableHandler2Data, GetComponentsForDeliverableHandler2Errors, GetComponentsForDeliverableHandler2Responses, GetComponentsForDeliverableHandlerData, GetComponentsForDeliverableHandlerErrors, GetComponentsForDeliverableHandlerResponses, GetComponentsForGroupDeliverableHandlerData, GetComponentsForGroupDeliverableHandlerErrors, GetComponentsForGroupDeliverableHandlerResponses, GetComponentsForStudentDeliverableHandlerData, GetComponentsForStudentDeliverableHandlerErrors, GetComponentsForStudentDeliverableHandlerResponses, GetDeliverablesForComponentHandler2Data, GetDeliverablesForComponentHandler2Errors, GetDeliverablesForComponentHandler2Responses, GetDeliverablesForComponentHandlerData, GetDeliverablesForComponentHandlerErrors, GetDeliverablesForComponentHandlerResponses, GetDeliverablesForGroupComponentHandlerData, GetDeliverablesForGroupComponentHandlerErrors, GetDeliverablesForGroupComponentHandlerResponses, GetDeliverablesForStudentComponentHandlerData, GetDeliverablesForStudentComponentHandlerErrors, GetDeliverablesForStudentComponentHandlerResponses, GetGroupComponentHandlerData, GetGroupComponentHandlerErrors, GetGroupComponentHandlerResponses, GetGroupComponentsForProjectHandlerData, GetGroupComponentsForProjectHandlerErrors, GetGroupComponentsForProjectHandlerResponses, GetGroupDeliverableHandlerData, GetGroupDeliverableHandlerErrors, GetGroupDeliverableHandlerResponses, GetGroupDeliverableSelectionData, GetGroupDeliverableSelectionErrors, GetGroupDeliverableSelectionResponses, GetGroupDeliverableSelectionsData, GetGroupDeliverableSelectionsErrors, GetGroupDeliverableSelectionsResponses, GetGroupDeliverablesForProjectHandlerData, GetGroupDeliverablesForProjectHandlerErrors, GetGroupDeliverablesForProjectHandlerResponses, GetGroupDetailsData, GetGroupDetailsErrors, GetGroupDetailsResponses, GetGroupsData, GetGroupsErrors, GetGroupsResponses, GetOneAdminHandlerData, GetOneAdminHandlerErrors, GetOneAdminHandlerResponses, GetOneProjectHandlerData, GetOneProjectHandlerErrors, GetOneProjectHandlerResponses, GetProjectGroupsData, GetProjectGroupsErrors, GetProjectGroupsResponses, GetStudentComponentHandlerData, GetStudentComponentHandlerErrors, GetStudentComponentHandlerResponses, GetStudentComponentsForProjectHandlerData, GetStudentComponentsForProjectHandlerErrors, GetStudentComponentsForProjectHandlerResponses, GetStudentDeliverableHandlerData, GetStudentDeliverableHandlerErrors, GetStudentDeliverableHandlerResponses, GetStudentDeliverableSelectionData, GetStudentDeliverableSelectionErrors, GetStudentDeliverableSelectionResponses, GetStudentDeliverableSelectionsData, GetStudentDeliverableSelectionsErrors, GetStudentDeliverableSelectionsResponses, GetStudentDeliverablesForProjectHandlerData, GetStudentDeliverablesForProjectHandlerErrors, GetStudentDeliverablesForProjectHandlerResponses, GetStudentProjectsData, GetStudentProjectsErrors, GetStudentProjectsResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, ListCoordinatorsData, ListCoordinatorsErrors, ListCoordinatorsResponses, ListGroupMembersData, ListGroupMembersErrors, ListGroupMembersResponses, LivenessCheckData, LivenessCheckResponses, RemoveCoordinatorData, RemoveCoordinatorErrors, RemoveCoordinatorResponses, RemoveMember2Data, RemoveMember2Errors, RemoveMember2Responses, RemoveMemberData, RemoveMemberErrors, RemoveMemberResponses, ResetPasswordHandler2Data, ResetPasswordHandler2Errors, ResetPasswordHandler2Responses, ResetPasswordHandlerData, ResetPasswordHandlerErrors, ResetPasswordHandlerResponses, StudentSignupHandlerData, StudentSignupHandlerErrors, StudentSignupHandlerResponses, StudentsLoginHandlerData, StudentsLoginHandlerErrors, StudentsLoginHandlerResponses, StudentsMeHandlerData, StudentsMeHandlerErrors, StudentsMeHandlerResponses, TransferLeadershipData, TransferLeadershipErrors, TransferLeadershipResponses, UpdateAdminHandlerData, UpdateAdminHandlerErrors, UpdateAdminHandlerResponses, UpdateGroupComponentHandlerData, UpdateGroupComponentHandlerErrors, UpdateGroupComponentHandlerResponses, UpdateGroupDeliverableComponentHandlerData, UpdateGroupDeliverableComponentHandlerErrors, UpdateGroupDeliverableComponentHandlerResponses, UpdateGroupDeliverableHandlerData, UpdateGroupDeliverableHandlerErrors, UpdateGroupDeliverableHandlerResponses, UpdateGroupDeliverableSelectionData, UpdateGroupDeliverableSelectionErrors, UpdateGroupDeliverableSelectionResponses, UpdateMeAdminHandlerData, UpdateMeAdminHandlerErrors, UpdateMeAdminHandlerResponses, UpdateMeStudentHandlerData, UpdateMeStudentHandlerErrors, UpdateMeStudentHandlerResponses, UpdateProjectHandlerData, UpdateProjectHandlerErrors, UpdateProjectHandlerResponses, UpdateStudentComponentHandlerData, UpdateStudentComponentHandlerErrors, UpdateStudentComponentHandlerResponses, UpdateStudentDeliverableComponentHandlerData, UpdateStudentDeliverableComponentHandlerErrors, UpdateStudentDeliverableComponentHandlerResponses, UpdateStudentDeliverableHandlerData, UpdateStudentDeliverableHandlerErrors, UpdateStudentDeliverableHandlerResponses, UpdateStudentDeliverableSelectionData, UpdateStudentDeliverableSelectionErrors, UpdateStudentDeliverableSelectionResponses, ValidateCodeData, ValidateCodeErrors, ValidateCodeResponses, VersionInfoData, VersionInfoResponses } from './types.gen';
+import type { AddMember2Data, AddMember2Errors, AddMember2Responses, AddMemberData, AddMemberErrors, AddMemberResponses, AdminsLoginHandlerData, AdminsLoginHandlerErrors, AdminsLoginHandlerResponses, AdminsMeHandlerData, AdminsMeHandlerErrors, AdminsMeHandlerResponses, AllowedDomainsHandlerData, AllowedDomainsHandlerResponses, AssignCoordinatorData, AssignCoordinatorErrors, AssignCoordinatorResponses, CheckNameData, CheckNameErrors, CheckNameResponses, ConfirmStudentHandlerData, ConfirmStudentHandlerErrors, ConfirmStudentHandlerResponses, CreateAdminHandlerData, CreateAdminHandlerErrors, CreateAdminHandlerResponses, CreateCodeHandlerData, CreateCodeHandlerErrors, CreateCodeHandlerResponses, CreateComponentImplementationDetailData, CreateComponentImplementationDetailErrors, CreateComponentImplementationDetailResponses, CreateGroupComponentHandlerData, CreateGroupComponentHandlerErrors, CreateGroupComponentHandlerResponses, CreateGroupData, CreateGroupDeliverableComponentHandlerData, CreateGroupDeliverableComponentHandlerErrors, CreateGroupDeliverableComponentHandlerResponses, CreateGroupDeliverableHandlerData, CreateGroupDeliverableHandlerErrors, CreateGroupDeliverableHandlerResponses, CreateGroupDeliverableSelectionData, CreateGroupDeliverableSelectionErrors, CreateGroupDeliverableSelectionResponses, CreateGroupErrors, CreateGroupResponses, CreateProjectHandlerData, CreateProjectHandlerErrors, CreateProjectHandlerResponses, CreateStudentComponentHandlerData, CreateStudentComponentHandlerErrors, CreateStudentComponentHandlerResponses, CreateStudentDeliverableComponentHandlerData, CreateStudentDeliverableComponentHandlerErrors, CreateStudentDeliverableComponentHandlerResponses, CreateStudentDeliverableHandlerData, CreateStudentDeliverableHandlerErrors, CreateStudentDeliverableHandlerResponses, CreateStudentDeliverableSelectionData, CreateStudentDeliverableSelectionErrors, CreateStudentDeliverableSelectionResponses, DeleteAdminHandlerData, DeleteAdminHandlerErrors, DeleteAdminHandlerResponses, DeleteComponentImplementationDetailData, DeleteComponentImplementationDetailErrors, DeleteComponentImplementationDetailResponses, DeleteGroupComponentHandlerData, DeleteGroupComponentHandlerErrors, DeleteGroupComponentHandlerResponses, DeleteGroupData, DeleteGroupDeliverableComponentHandlerData, DeleteGroupDeliverableComponentHandlerErrors, DeleteGroupDeliverableComponentHandlerResponses, DeleteGroupDeliverableHandlerData, DeleteGroupDeliverableHandlerErrors, DeleteGroupDeliverableHandlerResponses, DeleteGroupErrors, DeleteGroupResponses, DeleteProjectHandlerData, DeleteProjectHandlerErrors, DeleteProjectHandlerResponses, DeleteStudentComponentHandlerData, DeleteStudentComponentHandlerErrors, DeleteStudentComponentHandlerResponses, DeleteStudentDeliverableComponentHandlerData, DeleteStudentDeliverableComponentHandlerErrors, DeleteStudentDeliverableComponentHandlerResponses, DeleteStudentDeliverableHandlerData, DeleteStudentDeliverableHandlerErrors, DeleteStudentDeliverableHandlerResponses, DeleteStudentDeliverableSelectionData, DeleteStudentDeliverableSelectionErrors, DeleteStudentDeliverableSelectionResponses, ForgotPasswordHandler2Data, ForgotPasswordHandler2Errors, ForgotPasswordHandler2Responses, ForgotPasswordHandlerData, ForgotPasswordHandlerErrors, ForgotPasswordHandlerResponses, GetAllAdminsHandlerData, GetAllAdminsHandlerErrors, GetAllAdminsHandlerResponses, GetAllCodesHandlerData, GetAllCodesHandlerErrors, GetAllCodesHandlerResponses, GetAllGroupComponentsHandlerData, GetAllGroupComponentsHandlerErrors, GetAllGroupComponentsHandlerResponses, GetAllGroupDeliverablesHandlerData, GetAllGroupDeliverablesHandlerErrors, GetAllGroupDeliverablesHandlerResponses, GetAllProjectsHandlerData, GetAllProjectsHandlerErrors, GetAllProjectsHandlerResponses, GetAllStudentComponentsHandlerData, GetAllStudentComponentsHandlerErrors, GetAllStudentComponentsHandlerResponses, GetAllStudentDeliverablesHandlerData, GetAllStudentDeliverablesHandlerErrors, GetAllStudentDeliverablesHandlerResponses, GetComponentImplementationDetailsData, GetComponentImplementationDetailsErrors, GetComponentImplementationDetailsResponses, GetComponentsForDeliverableHandler2Data, GetComponentsForDeliverableHandler2Errors, GetComponentsForDeliverableHandler2Responses, GetComponentsForDeliverableHandlerData, GetComponentsForDeliverableHandlerErrors, GetComponentsForDeliverableHandlerResponses, GetComponentsForGroupDeliverableHandlerData, GetComponentsForGroupDeliverableHandlerErrors, GetComponentsForGroupDeliverableHandlerResponses, GetComponentsForStudentDeliverableHandlerData, GetComponentsForStudentDeliverableHandlerErrors, GetComponentsForStudentDeliverableHandlerResponses, GetDeliverablesForComponentHandler2Data, GetDeliverablesForComponentHandler2Errors, GetDeliverablesForComponentHandler2Responses, GetDeliverablesForComponentHandlerData, GetDeliverablesForComponentHandlerErrors, GetDeliverablesForComponentHandlerResponses, GetDeliverablesForGroupComponentHandlerData, GetDeliverablesForGroupComponentHandlerErrors, GetDeliverablesForGroupComponentHandlerResponses, GetDeliverablesForStudentComponentHandlerData, GetDeliverablesForStudentComponentHandlerErrors, GetDeliverablesForStudentComponentHandlerResponses, GetGroupComponentHandlerData, GetGroupComponentHandlerErrors, GetGroupComponentHandlerResponses, GetGroupComponentsForProjectHandlerData, GetGroupComponentsForProjectHandlerErrors, GetGroupComponentsForProjectHandlerResponses, GetGroupDeliverableHandlerData, GetGroupDeliverableHandlerErrors, GetGroupDeliverableHandlerResponses, GetGroupDeliverableSelectionData, GetGroupDeliverableSelectionErrors, GetGroupDeliverableSelectionResponses, GetGroupDeliverableSelectionsData, GetGroupDeliverableSelectionsErrors, GetGroupDeliverableSelectionsResponses, GetGroupDeliverablesForProjectHandlerData, GetGroupDeliverablesForProjectHandlerErrors, GetGroupDeliverablesForProjectHandlerResponses, GetGroupDetailsData, GetGroupDetailsErrors, GetGroupDetailsResponses, GetGroupsData, GetGroupsErrors, GetGroupsResponses, GetOneAdminHandlerData, GetOneAdminHandlerErrors, GetOneAdminHandlerResponses, GetOneProjectHandlerData, GetOneProjectHandlerErrors, GetOneProjectHandlerResponses, GetProjectGroupsData, GetProjectGroupsErrors, GetProjectGroupsResponses, GetStudentComponentHandlerData, GetStudentComponentHandlerErrors, GetStudentComponentHandlerResponses, GetStudentComponentsForProjectHandlerData, GetStudentComponentsForProjectHandlerErrors, GetStudentComponentsForProjectHandlerResponses, GetStudentDeliverableHandlerData, GetStudentDeliverableHandlerErrors, GetStudentDeliverableHandlerResponses, GetStudentDeliverableSelectionData, GetStudentDeliverableSelectionErrors, GetStudentDeliverableSelectionResponses, GetStudentDeliverableSelectionsData, GetStudentDeliverableSelectionsErrors, GetStudentDeliverableSelectionsResponses, GetStudentDeliverablesForProjectHandlerData, GetStudentDeliverablesForProjectHandlerErrors, GetStudentDeliverablesForProjectHandlerResponses, GetStudentProjectsData, GetStudentProjectsErrors, GetStudentProjectsResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, ListCoordinatorsData, ListCoordinatorsErrors, ListCoordinatorsResponses, ListGroupMembersData, ListGroupMembersErrors, ListGroupMembersResponses, LivenessCheckData, LivenessCheckResponses, RemoveCoordinatorData, RemoveCoordinatorErrors, RemoveCoordinatorResponses, RemoveMember2Data, RemoveMember2Errors, RemoveMember2Responses, RemoveMemberData, RemoveMemberErrors, RemoveMemberResponses, ResetPasswordHandler2Data, ResetPasswordHandler2Errors, ResetPasswordHandler2Responses, ResetPasswordHandlerData, ResetPasswordHandlerErrors, ResetPasswordHandlerResponses, StudentSignupHandlerData, StudentSignupHandlerErrors, StudentSignupHandlerResponses, StudentsLoginHandlerData, StudentsLoginHandlerErrors, StudentsLoginHandlerResponses, StudentsMeHandlerData, StudentsMeHandlerErrors, StudentsMeHandlerResponses, TransferLeadershipData, TransferLeadershipErrors, TransferLeadershipResponses, UpdateAdminHandlerData, UpdateAdminHandlerErrors, UpdateAdminHandlerResponses, UpdateComponentImplementationDetailData, UpdateComponentImplementationDetailErrors, UpdateComponentImplementationDetailResponses, UpdateGroupComponentHandlerData, UpdateGroupComponentHandlerErrors, UpdateGroupComponentHandlerResponses, UpdateGroupDeliverableComponentHandlerData, UpdateGroupDeliverableComponentHandlerErrors, UpdateGroupDeliverableComponentHandlerResponses, UpdateGroupDeliverableHandlerData, UpdateGroupDeliverableHandlerErrors, UpdateGroupDeliverableHandlerResponses, UpdateMeAdminHandlerData, UpdateMeAdminHandlerErrors, UpdateMeAdminHandlerResponses, UpdateMeStudentHandlerData, UpdateMeStudentHandlerErrors, UpdateMeStudentHandlerResponses, UpdateProjectHandlerData, UpdateProjectHandlerErrors, UpdateProjectHandlerResponses, UpdateStudentComponentHandlerData, UpdateStudentComponentHandlerErrors, UpdateStudentComponentHandlerResponses, UpdateStudentDeliverableComponentHandlerData, UpdateStudentDeliverableComponentHandlerErrors, UpdateStudentDeliverableComponentHandlerResponses, UpdateStudentDeliverableHandlerData, UpdateStudentDeliverableHandlerErrors, UpdateStudentDeliverableHandlerResponses, UpdateStudentDeliverableSelectionData, UpdateStudentDeliverableSelectionErrors, UpdateStudentDeliverableSelectionResponses, ValidateCodeData, ValidateCodeErrors, ValidateCodeResponses, VersionInfoData, VersionInfoResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -1463,6 +1463,82 @@ export const getStudentDeliverableSelection = <ThrowOnError extends boolean = fa
 };
 
 /**
+ * Delete implementation details for a component (Group Leaders only)
+ */
+export const deleteComponentImplementationDetail = <ThrowOnError extends boolean = false>(options: Options<DeleteComponentImplementationDetailData, ThrowOnError>) => {
+    return (options.client ?? client).delete<DeleteComponentImplementationDetailResponses, DeleteComponentImplementationDetailErrors, ThrowOnError>({
+        security: [
+            {
+                name: 'X-Student-Token',
+                type: 'apiKey'
+            }
+        ],
+        url: '/v1/students/group-component-implementation-details/{group_id}',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+};
+
+/**
+ * Get all implementation details for a group's selection
+ */
+export const getComponentImplementationDetails = <ThrowOnError extends boolean = false>(options: Options<GetComponentImplementationDetailsData, ThrowOnError>) => {
+    return (options.client ?? client).get<GetComponentImplementationDetailsResponses, GetComponentImplementationDetailsErrors, ThrowOnError>({
+        security: [
+            {
+                name: 'X-Student-Token',
+                type: 'apiKey'
+            }
+        ],
+        url: '/v1/students/group-component-implementation-details/{group_id}',
+        ...options
+    });
+};
+
+/**
+ * Update implementation details for a single component (Group Leaders only)
+ */
+export const updateComponentImplementationDetail = <ThrowOnError extends boolean = false>(options: Options<UpdateComponentImplementationDetailData, ThrowOnError>) => {
+    return (options.client ?? client).patch<UpdateComponentImplementationDetailResponses, UpdateComponentImplementationDetailErrors, ThrowOnError>({
+        security: [
+            {
+                name: 'X-Student-Token',
+                type: 'apiKey'
+            }
+        ],
+        url: '/v1/students/group-component-implementation-details/{group_id}',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+};
+
+/**
+ * Create implementation details for a single component (Group Leaders only)
+ */
+export const createComponentImplementationDetail = <ThrowOnError extends boolean = false>(options: Options<CreateComponentImplementationDetailData, ThrowOnError>) => {
+    return (options.client ?? client).post<CreateComponentImplementationDetailResponses, CreateComponentImplementationDetailErrors, ThrowOnError>({
+        security: [
+            {
+                name: 'X-Student-Token',
+                type: 'apiKey'
+            }
+        ],
+        url: '/v1/students/group-component-implementation-details/{group_id}',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+};
+
+/**
  * Get the deliverable selection for a group
  */
 export const getGroupDeliverableSelection = <ThrowOnError extends boolean = false>(options: Options<GetGroupDeliverableSelectionData, ThrowOnError>) => {
@@ -1475,27 +1551,6 @@ export const getGroupDeliverableSelection = <ThrowOnError extends boolean = fals
         ],
         url: '/v1/students/group-deliverable-selections/{group_id}',
         ...options
-    });
-};
-
-/**
- * Update the link and markdown text of a group deliverable selection (Group Leaders only)
- * Note: The deliverable choice itself cannot be changed
- */
-export const updateGroupDeliverableSelection = <ThrowOnError extends boolean = false>(options: Options<UpdateGroupDeliverableSelectionData, ThrowOnError>) => {
-    return (options.client ?? client).patch<UpdateGroupDeliverableSelectionResponses, UpdateGroupDeliverableSelectionErrors, ThrowOnError>({
-        security: [
-            {
-                name: 'X-Student-Token',
-                type: 'apiKey'
-            }
-        ],
-        url: '/v1/students/group-deliverable-selections/{group_id}',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
     });
 };
 

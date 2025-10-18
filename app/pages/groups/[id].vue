@@ -134,49 +134,22 @@
 
             <USeparator />
 
-            <!-- Project Details Section - Full Width -->
-            <div>
-              <h4
-                class="text-base font-semibold text-gray-900 dark:text-white mb-5 flex items-center gap-2"
-              >
-                <Icon name="material-symbols:code" size="20" class="text-primary-500" />
-                Project Details
-              </h4>
-
-              <div class="space-y-6">
-                <!-- Repository Link - Full Width -->
-                <UFormField
-                  label="Repository Link"
-                  name="link"
-                  required
-                  description="Provide the URL to your GitHub, GitLab, or other repository"
-                >
-                  <UInput
-                    v-model="deliverableForm.link"
-                    type="url"
-                    placeholder="https://github.com/your-username/project-name"
-                    size="lg"
-                    icon="material-symbols:link"
-                    class="w-full"
-                  />
-                </UFormField>
-
-                <!-- Project Description - Full Width -->
-                <UFormField
-                  label="Project Description"
-                  name="markdown_text"
-                  required
-                  description="Describe your project approach, methodology, and implementation (Markdown supported)"
-                >
-                  <UTextarea
-                    v-model="deliverableForm.markdown_text"
-                    :rows="12"
-                    placeholder="# Project Overview&#10;&#10;## Approach&#10;Describe your implementation approach...&#10;&#10;## Technologies Used&#10;- Technology 1&#10;- Technology 2&#10;&#10;## Key Features&#10;Highlight the main features..."
-                    size="lg"
-                    class="w-full"
-                  />
-                </UFormField>
+            <!-- Next Step Information -->
+            <div
+              class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-xl border border-blue-200 dark:border-blue-800"
+            >
+              <div class="flex items-center gap-3 mb-3">
+                <Icon
+                  name="material-symbols:info"
+                  size="24"
+                  class="text-blue-600 dark:text-blue-400"
+                />
+                <h4 class="font-semibold text-blue-900 dark:text-blue-100">Next Step</h4>
               </div>
+              <p class="text-blue-800 dark:text-blue-200 text-sm">
+                After selecting a deliverable, you'll be able to add repository links and
+                descriptions for each component individually.
+              </p>
             </div>
           </div>
         </template>
@@ -196,17 +169,150 @@
               />
               <UButton
                 :loading="submittingDeliverable"
-                :disabled="
-                  !selectedDeliverableOption ||
-                  !deliverableForm.link ||
-                  !deliverableForm.markdown_text
-                "
+                :disabled="!selectedDeliverableOption"
                 size="lg"
                 @click="onSubmitDeliverable"
               >
                 <Icon name="material-symbols:check-circle" class="mr-2" />
                 {{ isEditMode ? 'Update' : 'Confirm Selection' }}
               </UButton>
+            </div>
+          </div>
+        </template>
+      </UModal>
+
+      <!-- Component Implementation Details Modal -->
+      <UModal
+        v-model:open="isComponentModalOpen"
+        title="Manage Component Details"
+        description="Add repository links and descriptions for each component"
+        :ui="{
+          content: 'sm:max-w-4xl',
+          body: 'p-6 sm:p-8'
+        }"
+      >
+        <template #header>
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-primary-100 dark:bg-primary-900/20 rounded-lg">
+              <Icon
+                name="material-symbols:widgets"
+                class="text-primary-600 dark:text-primary-400"
+                size="24"
+              />
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                Component Implementation Details
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                Add repository links and descriptions for each component
+              </p>
+            </div>
+          </div>
+        </template>
+
+        <template #body>
+          <div v-if="loadingComponents" class="text-center py-16">
+            <Icon
+              name="material-symbols:hourglass-empty"
+              size="56"
+              class="animate-spin mx-auto text-primary-500"
+            />
+            <p class="mt-4 text-gray-600 text-lg">Loading components...</p>
+          </div>
+
+          <div v-else class="space-y-6">
+            <UTabs :items="componentTabs" class="w-full">
+              <template #default="{ item }">
+                <div class="space-y-6">
+                  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <h4 class="font-semibold text-gray-900 dark:text-white mb-2">
+                      {{ item.name }}
+                    </h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ item.description }}</p>
+                  </div>
+
+                  <UFormField
+                    :label="`Repository Link for ${item.name}`"
+                    :name="`repo_${item.id}`"
+                    description="GitHub, GitLab, or other repository URL"
+                  >
+                    <UInput
+                      type="url"
+                      placeholder="https://github.com/your-group/component-name"
+                      size="lg"
+                      icon="material-symbols:link"
+                      :model-value="componentForms[item.id]?.repository_link || ''"
+                      @update:model-value="
+                        (value) => updateComponentForm(item.id, 'repository_link', value)
+                      "
+                    />
+                  </UFormField>
+
+                  <UFormField
+                    :label="`Description for ${item.name}`"
+                    :name="`desc_${item.id}`"
+                    description="Describe this component's implementation (Markdown supported)"
+                  >
+                    <UTextarea
+                      :rows="8"
+                      placeholder="# Component Overview&#10;&#10;## Implementation&#10;Describe how this component is implemented...&#10;&#10;## Key Features&#10;- Feature 1&#10;- Feature 2"
+                      size="lg"
+                      :model-value="componentForms[item.id]?.markdown_description || ''"
+                      @update:model-value="
+                        (value) => updateComponentForm(item.id, 'markdown_description', value)
+                      "
+                    />
+                  </UFormField>
+
+                  <div class="flex justify-end gap-3">
+                    <UButton
+                      v-if="
+                        componentImplementationDetails.find(
+                          (d) => d.group_deliverable_component_id === item.id
+                        )
+                      "
+                      color="error"
+                      variant="outline"
+                      size="lg"
+                      @click="deleteComponentDetail(item.id)"
+                    >
+                      <Icon name="material-symbols:delete" class="mr-2" />
+                      Delete Details
+                    </UButton>
+                    <UButton
+                      :loading="submittingComponent"
+                      :disabled="
+                        !componentForms[item.id]?.repository_link ||
+                        !componentForms[item.id]?.markdown_description
+                      "
+                      color="primary"
+                      size="lg"
+                      @click="saveComponentDetail(item.id)"
+                    >
+                      <Icon name="material-symbols:save" class="mr-2" />
+                      Save Details
+                    </UButton>
+                  </div>
+                </div>
+              </template>
+            </UTabs>
+          </div>
+        </template>
+
+        <template #footer>
+          <div class="flex items-center justify-between w-full">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Each component can have its own repository and description
+            </p>
+            <div class="flex gap-3">
+              <UButton
+                color="neutral"
+                variant="outline"
+                label="Close"
+                size="lg"
+                @click="isComponentModalOpen = false"
+              />
             </div>
           </div>
         </template>
@@ -225,10 +331,10 @@
               color="primary"
               variant="outline"
               size="sm"
-              @click="editDeliverableSelection"
+              @click="openComponentDetailsModal"
             >
-              <Icon name="material-symbols:edit" class="mr-2" size="18" />
-              Edit
+              <Icon name="material-symbols:settings" class="mr-2" size="18" />
+              Manage Components
             </UButton>
           </div>
         </template>
@@ -240,28 +346,59 @@
               {{ deliverableSelection.group_deliverable_name }}
             </p>
           </div>
-          <div>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Repository Link</p>
-            <a
-              :href="deliverableSelection.link"
-              target="_blank"
-              class="text-primary-500 hover:text-primary-600 flex items-center gap-1 font-medium"
-            >
-              {{ deliverableSelection.link }}
-              <Icon name="material-symbols:open-in-new" size="16" />
-            </a>
-          </div>
-          <div>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Description</p>
-            <div
-              class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
-            >
-              <MDC
-                :value="deliverableSelection.markdown_text"
-                tag="article"
-                class="prose prose-sm dark:prose-invert max-w-none"
-              />
+
+          <!-- Component Implementation Details -->
+          <div v-if="componentImplementationDetails.length > 0">
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Component Details</p>
+            <div class="space-y-4">
+              <div
+                v-for="detail in componentImplementationDetails"
+                :key="detail.id"
+                class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
+              >
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="font-semibold text-gray-900 dark:text-white">
+                    {{ detail.component_name }}
+                  </h4>
+                  <UButton
+                    v-if="isLeader"
+                    color="primary"
+                    variant="ghost"
+                    size="xs"
+                    @click="editComponentDetail(detail)"
+                  >
+                    <Icon name="material-symbols:edit" size="16" />
+                  </UButton>
+                </div>
+
+                <div v-if="detail.repository_link" class="mb-3">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Repository</p>
+                  <a
+                    :href="detail.repository_link"
+                    target="_blank"
+                    class="text-primary-500 hover:text-primary-600 flex items-center gap-1 font-medium text-sm"
+                  >
+                    {{ detail.repository_link }}
+                    <Icon name="material-symbols:open-in-new" size="14" />
+                  </a>
+                </div>
+
+                <div v-if="detail.markdown_description">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Description</p>
+                  <div class="prose prose-sm dark:prose-invert max-w-none">
+                    <MDC :value="detail.markdown_description" tag="div" />
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
+
+          <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
+            <Icon name="material-symbols:widgets" size="48" class="mx-auto mb-3 opacity-50" />
+            <p>No component details added yet</p>
+            <p class="text-sm">
+              Group leaders can add repository links and descriptions for each component
+            </p>
           </div>
         </div>
       </UCard>
@@ -334,7 +471,8 @@ import type {
   GroupMemberInfo,
   GroupDeliverableSelectionResponse,
   GroupDeliverable,
-  GroupDeliverableComponent
+  GroupDeliverableComponent,
+  ComponentImplementationDetail
 } from '~/composables/api/types.gen'
 import {
   listGroupMembers,
@@ -342,8 +480,11 @@ import {
   addMember2 as addMemberApi,
   getStudentProjects,
   createGroupDeliverableSelection,
-  updateGroupDeliverableSelection,
-  allowedDomainsHandler
+  allowedDomainsHandler,
+  getComponentImplementationDetails,
+  createComponentImplementationDetail,
+  updateComponentImplementationDetail,
+  deleteComponentImplementationDetail
 } from '~/composables/api/sdk.gen'
 
 definePageMeta({
@@ -372,14 +513,20 @@ const deliverables = ref<GroupDeliverable[]>([])
 const components = ref<GroupDeliverableComponent[]>([])
 const selectedDeliverableOption = ref<(GroupDeliverable & { label: string }) | undefined>(undefined)
 
+// Component implementation details state
+const isComponentModalOpen = ref(false)
+const loadingComponents = ref(false)
+const submittingComponent = ref(false)
+const componentImplementationDetails = ref<ComponentImplementationDetail[]>([])
+const componentForms = ref<
+  Record<number, { repository_link: string; markdown_description: string }>
+>({})
+
 const addMemberForm = reactive({
   email: ''
 })
 
-const deliverableForm = reactive({
-  link: '',
-  markdown_text: '# Our Project\n\n## Approach\n\nDescribe your project approach here...'
-})
+// deliverableForm removed - component details are managed separately
 
 const isLeader = computed(() => {
   const currentMember = members.value.find((m) => m.student_id === user.value?.id)
@@ -399,6 +546,26 @@ const componentsForSelected = computed(() => {
   return components.value.filter(
     (c) => c.project_id === selectedDeliverableOption.value?.project_id
   )
+})
+
+const componentTabs = computed(() => {
+  if (!deliverableSelection.value) return []
+
+  // Get components for the selected deliverable
+  const selectedDeliverable = deliverables.value.find(
+    (d) => d.group_deliverable_id === deliverableSelection.value?.group_deliverable_id
+  )
+
+  if (!selectedDeliverable) return []
+
+  return components.value
+    .filter((c) => c.project_id === selectedDeliverable.project_id)
+    .map((component) => ({
+      id: component.group_deliverable_component_id,
+      name: component.name,
+      description: `Manage implementation details for ${component.name}`,
+      label: component.name
+    }))
 })
 
 const fetchGroupData = async () => {
@@ -434,6 +601,18 @@ const fetchGroupData = async () => {
       }
     } catch {
       // No deliverable selected yet, that's okay
+    }
+
+    // Try to fetch component implementation details
+    try {
+      const { data: compData } = await getComponentImplementationDetails({
+        path: { group_id: groupId }
+      })
+      if (compData) {
+        componentImplementationDetails.value = compData.details
+      }
+    } catch {
+      // No component details yet, that's okay
     }
   } catch (err) {
     showError('Error', err)
@@ -471,47 +650,26 @@ const openDeliverableModal = async () => {
   }
 }
 
-const editDeliverableSelection = async () => {
-  isEditMode.value = true
-  isModalOpen.value = true
-  loadingDeliverables.value = true
+const openComponentDetailsModal = async () => {
+  isComponentModalOpen.value = true
+  loadingComponents.value = true
 
   try {
-    const { data, error } = await getStudentProjects()
+    // Initialize component forms
+    componentTabs.value.forEach((tab) => {
+      const existingDetail = componentImplementationDetails.value.find(
+        (d) => d.group_deliverable_component_id === tab.id
+      )
 
-    if (error) {
-      showError('Error', error)
-      return
-    }
-
-    if (data && data.projects.length > 0) {
-      const project = data.projects[0]
-      if (project) {
-        deliverables.value = project.group_deliverables
-        components.value = project.group_components
-
-        // Pre-fill form with existing data
-        if (deliverableSelection.value) {
-          deliverableForm.link = deliverableSelection.value.link
-          deliverableForm.markdown_text = deliverableSelection.value.markdown_text
-
-          // Find and select the current deliverable
-          const currentDeliverable = project.group_deliverables.find(
-            (d) => d.name === deliverableSelection.value?.group_deliverable_name
-          )
-          if (currentDeliverable) {
-            selectedDeliverableOption.value = {
-              ...currentDeliverable,
-              label: currentDeliverable.name
-            }
-          }
-        }
+      componentForms.value[tab.id] = {
+        repository_link: existingDetail?.repository_link || '',
+        markdown_description: existingDetail?.markdown_description || ''
       }
-    }
+    })
   } catch (err) {
     showError('Error', err)
   } finally {
-    loadingDeliverables.value = false
+    loadingComponents.value = false
   }
 }
 
@@ -525,44 +683,23 @@ const onSubmitDeliverable = async () => {
   try {
     const groupId = parseInt(route.params.id as string)
 
-    let data, error
-
-    if (isEditMode.value) {
-      // Update existing selection
-      const result = await updateGroupDeliverableSelection({
-        path: { group_id: groupId },
-        body: {
-          link: deliverableForm.link,
-          markdown_text: deliverableForm.markdown_text
-        }
-      })
-      data = result.data
-      error = result.error
-    } else {
-      // Create new selection
-      const result = await createGroupDeliverableSelection({
-        path: { group_id: groupId },
-        body: {
-          group_deliverable_id: selectedDeliverableOption.value.group_deliverable_id,
-          link: deliverableForm.link,
-          markdown_text: deliverableForm.markdown_text
-        }
-      })
-      data = result.data
-      error = result.error
-    }
+    // Create new selection (only group_deliverable_id required)
+    const { data, error } = await createGroupDeliverableSelection({
+      path: { group_id: groupId },
+      body: {
+        group_deliverable_id: selectedDeliverableOption.value.group_deliverable_id
+      }
+    })
 
     if (error) {
-      showError(isEditMode.value ? 'Update Failed' : 'Selection Failed', error)
+      showError('Selection Failed', error)
       return
     }
 
     if (data) {
       toast.add({
-        title: isEditMode.value ? 'Deliverable Updated' : 'Deliverable Selected',
-        description: isEditMode.value
-          ? 'Successfully updated project details'
-          : 'Successfully selected group deliverable',
+        title: 'Deliverable Selected',
+        description: 'Successfully selected group deliverable. You can now add component details.',
         color: 'success'
       })
 
@@ -573,14 +710,137 @@ const onSubmitDeliverable = async () => {
 
       // Reset form
       selectedDeliverableOption.value = undefined
-      deliverableForm.link = ''
-      deliverableForm.markdown_text =
-        '# Our Project\n\n## Approach\n\nDescribe your project approach here...'
     }
   } catch (err) {
     showError('Error', err)
   } finally {
     submittingDeliverable.value = false
+  }
+}
+
+const saveComponentDetail = async (componentId: number) => {
+  submittingComponent.value = true
+  try {
+    const groupId = parseInt(route.params.id as string)
+    const form = componentForms.value[componentId]
+
+    if (!form?.repository_link || !form?.markdown_description) {
+      showError('Validation Error', { error: 'Repository link and description are required' })
+      return
+    }
+
+    const existingDetail = componentImplementationDetails.value.find(
+      (d) => d.group_deliverable_component_id === componentId
+    )
+
+    let data, error
+
+    if (existingDetail) {
+      // Update existing
+      const result = await updateComponentImplementationDetail({
+        path: { group_id: groupId },
+        body: {
+          group_deliverable_component_id: componentId,
+          repository_link: form?.repository_link || '',
+          markdown_description: form?.markdown_description || ''
+        }
+      })
+      data = result.data
+      error = result.error
+    } else {
+      // Create new
+      const result = await createComponentImplementationDetail({
+        path: { group_id: groupId },
+        body: {
+          group_deliverable_component_id: componentId,
+          repository_link: form?.repository_link || '',
+          markdown_description: form?.markdown_description || ''
+        }
+      })
+      data = result.data
+      error = result.error
+    }
+
+    if (error) {
+      showError('Save Failed', error)
+      return
+    }
+
+    if (data) {
+      toast.add({
+        title: 'Component Details Saved',
+        description: 'Successfully saved component implementation details',
+        color: 'success'
+      })
+
+      // Refresh component details
+      await fetchGroupData()
+    }
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    submittingComponent.value = false
+  }
+}
+
+const editComponentDetail = (_detail: ComponentImplementationDetail) => {
+  // Open modal and navigate to the specific component tab
+  openComponentDetailsModal()
+  // The form will be pre-filled with existing data
+}
+
+const updateComponentForm = (
+  componentId: number,
+  field: 'repository_link' | 'markdown_description',
+  value: string
+) => {
+  if (!componentForms.value[componentId]) {
+    componentForms.value[componentId] = { repository_link: '', markdown_description: '' }
+  }
+  componentForms.value[componentId][field] = value
+}
+
+const deleteComponentDetail = async (componentId: number) => {
+  if (!confirm('Are you sure you want to delete the implementation details for this component?')) {
+    return
+  }
+
+  submittingComponent.value = true
+  try {
+    const groupId = parseInt(route.params.id as string)
+
+    const { data, error } = await deleteComponentImplementationDetail({
+      path: { group_id: groupId },
+      body: {
+        group_deliverable_component_id: componentId
+      }
+    })
+
+    if (error) {
+      showError('Delete Failed', error)
+      return
+    }
+
+    if (data) {
+      toast.add({
+        title: 'Component Details Deleted',
+        description: 'Successfully deleted component implementation details',
+        color: 'success'
+      })
+
+      // Refresh component details
+      await fetchGroupData()
+
+      // Clear form for this component
+      componentForms.value[componentId] = {
+        repository_link: '',
+        markdown_description: ''
+      }
+    }
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    submittingComponent.value = false
   }
 }
 
