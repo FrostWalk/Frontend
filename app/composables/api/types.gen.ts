@@ -67,6 +67,36 @@ export type ComponentDetail = {
     student_deliverable_component_id: number;
 };
 
+export type ComponentImplementationDetail = {
+    component_name: string;
+    created_at: string;
+    group_deliverable_component_id: number;
+    id: number;
+    markdown_description: string;
+    repository_link: string;
+    updated_at: string;
+};
+
+export type ComponentImplementationDetailInfo = {
+    component_name: string;
+    created_at: string;
+    group_deliverable_component_id: number;
+    id: number;
+    markdown_description: string;
+    repository_link: string;
+    updated_at: string;
+};
+
+export type ComponentImplementationDetailResponse = {
+    component_name: string;
+    created_at: string;
+    group_deliverable_component_id: number;
+    id: number;
+    markdown_description: string;
+    repository_link: string;
+    updated_at: string;
+};
+
 export type CoordinatorDetail = {
     admin_id: number;
     assigned_at: string;
@@ -105,6 +135,17 @@ export type CreateCodeResponse = {
 export type CreateCodeScheme = {
     expiration: string;
     project_id: number;
+};
+
+export type CreateComponentImplementationDetailRequest = {
+    group_deliverable_component_id: number;
+    markdown_description: string;
+    repository_link: string;
+};
+
+export type CreateComponentImplementationDetailResponse = {
+    id: number;
+    message: string;
 };
 
 export type CreateGroupComponentResponse = {
@@ -146,8 +187,6 @@ export type CreateGroupDeliverableScheme = {
 
 export type CreateGroupDeliverableSelectionRequest = {
     group_deliverable_id: number;
-    link: string;
-    markdown_text: string;
 };
 
 export type CreateGroupDeliverableSelectionResponse = {
@@ -229,6 +268,14 @@ export type DatabaseStatus = {
     status: string;
 };
 
+export type DeleteComponentImplementationDetailRequest = {
+    group_deliverable_component_id: number;
+};
+
+export type DeleteComponentImplementationDetailResponse = {
+    message: string;
+};
+
 export type DeleteGroupResponse = {
     message: string;
 };
@@ -278,6 +325,10 @@ export type GetAllStudentComponentsResponse = {
 
 export type GetAllStudentDeliverablesResponse = {
     deliverables: Array<StudentDeliverableResponse>;
+};
+
+export type GetComponentImplementationDetailsResponse = {
+    details: Array<ComponentImplementationDetailResponse>;
 };
 
 export type GetComponentsForDeliverableResponse = {
@@ -380,9 +431,8 @@ export type GroupDeliverableComponentResponse = {
 };
 
 export type GroupDeliverableDetail = {
+    component_implementation_details: Array<ComponentImplementationDetailInfo>;
     group_deliverable_id: number;
-    link: string;
-    markdown_text: string;
     name: string;
 };
 
@@ -393,12 +443,11 @@ export type GroupDeliverableResponse = {
 };
 
 export type GroupDeliverableSelectionResponse = {
+    component_implementation_details: Array<ComponentImplementationDetail>;
     group_deliverable_id: number;
     group_deliverable_name: string;
     group_deliverable_selection_id: number;
     group_id: number;
-    link: string;
-    markdown_text: string;
 };
 
 export type GroupDeliverableSelectionsResponse = {
@@ -457,13 +506,12 @@ export type GroupMembersResponse = {
 };
 
 export type GroupSelectionInfo = {
+    component_implementation_details: Array<ComponentImplementationDetailInfo>;
     group_deliverable_id: number;
     group_deliverable_name: string;
     group_deliverable_selection_id: number;
     group_id: number;
     group_name: string;
-    link: string;
-    markdown_text: string;
 };
 
 export type GroupWithProject = {
@@ -709,6 +757,16 @@ export type UpdateAdminScheme = {
     password?: string | null;
 };
 
+export type UpdateComponentImplementationDetailRequest = {
+    group_deliverable_component_id: number;
+    markdown_description: string;
+    repository_link: string;
+};
+
+export type UpdateComponentImplementationDetailResponse = {
+    message: string;
+};
+
 export type UpdateGroupComponentScheme = {
     name: string;
     sellable: boolean;
@@ -720,15 +778,6 @@ export type UpdateGroupDeliverableComponentScheme = {
 
 export type UpdateGroupDeliverableScheme = {
     name: string;
-};
-
-export type UpdateGroupDeliverableSelectionRequest = {
-    link: string;
-    markdown_text: string;
-};
-
-export type UpdateGroupDeliverableSelectionResponse = {
-    message: string;
 };
 
 export type UpdateMeAdminScheme = {
@@ -3286,6 +3335,158 @@ export type GetStudentDeliverableSelectionResponses = {
 
 export type GetStudentDeliverableSelectionResponse = GetStudentDeliverableSelectionResponses[keyof GetStudentDeliverableSelectionResponses];
 
+export type DeleteComponentImplementationDetailData = {
+    body: DeleteComponentImplementationDetailRequest;
+    path: {
+        group_id: number;
+    };
+    query?: never;
+    url: '/v1/students/group-component-implementation-details/{group_id}';
+};
+
+export type DeleteComponentImplementationDetailErrors = {
+    /**
+     * Invalid request
+     */
+    400: JsonError;
+    /**
+     * Not authorized - must be group leader
+     */
+    403: JsonError;
+    /**
+     * Group, selection, or implementation detail not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type DeleteComponentImplementationDetailError = DeleteComponentImplementationDetailErrors[keyof DeleteComponentImplementationDetailErrors];
+
+export type DeleteComponentImplementationDetailResponses = {
+    /**
+     * Component implementation detail deleted successfully
+     */
+    200: DeleteComponentImplementationDetailResponse;
+};
+
+export type DeleteComponentImplementationDetailResponse2 = DeleteComponentImplementationDetailResponses[keyof DeleteComponentImplementationDetailResponses];
+
+export type GetComponentImplementationDetailsData = {
+    body?: never;
+    path: {
+        group_id: number;
+    };
+    query?: never;
+    url: '/v1/students/group-component-implementation-details/{group_id}';
+};
+
+export type GetComponentImplementationDetailsErrors = {
+    /**
+     * Group or selection not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type GetComponentImplementationDetailsError = GetComponentImplementationDetailsErrors[keyof GetComponentImplementationDetailsErrors];
+
+export type GetComponentImplementationDetailsResponses = {
+    /**
+     * Component implementation details found
+     */
+    200: GetComponentImplementationDetailsResponse;
+};
+
+export type GetComponentImplementationDetailsResponse2 = GetComponentImplementationDetailsResponses[keyof GetComponentImplementationDetailsResponses];
+
+export type UpdateComponentImplementationDetailData = {
+    body: UpdateComponentImplementationDetailRequest;
+    path: {
+        group_id: number;
+    };
+    query?: never;
+    url: '/v1/students/group-component-implementation-details/{group_id}';
+};
+
+export type UpdateComponentImplementationDetailErrors = {
+    /**
+     * Invalid request
+     */
+    400: JsonError;
+    /**
+     * Not authorized - must be group leader
+     */
+    403: JsonError;
+    /**
+     * Group, selection, or implementation detail not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type UpdateComponentImplementationDetailError = UpdateComponentImplementationDetailErrors[keyof UpdateComponentImplementationDetailErrors];
+
+export type UpdateComponentImplementationDetailResponses = {
+    /**
+     * Component implementation detail updated successfully
+     */
+    200: UpdateComponentImplementationDetailResponse;
+};
+
+export type UpdateComponentImplementationDetailResponse2 = UpdateComponentImplementationDetailResponses[keyof UpdateComponentImplementationDetailResponses];
+
+export type CreateComponentImplementationDetailData = {
+    body: CreateComponentImplementationDetailRequest;
+    path: {
+        group_id: number;
+    };
+    query?: never;
+    url: '/v1/students/group-component-implementation-details/{group_id}';
+};
+
+export type CreateComponentImplementationDetailErrors = {
+    /**
+     * Invalid request
+     */
+    400: JsonError;
+    /**
+     * Not authorized - must be group leader
+     */
+    403: JsonError;
+    /**
+     * Group, selection, or component not found
+     */
+    404: JsonError;
+    /**
+     * Implementation details already exist for this component
+     */
+    409: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type CreateComponentImplementationDetailError = CreateComponentImplementationDetailErrors[keyof CreateComponentImplementationDetailErrors];
+
+export type CreateComponentImplementationDetailResponses = {
+    /**
+     * Component implementation detail created successfully
+     */
+    201: CreateComponentImplementationDetailResponse;
+};
+
+export type CreateComponentImplementationDetailResponse2 = CreateComponentImplementationDetailResponses[keyof CreateComponentImplementationDetailResponses];
+
 export type GetGroupDeliverableSelectionData = {
     body?: never;
     path: {
@@ -3316,49 +3517,6 @@ export type GetGroupDeliverableSelectionResponses = {
 };
 
 export type GetGroupDeliverableSelectionResponse = GetGroupDeliverableSelectionResponses[keyof GetGroupDeliverableSelectionResponses];
-
-export type UpdateGroupDeliverableSelectionData = {
-    body: UpdateGroupDeliverableSelectionRequest;
-    path: {
-        group_id: number;
-    };
-    query?: never;
-    url: '/v1/students/group-deliverable-selections/{group_id}';
-};
-
-export type UpdateGroupDeliverableSelectionErrors = {
-    /**
-     * Invalid request
-     */
-    400: JsonError;
-    /**
-     * Not authorized - must be group leader
-     */
-    403: JsonError;
-    /**
-     * Selection not found
-     */
-    404: JsonError;
-    /**
-     * Link already in use by another group
-     */
-    409: JsonError;
-    /**
-     * Internal server error
-     */
-    500: JsonError;
-};
-
-export type UpdateGroupDeliverableSelectionError = UpdateGroupDeliverableSelectionErrors[keyof UpdateGroupDeliverableSelectionErrors];
-
-export type UpdateGroupDeliverableSelectionResponses = {
-    /**
-     * Selection updated successfully
-     */
-    200: UpdateGroupDeliverableSelectionResponse;
-};
-
-export type UpdateGroupDeliverableSelectionResponse2 = UpdateGroupDeliverableSelectionResponses[keyof UpdateGroupDeliverableSelectionResponses];
 
 export type CreateGroupDeliverableSelectionData = {
     body: CreateGroupDeliverableSelectionRequest;

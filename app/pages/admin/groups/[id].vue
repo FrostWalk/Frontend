@@ -30,27 +30,53 @@
           </div>
         </template>
 
-        <div class="space-y-3">
+        <div class="space-y-4">
           <div>
             <p class="text-sm text-gray-600">Deliverable</p>
             <p class="font-medium">{{ groupDetails.deliverable_selection.name }}</p>
           </div>
-          <div>
-            <p class="text-sm text-gray-600">Repository Link</p>
-            <a
-              :href="groupDetails.deliverable_selection.link"
-              target="_blank"
-              class="text-primary-500 hover:text-primary-600 flex items-center"
-            >
-              {{ groupDetails.deliverable_selection.link }}
-              <Icon name="material-symbols:open-in-new" class="ml-1" size="16" />
-            </a>
-          </div>
-          <div>
-            <p class="text-sm text-gray-600 mb-2">Project Description</p>
-            <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded text-sm whitespace-pre-wrap">
-              {{ groupDetails.deliverable_selection.markdown_text }}
+
+          <!-- Component Implementation Details -->
+          <div
+            v-if="groupDetails.deliverable_selection.component_implementation_details.length > 0"
+          >
+            <p class="text-sm text-gray-600 mb-3">Component Details</p>
+            <div class="space-y-4">
+              <div
+                v-for="detail in groupDetails.deliverable_selection
+                  .component_implementation_details"
+                :key="detail.id"
+                class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
+              >
+                <h4 class="font-semibold text-gray-900 dark:text-white mb-3">
+                  {{ detail.component_name }}
+                </h4>
+
+                <div v-if="detail.repository_link" class="mb-3">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Repository</p>
+                  <a
+                    :href="detail.repository_link"
+                    target="_blank"
+                    class="text-primary-500 hover:text-primary-600 flex items-center gap-1 font-medium text-sm"
+                  >
+                    {{ detail.repository_link }}
+                    <Icon name="material-symbols:open-in-new" size="14" />
+                  </a>
+                </div>
+
+                <div v-if="detail.markdown_description">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Description</p>
+                  <div class="prose prose-sm dark:prose-invert max-w-none">
+                    <MDC :value="detail.markdown_description" tag="div" />
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
+
+          <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
+            <Icon name="material-symbols:widgets" size="48" class="mx-auto mb-3 opacity-50" />
+            <p>No component details added yet</p>
           </div>
         </div>
       </UCard>
