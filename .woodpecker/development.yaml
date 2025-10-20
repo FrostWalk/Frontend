@@ -34,8 +34,9 @@ steps:
         - APP_VERSION=$${APP_VERSION}
         - APP_COMMIT_HASH=$${APP_COMMIT_HASH}
       labels:
-        - org.opencontainers.image.source=https://github.com/FrostWalk/Frontend
-        - org.opencontainers.image.licenses=MIT
+        - org.opencontainers.image.source="https://github.com/frostkalk/frontend"
+        - org.opencontainers.image.licenses="MIT"
+        - org.opencontainers.image.description="Development image of frontend"
       default_labels: true
       username:
         from_secret: GHCR_USERNAME
