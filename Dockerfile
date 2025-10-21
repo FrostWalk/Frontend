@@ -4,6 +4,10 @@ FROM node:lts-alpine AS builder
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
+# Build arguments for version information
+ARG APP_VERSION
+ARG APP_COMMIT_HASH
+
 WORKDIR /app
 
 # Copy package files
@@ -14,6 +18,10 @@ RUN pnpm install --frozen-lockfile
 
 # Copy application code
 COPY . .
+
+# Set environment variables for build
+ENV NUXT_PUBLIC_APP_VERSION=${APP_VERSION}
+ENV NUXT_PUBLIC_APP_COMMIT_HASH=${APP_COMMIT_HASH}
 
 # Build the application
 RUN pnpm run build

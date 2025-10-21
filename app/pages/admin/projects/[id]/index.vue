@@ -187,9 +187,19 @@
             <!-- Groups Section (for coordinators) -->
             <UCard v-if="roleId === roles.COORDINATOR">
               <template #header>
-                <div class="flex items-center gap-2">
-                  <Icon name="material-symbols:groups" class="text-primary-500" size="20" />
-                  <h3 class="font-semibold">Enrolled Groups</h3>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <Icon name="material-symbols:groups" class="text-primary-500" size="20" />
+                    <h3 class="font-semibold">Enrolled Groups</h3>
+                  </div>
+                  <div class="w-64">
+                    <UInput
+                      v-model="groupSearchTerm"
+                      placeholder="Search groups by name..."
+                      icon="material-symbols:search"
+                      size="sm"
+                    />
+                  </div>
                 </div>
               </template>
 
@@ -200,43 +210,87 @@
                   class="animate-spin mx-auto text-primary-500"
                 />
               </div>
-              <div v-else-if="groups.length === 0" class="text-center py-6 text-gray-600">
-                No groups enrolled yet
-              </div>
-              <div v-else class="space-y-3">
-                <div
-                  v-for="group in groups"
-                  :key="group.group_id"
-                  class="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                >
-                  <div class="flex justify-between items-start">
-                    <div>
-                      <h4 class="font-medium">{{ group.name }}</h4>
-                      <p class="text-sm text-gray-600 mt-1">
-                        {{ group.member_count }} member(s) • Leader: {{ group.group_leader.name }}
-                      </p>
-                      <p v-if="group.deliverable_selected" class="text-sm text-green-600 mt-2">
-                        <Icon name="material-symbols:check-circle" class="inline" />
-                        Deliverable: {{ group.deliverable_selected.name }}
-                      </p>
-                      <UBadge
-                        v-if="group.time_expired && !group.deliverable_selected"
-                        color="error"
-                        class="mt-2"
-                      >
-                        Deadline Expired
-                      </UBadge>
-                    </div>
-                    <UButton
-                      :to="`/admin/groups/${group.group_id}`"
-                      color="neutral"
-                      variant="ghost"
-                      size="sm"
-                    >
-                      View Details
-                    </UButton>
-                  </div>
+              <div v-else-if="filteredGroups.length === 0" class="text-center py-6 text-gray-600">
+                <div v-if="groupSearchTerm.trim()">
+                  No groups found matching "{{ groupSearchTerm }}"
                 </div>
+                <div v-else>No groups enrolled yet</div>
+              </div>
+              <div v-else class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead>
+                    <tr>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Group Name
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Members
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Leader
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Deliverable
+                      </th>
+                      <th
+                        class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      />
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <tr
+                      v-for="group in filteredGroups"
+                      :key="group.group_id"
+                      class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      @click="navigateTo(`/admin/groups/${group.group_id}`)"
+                    >
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-medium text-gray-900 dark:text-white">
+                          {{ group.name }}
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-600">
+                          {{ group.member_count }} member{{ group.member_count !== 1 ? 's' : '' }}
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900 dark:text-white">
+                          {{ group.group_leader.name }}
+                        </div>
+                        <div class="text-xs text-gray-500">{{ group.group_leader.email }}</div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div
+                          v-if="group.deliverable_selected"
+                          class="flex items-center gap-1 text-sm text-green-600"
+                        >
+                          <Icon name="material-symbols:check-circle" size="16" />
+                          {{ group.deliverable_selected.name }}
+                        </div>
+                        <div v-else-if="group.time_expired" class="flex items-center gap-1">
+                          <UBadge color="error" size="sm">Deadline Expired</UBadge>
+                        </div>
+                        <div v-else class="text-sm text-gray-500">No deliverable selected</div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <Icon
+                          name="material-symbols:arrow-forward"
+                          class="text-gray-400"
+                          size="16"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </UCard>
           </div>
@@ -627,46 +681,116 @@
 
         <!-- Groups Tab -->
         <template #groups>
-          <div v-if="loadingGroups" class="text-center py-12">
-            <Icon
-              name="material-symbols:hourglass-empty"
-              size="32"
-              class="animate-spin mx-auto text-primary-500"
-            />
-          </div>
-          <div v-else-if="groups.length === 0" class="text-center py-12">
-            <p class="text-gray-600">No groups enrolled yet</p>
-          </div>
-          <div v-else class="space-y-4">
-            <UCard v-for="group in groups" :key="group.group_id">
-              <div class="flex justify-between items-start">
-                <div>
-                  <h4 class="font-semibold">{{ group.name }}</h4>
-                  <p class="text-sm text-gray-600 mt-1">
-                    {{ group.member_count }} member(s) • Leader: {{ group.group_leader.name }}
-                  </p>
-                  <p v-if="group.deliverable_selected" class="text-sm text-green-600 mt-2">
-                    <Icon name="material-symbols:check-circle" class="inline" />
-                    Deliverable: {{ group.deliverable_selected.name }}
-                  </p>
-                  <UBadge
-                    v-if="group.time_expired && !group.deliverable_selected"
-                    color="error"
-                    class="mt-2"
-                  >
-                    Deadline Expired
-                  </UBadge>
-                </div>
-                <UButton
-                  :to="`/admin/groups/${group.group_id}`"
-                  color="neutral"
-                  variant="ghost"
+          <div class="space-y-6">
+            <!-- Search and Header -->
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Enrolled Groups</h3>
+              <div class="w-64">
+                <UInput
+                  v-model="groupSearchTerm"
+                  placeholder="Search groups by name..."
+                  icon="material-symbols:search"
                   size="sm"
-                >
-                  View Details
-                </UButton>
+                />
               </div>
-            </UCard>
+            </div>
+
+            <!-- Loading State -->
+            <div v-if="loadingGroups" class="text-center py-12">
+              <Icon
+                name="material-symbols:hourglass-empty"
+                size="32"
+                class="animate-spin mx-auto text-primary-500"
+              />
+            </div>
+
+            <!-- Empty State -->
+            <div v-else-if="filteredGroups.length === 0" class="text-center py-12">
+              <div v-if="groupSearchTerm.trim()">
+                <Icon
+                  name="material-symbols:search-off"
+                  size="48"
+                  class="mx-auto text-gray-400 mb-4"
+                />
+                <p class="text-gray-600">No groups found matching "{{ groupSearchTerm }}"</p>
+              </div>
+              <div v-else>
+                <Icon name="material-symbols:groups" size="48" class="mx-auto text-gray-400 mb-4" />
+                <p class="text-gray-600">No groups enrolled yet</p>
+              </div>
+            </div>
+
+            <!-- Groups Table -->
+            <div v-else class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead>
+                  <tr>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Group Name
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Members
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Leader
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Deliverable
+                    </th>
+                    <th
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    />
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                  <tr
+                    v-for="group in filteredGroups"
+                    :key="group.group_id"
+                    class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    @click="navigateTo(`/admin/groups/${group.group_id}`)"
+                  >
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="font-medium text-gray-900 dark:text-white">{{ group.name }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-600">
+                        {{ group.member_count }} member{{ group.member_count !== 1 ? 's' : '' }}
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900 dark:text-white">
+                        {{ group.group_leader.name }}
+                      </div>
+                      <div class="text-xs text-gray-500">{{ group.group_leader.email }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div
+                        v-if="group.deliverable_selected"
+                        class="flex items-center gap-1 text-sm text-green-600"
+                      >
+                        <Icon name="material-symbols:check-circle" size="16" />
+                        {{ group.deliverable_selected.name }}
+                      </div>
+                      <div v-else-if="group.time_expired" class="flex items-center gap-1">
+                        <UBadge color="error" size="sm">Deadline Expired</UBadge>
+                      </div>
+                      <div v-else class="text-sm text-gray-500">No deliverable selected</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                      <Icon name="material-symbols:arrow-forward" class="text-gray-400" size="16" />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </template>
 
@@ -1191,6 +1315,9 @@ const groups = ref<GroupInfo[]>([])
 const coordinator = ref<CoordinatorDetail | null>(null)
 const coordinators = ref<AdminResponseScheme[]>([])
 
+// Search functionality
+const groupSearchTerm = ref('')
+
 type CoordinatorItem = AdminResponseScheme & { label: string }
 const selectedCoordinator = ref<CoordinatorItem | undefined>(undefined)
 
@@ -1201,6 +1328,16 @@ const coordinatorItems = computed(() =>
     label: `${coord.first_name} ${coord.last_name}`
   }))
 )
+
+// Filtered groups based on search term
+const filteredGroups = computed(() => {
+  if (!groupSearchTerm.value.trim()) {
+    return groups.value
+  }
+
+  const searchTerm = groupSearchTerm.value.toLowerCase().trim()
+  return groups.value.filter((group) => group.name.toLowerCase().includes(searchTerm))
+})
 
 // Component associations for deliverables
 const groupDeliverableComponents = ref<Map<number, GroupDeliverableComponentResponse[]>>(new Map())
@@ -1276,6 +1413,13 @@ const tabs = computed(() => {
   return [
     overviewTab,
     {
+      key: 'groups',
+      value: 'groups',
+      label: 'Groups',
+      icon: 'material-symbols:groups',
+      slot: 'groups'
+    },
+    {
       key: 'group-components',
       value: 'group-components',
       label: 'Group Components',
@@ -1302,13 +1446,6 @@ const tabs = computed(() => {
       label: 'Student Deliverables',
       icon: 'material-symbols:person',
       slot: 'student-deliverables'
-    },
-    {
-      key: 'groups',
-      value: 'groups',
-      label: 'Groups',
-      icon: 'material-symbols:groups',
-      slot: 'groups'
     },
     {
       key: 'coordinators',

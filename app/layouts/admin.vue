@@ -78,7 +78,7 @@
                 <div class="text-xs opacity-80">{{ getRoleName(roleId) }}</div>
               </div>
               <button
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 transition-colors"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-primary-500 hover:bg-red-600 transition-colors"
                 @click="logout"
               >
                 <Icon name="material-symbols:logout" size="18" />
@@ -93,6 +93,10 @@
     <main class="flex-1 max-w-7xl w-full mx-auto py-6 sm:px-6 lg:px-8">
       <slot />
     </main>
+
+    <footer class="mt-auto">
+      <AppVersion />
+    </footer>
   </div>
 </template>
 

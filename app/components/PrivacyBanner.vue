@@ -13,7 +13,8 @@
           />
           <p class="text-sm text-gray-700 dark:text-gray-300">
             This application does not use cookies and does not track users, but it relies on local
-            storage to manage sessions and states. If you wish to delete all your data from this
+            storage to manage sessions and states. However, Cloudflare may set security cookies for
+            protection against malicious traffic. If you wish to delete all your data from this
             application, please contact the professor.
           </p>
         </div>
