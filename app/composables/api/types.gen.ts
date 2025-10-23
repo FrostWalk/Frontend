@@ -856,7 +856,6 @@ export type VersionResponse = {
     git_tag: string;
     rust_version: string;
     timestamp: number;
-    version: string;
 };
 
 export type HealthCheckData = {
