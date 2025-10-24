@@ -8,6 +8,9 @@ when:
 clone:
   git:
     image: woodpeckerci/plugin-git
+    settings:
+      depth: 0
+      tags: true
 
 steps:
   # Extract commit hash and version for dev build
@@ -34,7 +37,7 @@ steps:
         - APP_VERSION=$${APP_VERSION}
         - APP_COMMIT_HASH=$${APP_COMMIT_HASH}
       labels:
-        - org.opencontainers.image.source="https://github.com/frostkalk/frontend"
+        - org.opencontainers.image.source="https://github.com/frostwalk/frontend"
         - org.opencontainers.image.licenses="MIT"
         - org.opencontainers.image.description="Development image of frontend"
       default_labels: true
@@ -43,11 +46,130 @@ steps:
       password:
         from_secret: GHCR_TOKEN
 
-  # Trigger watchtower after successful build
+  # ---------- CVE SCAN (fail on HIGH/CRITICAL) ----------
+  # Trivy scans the just-pushed dev image. It fails the pipeline on HIGH/CRITICAL to gate deployments.
+  trivy-scan-dev:
+    image: ghcr.io/aquasecurity/trivy:latest
+    depends_on:
+      - docker-build-dev
+    environment:
+      GHCR_USERNAME:
+        from_secret: GHCR_USERNAME
+      GHCR_TOKEN:
+        from_secret: GHCR_TOKEN
+    commands:
+      - set -e
+      # Login to GHCR for private image access (stored in ~/.docker/config.json by Trivy)
+      - echo "$GHCR_TOKEN" | trivy registry login --username "$GHCR_USERNAME" --password-stdin ghcr.io
+      # Fail on HIGH/CRITICAL vulns; consider --ignore-unfixed if desired
+      - trivy image --timeout 5m --severity HIGH,CRITICAL --exit-code 1 ghcr.io/frostwalk/frontend:dev
+      # save a human-readable report
+      - trivy image --format table ghcr.io/frostwalk/frontend:dev > trivy-report.txt
+
+  # ---------- prepare Docker auth for Syft ----------
+  # Create a Docker config.json in the shared workspace so Syft can pull from GHCR without a shell.
+  prepare-docker-config:
+    image: alpine:latest
+    depends_on:
+      - trivy-scan-dev
+    environment:
+      GHCR_USERNAME:
+        from_secret: GHCR_USERNAME
+      GHCR_TOKEN:
+        from_secret: GHCR_TOKEN
+    commands:
+      - set -e
+      - mkdir -p .docker
+      - AUTH=$(printf "%s:%s" "$GHCR_USERNAME" "$GHCR_TOKEN" | base64 | tr -d '\n')
+      - printf '{"auths":{"ghcr.io":{"auth":"%s"}}}\n' "$AUTH" > .docker/config.json
+
+  # ---------- SBOM (CycloneDX) with official Syft (no shell) ----------
+  # Use entrypoint (no /bin/sh). DOCKER_CONFIG points to the file created above.
+  sbom-generate-dev:
+    image: anchore/syft:latest
+    depends_on:
+      - prepare-docker-config
+    environment:
+      DOCKER_CONFIG: .docker
+    entrypoint:
+      - /syft
+      - ghcr.io/frostwalk/frontend:dev
+      - -o
+      - cyclonedx-json=sbom.cdx.json
+
+  # ---------- SIGN ----------
+  # Cosign signs the dev tag; signature is stored alongside the image in GHCR.
+  cosign-sign-dev:
+    image: cgr.dev/chainguard/cosign:latest
+    depends_on:
+      - sbom-generate-dev
+    environment:
+      GHCR_USERNAME:
+        from_secret: GHCR_USERNAME
+      GHCR_TOKEN:
+        from_secret: GHCR_TOKEN
+      COSIGN_PRIVATE_KEY:
+        from_secret: COSIGN_PRIVATE_KEY
+      COSIGN_PASSWORD:
+        from_secret: COSIGN_PASSWORD
+    commands:
+      - set -e
+      # Login to GHCR so Cosign can push the signature object
+      - cosign login ghcr.io -u "$GHCR_USERNAME" -p "$GHCR_TOKEN"
+      - printf "%s" "$COSIGN_PRIVATE_KEY" > cosign.key
+      - cosign sign --yes --key cosign.key ghcr.io/frostwalk/frontend:dev
+
+  # ---------- SIGN SBOM ----------
+  # Attach a signed CycloneDX SBOM attestation to the dev image.
+  cosign-attest-sbom-dev:
+    image: cgr.dev/chainguard/cosign:latest
+    depends_on:
+      - sbom-generate-dev
+    environment:
+      GHCR_USERNAME:
+        from_secret: GHCR_USERNAME
+      GHCR_TOKEN:
+        from_secret: GHCR_TOKEN
+      COSIGN_PRIVATE_KEY:
+        from_secret: COSIGN_PRIVATE_KEY
+      COSIGN_PASSWORD:
+        from_secret: COSIGN_PASSWORD
+    commands:
+      - set -e
+      # Login so Cosign can push the attestation object to GHCR
+      - cosign login ghcr.io -u "$GHCR_USERNAME" -p "$GHCR_TOKEN"
+      # Load the private key
+      - printf "%s" "$COSIGN_PRIVATE_KEY" > cosign.key
+      # Attach a signed SBOM attestation (CycloneDX) to the image
+      - cosign attest --yes --key cosign.key --type cyclonedx --predicate sbom.cdx.json ghcr.io/frostwalk/frontend:dev
+
+  # ---------- VERIFY ----------
+  # Verify signature with the public key; if this fails, deployment will be blocked.
+  cosign-verify-dev:
+    image: cgr.dev/chainguard/cosign:latest
+    depends_on:
+      - cosign-sign-dev
+      - cosign-attest-sbom-dev
+    environment:
+      GHCR_USERNAME:
+        from_secret: GHCR_USERNAME
+      GHCR_TOKEN:
+        from_secret: GHCR_TOKEN
+      COSIGN_PUBLIC_KEY:
+        from_secret: COSIGN_PUBLIC_KEY
+    commands:
+      - set -e
+      - cosign login ghcr.io -u "$GHCR_USERNAME" -p "$GHCR_TOKEN"
+      - printf "%s" "$COSIGN_PUBLIC_KEY" > cosign.pub
+      # Verify signature with the public key before deploying
+      - cosign verify --key cosign.pub ghcr.io/frostwalk/frontend:dev >/dev/null
+
+  # ---------- TRIGGER UPGRADE ----------
+  # Only runs if build, scan, SBOM, sign, attest, and verify succeeded.
   trigger-watchtower:
     image: curlimages/curl:latest
     depends_on:
-      - docker-build-dev
+      - cosign-verify-dev
     environment:
       WT_URL: https://wt.advancedprogramming.ovh/v1/update
       WT_TOKEN:

@@ -58,7 +58,7 @@ steps:
         - APP_VERSION=$${APP_VERSION}
         - APP_COMMIT_HASH=$${APP_COMMIT_HASH}
       labels:
-        - org.opencontainers.image.source="https://github.com/frostkalk/frontend"
+        - org.opencontainers.image.source="https://github.com/frostwalk/frontend"
         - org.opencontainers.image.licenses="MIT"
         - org.opencontainers.image.description="Production image of frontend"
       default_labels: true
@@ -67,11 +67,132 @@ steps:
       password:
         from_secret: GHCR_TOKEN
 
-  # Trigger watchtower after successful build
+  # ---------- CVE SCAN (fail on HIGH/CRITICAL) ----------
+  trivy-scan-release:
+    image: ghcr.io/aquasecurity/trivy:latest
+    depends_on:
+      - docker-build-release
+    environment:
+      GHCR_USERNAME:
+        from_secret: GHCR_USERNAME
+      GHCR_TOKEN:
+        from_secret: GHCR_TOKEN
+    commands:
+      - set -e
+      - echo "$GHCR_TOKEN" | trivy registry login --username "$GHCR_USERNAME" --password-stdin ghcr.io
+      - |
+        while read -r t; do
+          echo "Scanning ghcr.io/frostwalk/frontend:${t}"
+          trivy image --timeout 5m --severity HIGH,CRITICAL --exit-code 1 ghcr.io/frostwalk/frontend:"${t}"
+          trivy image --format table ghcr.io/frostwalk/frontend:"${t}" > "trivy-report-${t}.txt"
+        done < .tags
+
+  # ---------- prepare Docker auth for Syft ----------
+  prepare-docker-config:
+    image: alpine:latest
+    depends_on:
+      - trivy-scan-release
+    environment:
+      GHCR_USERNAME:
+        from_secret: GHCR_USERNAME
+      GHCR_TOKEN:
+        from_secret: GHCR_TOKEN
+    commands:
+      - set -e
+      - mkdir -p .docker
+      - AUTH=$(printf "%s:%s" "$GHCR_USERNAME" "$GHCR_TOKEN" | base64 | tr -d '\n')
+      - printf '{"auths":{"ghcr.io":{"auth":"%s"}}}\n' "$AUTH" > .docker/config.json
+
+  # ---------- SBOM (CycloneDX) with Syft ----------
+  # Builds SBOM from :latest (same digest as the release tag produced in this pipeline).
+  sbom-generate-release:
+    image: anchore/syft:latest
+    depends_on:
+      - prepare-docker-config
+    environment:
+      DOCKER_CONFIG: .docker
+    entrypoint:
+      - /syft
+      - ghcr.io/frostwalk/frontend:latest
+      - -o
+      - cyclonedx-json=sbom.cdx.json
+
+  # ---------- SIGN ----------
+  cosign-sign-release:
+    image: cgr.dev/chainguard/cosign:latest
+    depends_on:
+      - sbom-generate-release
+    environment:
+      GHCR_USERNAME:
+        from_secret: GHCR_USERNAME
+      GHCR_TOKEN:
+        from_secret: GHCR_TOKEN
+      COSIGN_PRIVATE_KEY:
+        from_secret: COSIGN_PRIVATE_KEY
+      COSIGN_PASSWORD:
+        from_secret: COSIGN_PASSWORD
+    commands:
+      - set -e
+      - cosign login ghcr.io -u "$GHCR_USERNAME" -p "$GHCR_TOKEN"
+      - printf "%s" "$COSIGN_PRIVATE_KEY" > cosign.key
+      - |
+        while read -r t; do
+          echo "Signing ghcr.io/frostwalk/frontend:${t}"
+          cosign sign --yes --key cosign.key ghcr.io/frostwalk/frontend:"${t}"
+        done < .tags
+
+  # ---------- SIGN SBOM (attestation) ----------
+  cosign-attest-sbom-release:
+    image: cgr.dev/chainguard/cosign:latest
+    depends_on:
+      - sbom-generate-release
+    environment:
+      GHCR_USERNAME:
+        from_secret: GHCR_USERNAME
+      GHCR_TOKEN:
+        from_secret: GHCR_TOKEN
+      COSIGN_PRIVATE_KEY:
+        from_secret: COSIGN_PRIVATE_KEY
+      COSIGN_PASSWORD:
+        from_secret: COSIGN_PASSWORD
+    commands:
+      - set -e
+      - cosign login ghcr.io -u "$GHCR_USERNAME" -p "$GHCR_TOKEN"
+      - printf "%s" "$COSIGN_PRIVATE_KEY" > cosign.key
+      - |
+        while read -r t; do
+          echo "Attesting SBOM to ghcr.io/frostwalk/frontend:${t}"
+          cosign attest --yes --key cosign.key --type cyclonedx --predicate sbom.cdx.json ghcr.io/frostwalk/frontend:"${t}"
+        done < .tags
+
+  # ---------- VERIFY ----------
+  cosign-verify-release:
+    image: cgr.dev/chainguard/cosign:latest
+    depends_on:
+      - cosign-sign-release
+      - cosign-attest-sbom-release
+    environment:
+      GHCR_USERNAME:
+        from_secret: GHCR_USERNAME
+      GHCR_TOKEN:
+        from_secret: GHCR_TOKEN
+      COSIGN_PUBLIC_KEY:
+        from_secret: COSIGN_PUBLIC_KEY
+    commands:
+      - set -e
+      - cosign login ghcr.io -u "$GHCR_USERNAME" -p "$GHCR_TOKEN"
+      - printf "%s" "$COSIGN_PUBLIC_KEY" > cosign.pub
+      - |
+        while read -r t; do
+          echo "Verifying signature for ghcr.io/frostwalk/frontend:${t}"
+          cosign verify --key cosign.pub ghcr.io/frostwalk/frontend:"${t}" >/dev/null
+        done < .tags
+
+  # ---------- TRIGGER UPGRADE ----------
   trigger-watchtower:
     image: curlimages/curl:latest
     depends_on:
-      - docker-build-release
+      - cosign-verify-release
     environment:
       WT_URL: https://wt.advancedprogramming.ovh/v1/update
       WT_TOKEN:
