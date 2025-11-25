@@ -743,6 +743,16 @@ export type StudentSignupScheme = {
     university_id: number;
 };
 
+export type TestEmailRequest = {
+    body: string;
+    subject: string;
+    to_email: string;
+};
+
+export type TestEmailResponse = {
+    message: string;
+};
+
 export type TransferLeadershipRequest = {
     new_leader_student_id: number;
     remove_old_leader: boolean;
@@ -3011,6 +3021,43 @@ export type UpdateMeAdminHandlerResponses = {
      */
     200: unknown;
 };
+
+export type TestEmailHandlerData = {
+    body: TestEmailRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/admins/users/test-email';
+};
+
+export type TestEmailHandlerErrors = {
+    /**
+     * Invalid email address or request data
+     */
+    400: JsonError;
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Insufficient permissions - root access required
+     */
+    403: JsonError;
+    /**
+     * Failed to send email
+     */
+    500: JsonError;
+};
+
+export type TestEmailHandlerError = TestEmailHandlerErrors[keyof TestEmailHandlerErrors];
+
+export type TestEmailHandlerResponses = {
+    /**
+     * Test email sent successfully
+     */
+    200: TestEmailResponse;
+};
+
+export type TestEmailHandlerResponse = TestEmailHandlerResponses[keyof TestEmailHandlerResponses];
 
 export type DeleteAdminHandlerData = {
     body?: never;
