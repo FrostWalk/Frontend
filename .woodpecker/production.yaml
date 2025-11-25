@@ -80,12 +80,9 @@ steps:
     commands:
       - set -e
       - echo "$GHCR_TOKEN" | trivy registry login --username "$GHCR_USERNAME" --password-stdin ghcr.io
-      - |
-        while read -r t; do
-          echo "Scanning ghcr.io/frostwalk/frontend:${t}"
-          trivy image --timeout 10m --severity HIGH,CRITICAL --exit-code 0 ghcr.io/frostwalk/frontend:"${t}"
-          trivy image --format table ghcr.io/frostwalk/frontend:"${t}" > "trivy-report-${t}.txt"
-        done < .tags
+      - echo "Scanning ghcr.io/frostwalk/frontend:latest"
+      - trivy image --timeout 10m --severity HIGH,CRITICAL --exit-code 0 ghcr.io/frostwalk/frontend:latest
+      - trivy image --format table ghcr.io/frostwalk/frontend:latest > trivy-report-latest.txt
 
   # ---------- prepare Docker auth for Syft ----------
   prepare-docker-config:
