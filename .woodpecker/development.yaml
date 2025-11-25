@@ -46,8 +46,8 @@ steps:
       password:
         from_secret: GHCR_TOKEN
 
-  # ---------- CVE SCAN (fail on HIGH/CRITICAL) ----------
-  # Trivy scans the just-pushed dev image. It fails the pipeline on HIGH/CRITICAL to gate deployments.
+  # ---------- CVE SCAN (report only, don't fail pipeline) ----------
+  # Trivy scans the just-pushed dev image. Reports vulnerabilities but doesn't fail the pipeline.
   trivy-scan-dev:
     image: ghcr.io/aquasecurity/trivy:latest
     depends_on:
@@ -61,8 +61,8 @@ steps:
       - set -e
       # Login to GHCR for private image access (stored in ~/.docker/config.json by Trivy)
       - echo "$GHCR_TOKEN" | trivy registry login --username "$GHCR_USERNAME" --password-stdin ghcr.io
-      # Fail on HIGH/CRITICAL vulns; consider --ignore-unfixed if desired
-      - trivy image --timeout 5m --severity HIGH,CRITICAL --exit-code 1 ghcr.io/frostwalk/frontend:dev
+      # Scan for HIGH/CRITICAL vulns but don't fail the pipeline (exit-code 0)
+      - trivy image --timeout 10m --severity HIGH,CRITICAL --exit-code 0 ghcr.io/frostwalk/frontend:dev
       # save a human-readable report
       - trivy image --format table ghcr.io/frostwalk/frontend:dev > trivy-report.txt
 

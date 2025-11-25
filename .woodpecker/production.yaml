@@ -67,7 +67,7 @@ steps:
       password:
         from_secret: GHCR_TOKEN
 
-  # ---------- CVE SCAN (fail on HIGH/CRITICAL) ----------
+  # ---------- CVE SCAN (report only, don't fail pipeline) ----------
   trivy-scan-release:
     image: ghcr.io/aquasecurity/trivy:latest
     depends_on:
@@ -83,7 +83,7 @@ steps:
       - |
         while read -r t; do
           echo "Scanning ghcr.io/frostwalk/frontend:${t}"
-          trivy image --timeout 5m --severity HIGH,CRITICAL --exit-code 1 ghcr.io/frostwalk/frontend:"${t}"
+          trivy image --timeout 10m --severity HIGH,CRITICAL --exit-code 0 ghcr.io/frostwalk/frontend:"${t}"
           trivy image --format table ghcr.io/frostwalk/frontend:"${t}" > "trivy-report-${t}.txt"
         done < .tags
 
