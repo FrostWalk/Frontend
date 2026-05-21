@@ -62,7 +62,7 @@
         </div>
 
         <template #footer>
-          <div class="flex gap-2">
+          <div class="flex flex-col gap-2">
             <UButton
               :to="`/projects/${item.project.project_id}/select-deliverable`"
               color="primary"
@@ -71,6 +71,16 @@
             >
               <Icon name="material-symbols:assignment" class="mr-2" />
               My Deliverable
+            </UButton>
+            <UButton
+              v-if="item.fair_id"
+              :to="`/fairs/${item.fair_id}/trade`"
+              color="primary"
+              variant="ghost"
+              block
+            >
+              <Icon name="material-symbols:storefront" class="mr-2" />
+              Fair
             </UButton>
           </div>
         </template>

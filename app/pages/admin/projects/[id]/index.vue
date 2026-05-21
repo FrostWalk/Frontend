@@ -794,6 +794,138 @@
           </div>
         </template>
 
+        <!-- Fair Tab -->
+        <template #fair>
+          <div class="space-y-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Fair Management</h3>
+                <p class="text-sm text-gray-600 mt-1">
+                  Configure the fair window and minimum required purchases
+                </p>
+              </div>
+              <UButton
+                v-if="!fair && !loadingFair"
+                color="primary"
+                icon="material-symbols:add"
+                @click="openCreateFairModal"
+              >
+                Create Fair
+              </UButton>
+            </div>
+
+            <div v-if="loadingFair" class="text-center py-12">
+              <Icon
+                name="material-symbols:hourglass-empty"
+                size="40"
+                class="animate-spin mx-auto text-primary-500"
+              />
+              <p class="mt-3 text-gray-600">Loading fair...</p>
+            </div>
+
+            <UCard v-else-if="!fair">
+              <div class="text-center py-12">
+                <Icon
+                  name="material-symbols:storefront-outline"
+                  size="48"
+                  class="mx-auto text-gray-400"
+                />
+                <h4 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+                  No fair configured
+                </h4>
+                <p class="mt-2 text-sm text-gray-600">
+                  Create a fair to enable group-to-group transactions.
+                </p>
+                <UButton class="mt-4" color="primary" @click="openCreateFairModal">
+                  Create Fair
+                </UButton>
+              </div>
+            </UCard>
+
+            <UCard v-else>
+              <template #header>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <h4 class="text-lg font-semibold">Fair #{{ fair.fair_id }}</h4>
+                    <UBadge :color="fair.is_active ? 'success' : 'neutral'" variant="soft">
+                      {{ fair.is_active ? 'Active' : 'Inactive' }}
+                    </UBadge>
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    <UButton
+                      size="sm"
+                      color="neutral"
+                      variant="soft"
+                      icon="material-symbols:edit"
+                      @click="openEditFairModal"
+                    >
+                      Edit
+                    </UButton>
+                    <UButton
+                      size="sm"
+                      :color="fair.is_active ? 'warning' : 'success'"
+                      :icon="
+                        fair.is_active
+                          ? 'material-symbols:toggle-off-outline'
+                          : 'material-symbols:toggle-on-outline'
+                      "
+                      :loading="savingFair"
+                      @click="toggleFairStatus"
+                    >
+                      {{ fair.is_active ? 'Disable' : 'Enable' }}
+                    </UButton>
+                  </div>
+                </div>
+              </template>
+
+              <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                  <p class="text-sm text-gray-500">Start Date</p>
+                  <p class="font-medium">{{ formatDateTime(fair.start_date) }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500">End Date</p>
+                  <p class="font-medium">{{ formatDateTime(fair.end_date) }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500">Minimum Purchases</p>
+                  <p class="font-medium">{{ fair.min_purchases }}</p>
+                </div>
+                <div class="md:col-span-2">
+                  <p class="text-sm text-gray-500">Details</p>
+                  <MDC
+                    :value="fair.details"
+                    tag="article"
+                    class="prose prose-sm dark:prose-invert max-w-none mt-2"
+                  />
+                </div>
+              </div>
+
+              <div
+                class="mt-6 flex flex-wrap gap-2 border-t border-gray-200 dark:border-gray-700 pt-4"
+              >
+                <UButton
+                  color="primary"
+                  variant="soft"
+                  icon="material-symbols:analytics"
+                  :to="`/admin/fairs/${fair.fair_id}/report`"
+                >
+                  View Report
+                </UButton>
+                <UButton
+                  color="neutral"
+                  variant="soft"
+                  icon="material-symbols:leaderboard"
+                  :to="`/fairs/${fair.fair_id}/leaderboard`"
+                  target="_blank"
+                >
+                  View Leaderboard
+                </UButton>
+              </div>
+            </UCard>
+          </div>
+        </template>
+
         <!-- Coordinators Tab -->
         <template #coordinators>
           <UCard>
@@ -835,6 +967,132 @@
         </template>
       </UTabs>
     </div>
+
+    <!-- Create Fair Modal -->
+    <UModal
+      v-model:open="showCreateFairModal"
+      title="Create Fair"
+      description="Set fair dates and purchase constraints"
+    >
+      <template #body>
+        <UForm :state="fairForm" class="space-y-4" @submit="createFair">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Details</p>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-500">Edit</span>
+              <USwitch v-model="createFairPreviewMode" />
+              <span class="text-xs text-gray-500">Preview</span>
+            </div>
+          </div>
+          <UFormField
+            v-if="!createFairPreviewMode"
+            label="Details"
+            name="details"
+            required
+            class="w-full"
+          >
+            <UTextarea
+              v-model="fairForm.details"
+              :rows="6"
+              autoresize
+              class="w-full"
+              placeholder="Write fair details in Markdown..."
+            />
+          </UFormField>
+          <UCard v-else class="bg-gray-50 dark:bg-gray-800">
+            <template #header>
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Preview</p>
+            </template>
+            <MDC
+              v-if="fairForm.details"
+              :value="fairForm.details"
+              tag="article"
+              class="prose prose-sm dark:prose-invert max-w-none"
+            />
+            <p v-else class="text-sm text-gray-500">No markdown content yet.</p>
+          </UCard>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <UFormField label="Start Date" name="start_date" required>
+              <UInput v-model="fairForm.start_date" type="datetime-local" />
+            </UFormField>
+            <UFormField label="End Date" name="end_date" required>
+              <UInput v-model="fairForm.end_date" type="datetime-local" />
+            </UFormField>
+          </div>
+          <UFormField label="Minimum Purchases" name="min_purchases" required>
+            <UInput v-model.number="fairForm.min_purchases" type="number" min="1" />
+          </UFormField>
+        </UForm>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showCreateFairModal = false">
+            Cancel
+          </UButton>
+          <UButton color="primary" :loading="savingFair" @click="createFair"> Create Fair </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Edit Fair Modal -->
+    <UModal
+      v-model:open="showEditFairModal"
+      title="Edit Fair"
+      description="Update fair dates and constraints"
+    >
+      <template #body>
+        <UForm :state="fairForm" class="space-y-4" @submit="updateFair">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Details</p>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-500">Edit</span>
+              <USwitch v-model="editFairPreviewMode" />
+              <span class="text-xs text-gray-500">Preview</span>
+            </div>
+          </div>
+          <UFormField v-if="!editFairPreviewMode" label="Details" name="details" class="w-full">
+            <UTextarea
+              v-model="fairForm.details"
+              :rows="6"
+              autoresize
+              class="w-full"
+              placeholder="Write fair details in Markdown..."
+            />
+          </UFormField>
+          <UCard v-else class="bg-gray-50 dark:bg-gray-800">
+            <template #header>
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Preview</p>
+            </template>
+            <MDC
+              v-if="fairForm.details"
+              :value="fairForm.details"
+              tag="article"
+              class="prose prose-sm dark:prose-invert max-w-none"
+            />
+            <p v-else class="text-sm text-gray-500">No markdown content yet.</p>
+          </UCard>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <UFormField label="Start Date" name="start_date">
+              <UInput v-model="fairForm.start_date" type="datetime-local" />
+            </UFormField>
+            <UFormField label="End Date" name="end_date">
+              <UInput v-model="fairForm.end_date" type="datetime-local" />
+            </UFormField>
+          </div>
+          <UFormField label="Minimum Purchases" name="min_purchases">
+            <UInput v-model.number="fairForm.min_purchases" type="number" min="1" />
+          </UFormField>
+        </UForm>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showEditFairModal = false">
+            Cancel
+          </UButton>
+          <UButton color="primary" :loading="savingFair" @click="updateFair">Save Changes</UButton>
+        </div>
+      </template>
+    </UModal>
 
     <!-- Assign Coordinator Modal -->
     <UModal
@@ -1246,7 +1504,8 @@ import type {
   CoordinatorDetail,
   AdminResponseScheme,
   GroupDeliverableComponentResponse,
-  StudentDeliverableComponentResponse
+  StudentDeliverableComponentResponse,
+  FairResponse
 } from '~/composables/api/types.gen'
 import {
   getOneProjectHandler,
@@ -1264,7 +1523,12 @@ import {
   updateStudentDeliverableHandler,
   updateGroupDeliverableComponentHandler,
   updateStudentDeliverableComponentHandler,
-  updateGroupComponentHandler
+  updateGroupComponentHandler,
+  createFairHandler,
+  getFairByProjectHandler,
+  updateFairHandler,
+  disableFairHandler,
+  enableFairHandler
 } from '~/composables/api/sdk.gen'
 
 definePageMeta({
@@ -1284,6 +1548,13 @@ const assigning = ref(false)
 const showAssignModal = ref(false)
 const showCreateCoordinatorModal = ref(false)
 const creatingCoordinator = ref(false)
+const loadingFair = ref(false)
+const savingFair = ref(false)
+const showCreateFairModal = ref(false)
+const showEditFairModal = ref(false)
+const fairLoaded = ref(false)
+const createFairPreviewMode = ref(false)
+const editFairPreviewMode = ref(false)
 
 // Edit deliverable modals
 const showEditGroupDeliverableModal = ref(false)
@@ -1314,6 +1585,7 @@ const studentComponents = ref<StudentDeliverableComponent[]>([])
 const groups = ref<GroupInfo[]>([])
 const coordinator = ref<CoordinatorDetail | null>(null)
 const coordinators = ref<AdminResponseScheme[]>([])
+const fair = ref<FairResponse | null>(null)
 
 // Search functionality
 const groupSearchTerm = ref('')
@@ -1381,6 +1653,12 @@ const projectForm = reactive({
   deliverable_selection_deadline: '',
   active: true
 })
+const fairForm = reactive({
+  details: '',
+  start_date: '',
+  end_date: '',
+  min_purchases: 1
+})
 
 const currentTab = ref('overview')
 
@@ -1393,6 +1671,12 @@ watch(currentTab, () => {
   showEditGroupComponentModal.value = false
   showEditProjectModal.value = false
   showDeleteProjectModal.value = false
+  showCreateFairModal.value = false
+  showEditFairModal.value = false
+
+  if (currentTab.value === 'fair' && !fairLoaded.value) {
+    fetchFair()
+  }
 })
 // Tabs configuration - coordinators only see overview
 const overviewTab = {
@@ -1448,6 +1732,13 @@ const tabs = computed(() => {
       slot: 'student-deliverables'
     },
     {
+      key: 'fair',
+      value: 'fair',
+      label: 'Fair',
+      icon: 'material-symbols:storefront',
+      slot: 'fair'
+    },
+    {
       key: 'coordinators',
       value: 'coordinators',
       label: 'Coordinators',
@@ -1491,6 +1782,222 @@ const fetchProject = async () => {
     showError('Error', err)
   } finally {
     loading.value = false
+  }
+}
+
+const toDateTimeLocal = (isoDate: string) => {
+  const date = new Date(isoDate)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+const toIso = (localDate: string) => {
+  return localDate ? new Date(localDate).toISOString() : null
+}
+
+const getApiErrorStatus = (error: unknown): number | undefined => {
+  if (!error || typeof error !== 'object') return undefined
+
+  const maybeError = error as {
+    status?: number | string
+    statusCode?: number | string
+    code?: number | string
+    response?: { status?: number | string }
+  }
+
+  const rawStatus =
+    maybeError.status ?? maybeError.statusCode ?? maybeError.code ?? maybeError.response?.status
+
+  if (rawStatus === undefined || rawStatus === null) return undefined
+  const parsedStatus = Number(rawStatus)
+  return Number.isNaN(parsedStatus) ? undefined : parsedStatus
+}
+
+const getApiErrorMessage = (error: unknown): string => {
+  if (!error) return ''
+  if (typeof error === 'string') return error
+  if (typeof error !== 'object') return ''
+
+  const maybeError = error as {
+    message?: string
+    error?: string
+    detail?: string
+    body?: { message?: string; error?: string; detail?: string }
+  }
+
+  return (
+    maybeError.message ??
+    maybeError.error ??
+    maybeError.detail ??
+    maybeError.body?.message ??
+    maybeError.body?.error ??
+    maybeError.body?.detail ??
+    ''
+  )
+}
+
+const fetchFair = async () => {
+  loadingFair.value = true
+  try {
+    const { data, error } = await getFairByProjectHandler({
+      path: { project_id: projectId }
+    })
+
+    if (error) {
+      const errorStatus = getApiErrorStatus(error)
+      const errorMessage = getApiErrorMessage(error).toLowerCase()
+      const isNoFairYetError = errorStatus === 404 || errorMessage.includes('no fair found')
+
+      if (isNoFairYetError) {
+        fair.value = null
+        fairLoaded.value = true
+      } else {
+        showError('Failed to load fair', error)
+      }
+      return
+    }
+
+    fair.value = data ?? null
+    fairLoaded.value = true
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    loadingFair.value = false
+  }
+}
+
+const openCreateFairModal = () => {
+  fairForm.details = ''
+  fairForm.start_date = ''
+  fairForm.end_date = ''
+  fairForm.min_purchases = 1
+  createFairPreviewMode.value = false
+  showCreateFairModal.value = true
+}
+
+const openEditFairModal = () => {
+  if (!fair.value) return
+
+  fairForm.details = fair.value.details
+  fairForm.start_date = toDateTimeLocal(fair.value.start_date)
+  fairForm.end_date = toDateTimeLocal(fair.value.end_date)
+  fairForm.min_purchases = fair.value.min_purchases
+  editFairPreviewMode.value = false
+  showEditFairModal.value = true
+}
+
+const createFair = async () => {
+  if (!fairForm.details || !fairForm.start_date || !fairForm.end_date || !fairForm.min_purchases) {
+    showError('Validation error', 'All fair fields are required')
+    return
+  }
+
+  savingFair.value = true
+  try {
+    const startDate = toIso(fairForm.start_date)
+    const endDate = toIso(fairForm.end_date)
+
+    if (!startDate || !endDate) {
+      showError('Validation error', 'Invalid fair dates')
+      return
+    }
+
+    const { error } = await createFairHandler({
+      body: {
+        project_id: projectId,
+        details: fairForm.details,
+        start_date: startDate,
+        end_date: endDate,
+        min_purchases: fairForm.min_purchases
+      }
+    })
+
+    if (error) {
+      showError('Failed to create fair', error)
+      return
+    }
+
+    toast.add({
+      title: 'Fair Created',
+      description: 'Fair configuration saved successfully',
+      color: 'success'
+    })
+
+    showCreateFairModal.value = false
+    await fetchFair()
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    savingFair.value = false
+  }
+}
+
+const updateFair = async () => {
+  if (!fair.value) return
+
+  savingFair.value = true
+  try {
+    const { error } = await updateFairHandler({
+      path: { fair_id: fair.value.fair_id },
+      body: {
+        details: fairForm.details || null,
+        start_date: toIso(fairForm.start_date),
+        end_date: toIso(fairForm.end_date),
+        min_purchases: fairForm.min_purchases || null
+      }
+    })
+
+    if (error) {
+      showError('Failed to update fair', error)
+      return
+    }
+
+    toast.add({
+      title: 'Fair Updated',
+      description: 'Fair settings updated successfully',
+      color: 'success'
+    })
+
+    showEditFairModal.value = false
+    await fetchFair()
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    savingFair.value = false
+  }
+}
+
+const toggleFairStatus = async () => {
+  if (!fair.value) return
+
+  savingFair.value = true
+  try {
+    const { error } = fair.value.is_active
+      ? await disableFairHandler({ path: { fair_id: fair.value.fair_id } })
+      : await enableFairHandler({ path: { fair_id: fair.value.fair_id } })
+
+    if (error) {
+      showError(fair.value.is_active ? 'Failed to disable fair' : 'Failed to enable fair', error)
+      return
+    }
+
+    toast.add({
+      title: fair.value.is_active ? 'Fair Disabled' : 'Fair Enabled',
+      description: fair.value.is_active
+        ? 'Fair has been disabled successfully'
+        : 'Fair has been enabled successfully',
+      color: 'success'
+    })
+
+    await fetchFair()
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    savingFair.value = false
   }
 }
 
@@ -2025,6 +2532,16 @@ const formatDate = (dateStr: string) => {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
+  })
+}
+
+const formatDateTime = (dateStr: string) => {
+  return new Date(dateStr).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   })
 }
 

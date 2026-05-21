@@ -1,5 +1,5 @@
 # Stage 1: Builder
-FROM node:lts-alpine AS builder
+FROM node:26.2.0 AS builder
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -27,7 +27,7 @@ ENV NUXT_PUBLIC_APP_COMMIT_HASH=${APP_COMMIT_HASH}
 RUN pnpm run build
 
 # Stage 2: Production
-FROM node:lts-alpine AS runner
+FROM node:26.2.0 AS runner
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
