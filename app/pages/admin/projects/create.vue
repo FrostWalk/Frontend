@@ -73,6 +73,14 @@
           >
             <UInput v-model="form.deliverable_selection_deadline" type="datetime-local" size="lg" />
           </UFormField>
+
+          <UFormField
+            label="Upload Deadline"
+            name="upload_deadline"
+            help="Optional: Students cannot upload after this date"
+          >
+            <UInput v-model="form.upload_deadline" type="datetime-local" size="lg" />
+          </UFormField>
         </div>
       </UCard>
 
@@ -130,6 +138,7 @@ const form = reactive({
   max_group_size: 4,
   max_student_uploads: 10,
   deliverable_selection_deadline: '',
+  upload_deadline: '',
   active: true
 })
 
@@ -143,6 +152,7 @@ const onSubmit = async () => {
       max_group_size: number
       max_student_uploads: number
       deliverable_selection_deadline?: string | null
+      upload_deadline?: string | null
       active: boolean
     } = {
       name: form.name,
@@ -157,6 +167,11 @@ const onSubmit = async () => {
       // Convert to ISO 8601 with seconds and Z suffix: "2025-12-15T23:59:59Z"
       const date = new Date(form.deliverable_selection_deadline)
       body.deliverable_selection_deadline = date.toISOString()
+    }
+
+    if (form.upload_deadline && form.upload_deadline.trim() !== '') {
+      const date = new Date(form.upload_deadline)
+      body.upload_deadline = date.toISOString()
     }
 
     const { data, error } = await createProjectHandler({

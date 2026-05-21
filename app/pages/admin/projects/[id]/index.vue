@@ -68,6 +68,12 @@
                   <p class="text-sm text-gray-500">Max Student Uploads</p>
                   <p class="font-medium">{{ project.max_student_uploads }}</p>
                 </div>
+                <div v-if="project.upload_deadline" class="col-span-2">
+                  <p class="text-sm text-gray-500">Upload Deadline</p>
+                  <p class="font-medium">
+                    {{ formatDateTime(project.upload_deadline) }}
+                  </p>
+                </div>
                 <div v-if="project.deliverable_selection_deadline" class="col-span-2">
                   <p class="text-sm text-gray-500">Deliverable Selection Deadline</p>
                   <p class="font-medium">
@@ -926,6 +932,66 @@
           </div>
         </template>
 
+        <!-- Uploads Tab -->
+        <template #uploads>
+          <UCard>
+            <template #header>
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <h3 class="font-semibold">Student Uploads</h3>
+                  <p class="mt-1 text-sm text-gray-600">
+                    Latest upload per student. Each upload replaces previous ZIP.
+                  </p>
+                </div>
+                <UButton
+                  color="neutral"
+                  variant="soft"
+                  size="sm"
+                  icon="material-symbols:refresh"
+                  :loading="loadingUploads"
+                  @click="fetchUploads"
+                >
+                  Refresh
+                </UButton>
+              </div>
+            </template>
+
+            <div v-if="loadingUploads" class="py-8 text-center">
+              <Icon
+                name="material-symbols:hourglass-empty"
+                size="32"
+                class="mx-auto animate-spin text-primary-500"
+              />
+              <p class="mt-3 text-sm text-gray-600">Loading uploads...</p>
+            </div>
+            <div v-else-if="uploads.length === 0" class="py-8 text-center text-gray-600">
+              No uploads submitted yet.
+            </div>
+            <UTable v-else :data="uploads" :columns="uploadsColumns">
+              <template #student-cell="{ row }">
+                <div class="font-medium">
+                  {{ row.original.first_name }} {{ row.original.last_name }}
+                </div>
+              </template>
+              <template #timestamp-cell="{ row }">
+                {{ formatDateTime(row.original.timestamp) }}
+              </template>
+              <template #actions-cell="{ row }">
+                <UButton
+                  size="sm"
+                  color="primary"
+                  variant="soft"
+                  icon="material-symbols:download"
+                  :loading="downloadingStudentId === row.original.student_id"
+                  @click="downloadUpload(row.original.student_id)"
+                >
+                  Download ZIP
+                </UButton>
+              </template>
+            </UTable>
+          </UCard>
+        </template>
+
         <!-- Coordinators Tab -->
         <template #coordinators>
           <UCard>
@@ -1460,6 +1526,10 @@
             <UInput v-model="projectForm.deliverable_selection_deadline" type="datetime-local" />
           </UFormField>
 
+          <UFormField label="Upload Deadline" name="upload_deadline">
+            <UInput v-model="projectForm.upload_deadline" type="datetime-local" />
+          </UFormField>
+
           <UFormField label="Active Status" name="active">
             <div class="flex items-center gap-3">
               <USwitch v-model="projectForm.active" />
@@ -1505,7 +1575,8 @@ import type {
   AdminResponseScheme,
   GroupDeliverableComponentResponse,
   StudentDeliverableComponentResponse,
-  FairResponse
+  FairResponse,
+  ProjectUploadItem
 } from '~/composables/api/types.gen'
 import {
   getOneProjectHandler,
@@ -1528,7 +1599,9 @@ import {
   getFairByProjectHandler,
   updateFairHandler,
   disableFairHandler,
-  enableFairHandler
+  enableFairHandler,
+  listProjectUploadsHandler,
+  downloadStudentUploadHandler
 } from '~/composables/api/sdk.gen'
 
 definePageMeta({
@@ -1549,10 +1622,12 @@ const showAssignModal = ref(false)
 const showCreateCoordinatorModal = ref(false)
 const creatingCoordinator = ref(false)
 const loadingFair = ref(false)
+const loadingUploads = ref(false)
 const savingFair = ref(false)
 const showCreateFairModal = ref(false)
 const showEditFairModal = ref(false)
 const fairLoaded = ref(false)
+const uploadsLoaded = ref(false)
 const createFairPreviewMode = ref(false)
 const editFairPreviewMode = ref(false)
 
@@ -1586,6 +1661,8 @@ const groups = ref<GroupInfo[]>([])
 const coordinator = ref<CoordinatorDetail | null>(null)
 const coordinators = ref<AdminResponseScheme[]>([])
 const fair = ref<FairResponse | null>(null)
+const uploads = ref<ProjectUploadItem[]>([])
+const downloadingStudentId = ref<number | null>(null)
 
 // Search functionality
 const groupSearchTerm = ref('')
@@ -1651,6 +1728,7 @@ const projectForm = reactive({
   max_group_size: 0,
   max_student_uploads: 0,
   deliverable_selection_deadline: '',
+  upload_deadline: '',
   active: true
 })
 const fairForm = reactive({
@@ -1661,6 +1739,24 @@ const fairForm = reactive({
 })
 
 const currentTab = ref('overview')
+const uploadsColumns = [
+  {
+    id: 'student',
+    header: 'Student'
+  },
+  {
+    accessorKey: 'upload_count',
+    header: 'Upload Count'
+  },
+  {
+    accessorKey: 'timestamp',
+    header: 'Last Upload'
+  },
+  {
+    id: 'actions',
+    header: 'Actions'
+  }
+]
 
 // Close modals when switching tabs
 watch(currentTab, () => {
@@ -1676,6 +1772,10 @@ watch(currentTab, () => {
 
   if (currentTab.value === 'fair' && !fairLoaded.value) {
     fetchFair()
+  }
+
+  if (currentTab.value === 'uploads' && !uploadsLoaded.value) {
+    fetchUploads()
   }
 })
 // Tabs configuration - coordinators only see overview
@@ -1737,6 +1837,13 @@ const tabs = computed(() => {
       label: 'Fair',
       icon: 'material-symbols:storefront',
       slot: 'fair'
+    },
+    {
+      key: 'uploads',
+      value: 'uploads',
+      label: 'Uploads',
+      icon: 'material-symbols:upload-file',
+      slot: 'uploads'
     },
     {
       key: 'coordinators',
@@ -1867,6 +1974,60 @@ const fetchFair = async () => {
     showError('Error', err)
   } finally {
     loadingFair.value = false
+  }
+}
+
+const fetchUploads = async () => {
+  loadingUploads.value = true
+  try {
+    const { data, error } = await listProjectUploadsHandler({
+      path: { project_id: projectId }
+    })
+
+    if (error) {
+      showError('Failed to load uploads', error)
+      return
+    }
+
+    uploads.value = data?.uploads ?? []
+    uploadsLoaded.value = true
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    loadingUploads.value = false
+  }
+}
+
+const downloadUpload = async (studentId: number) => {
+  downloadingStudentId.value = studentId
+  try {
+    const { data, error } = await downloadStudentUploadHandler({
+      path: { project_id: projectId, student_id: studentId }
+    })
+
+    if (error) {
+      showError('Download Failed', error)
+      return
+    }
+
+    if (!data) {
+      showError('Download Failed', 'No file returned by server')
+      return
+    }
+
+    const blob = data instanceof Blob ? data : new Blob([data])
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `project_${projectId}_student_${studentId}.zip`
+    document.body.append(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  } catch (err) {
+    showError('Download Failed', err)
+  } finally {
+    downloadingStudentId.value = null
   }
 }
 
@@ -2178,6 +2339,12 @@ const openEditProjectModal = () => {
     projectForm.deliverable_selection_deadline = ''
   }
 
+  if (project.value.upload_deadline) {
+    projectForm.upload_deadline = toDateTimeLocal(project.value.upload_deadline)
+  } else {
+    projectForm.upload_deadline = ''
+  }
+
   showEditProjectModal.value = true
 }
 
@@ -2192,11 +2359,13 @@ const updateProject = async () => {
       name?: string
       max_group_size?: number
       max_student_uploads?: number
+      upload_deadline?: string | null
       active?: boolean
     } = {
       name: projectForm.name,
       max_group_size: projectForm.max_group_size,
       max_student_uploads: projectForm.max_student_uploads,
+      upload_deadline: toIso(projectForm.upload_deadline),
       active: projectForm.active
     }
 
@@ -2214,6 +2383,7 @@ const updateProject = async () => {
     project.value.name = projectForm.name
     project.value.max_group_size = projectForm.max_group_size
     project.value.max_student_uploads = projectForm.max_student_uploads
+    project.value.upload_deadline = body.upload_deadline ?? null
     project.value.active = projectForm.active
 
     toast.add({

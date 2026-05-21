@@ -252,6 +252,7 @@ export type CreateProjectScheme = {
     max_group_size: number;
     max_student_uploads: number;
     name: string;
+    upload_deadline?: string | null;
 };
 
 export type CreateStudentComponentResponse = {
@@ -626,6 +627,11 @@ export type LeaderboardResponse = {
     leaderboard: Array<LeaderboardEntry>;
 };
 
+export type ListProjectUploadsResponse = {
+    project_id: number;
+    uploads: Array<ProjectUploadItem>;
+};
+
 export type ListTransactionsResponse = {
     min_purchases_required: number;
     purchases_fulfilled: boolean;
@@ -687,6 +693,7 @@ export type Project = {
     max_student_uploads: number;
     name: string;
     project_id: number;
+    upload_deadline?: string | null;
     year: number;
 };
 
@@ -706,6 +713,14 @@ export type ProjectInfo = {
     name: string;
     project_id: number;
     year: number;
+};
+
+export type ProjectUploadItem = {
+    first_name: string;
+    last_name: string;
+    student_id: number;
+    timestamp: string;
+    upload_count: number;
 };
 
 export type ProjectWithDetails = {
@@ -849,6 +864,14 @@ export type StudentSignupScheme = {
     university_id: number;
 };
 
+export type StudentUploadStatusResponse = {
+    timestamp?: string | null;
+    upload_count: number;
+    upload_deadline?: string | null;
+    upload_id?: number | null;
+    uploads_remaining: number;
+};
+
 export type SubmitComplaintRequest = {
     from_group_id: number;
     text: string;
@@ -958,6 +981,7 @@ export type UpdateProjectScheme = {
     max_group_size?: number | null;
     max_student_uploads?: number | null;
     name?: string | null;
+    upload_deadline?: string | null;
 };
 
 export type UpdateStudentComponentScheme = {
@@ -979,6 +1003,12 @@ export type UpdateStudentDeliverableSelectionRequest = {
 
 export type UpdateStudentDeliverableSelectionResponse = {
     message: string;
+};
+
+export type UploadProjectZipResponse = {
+    upload_count: number;
+    upload_id: number;
+    uploads_remaining: number;
 };
 
 export type ValidateCodeRequest = {
@@ -2552,6 +2582,86 @@ export type GetStudentDeliverableSelectionsResponses = {
 };
 
 export type GetStudentDeliverableSelectionsResponse = GetStudentDeliverableSelectionsResponses[keyof GetStudentDeliverableSelectionsResponses];
+
+export type DownloadStudentUploadHandlerData = {
+    body?: never;
+    path: {
+        /**
+         * Project id
+         */
+        project_id: number;
+        /**
+         * Student id
+         */
+        student_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/projects/{project_id}/students/{student_id}/upload';
+};
+
+export type DownloadStudentUploadHandlerErrors = {
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Project or upload not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type DownloadStudentUploadHandlerError = DownloadStudentUploadHandlerErrors[keyof DownloadStudentUploadHandlerErrors];
+
+export type DownloadStudentUploadHandlerResponses = {
+    /**
+     * ZIP file downloaded
+     */
+    200: Blob | File;
+};
+
+export type DownloadStudentUploadHandlerResponse = DownloadStudentUploadHandlerResponses[keyof DownloadStudentUploadHandlerResponses];
+
+export type ListProjectUploadsHandlerData = {
+    body?: never;
+    path: {
+        /**
+         * Project id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/projects/{project_id}/uploads';
+};
+
+export type ListProjectUploadsHandlerErrors = {
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Project not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type ListProjectUploadsHandlerError = ListProjectUploadsHandlerErrors[keyof ListProjectUploadsHandlerErrors];
+
+export type ListProjectUploadsHandlerResponses = {
+    /**
+     * Project uploads list
+     */
+    200: ListProjectUploadsResponse;
+};
+
+export type ListProjectUploadsHandlerResponse = ListProjectUploadsHandlerResponses[keyof ListProjectUploadsHandlerResponses];
 
 export type GetAllCodesHandlerData = {
     body?: never;
@@ -4590,6 +4700,97 @@ export type GetStudentProjectsResponses = {
 };
 
 export type GetStudentProjectsResponse = GetStudentProjectsResponses[keyof GetStudentProjectsResponses];
+
+export type GetUploadStatusHandlerData = {
+    body?: never;
+    path: {
+        /**
+         * Project id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/v1/students/projects/{project_id}/upload';
+};
+
+export type GetUploadStatusHandlerErrors = {
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Project or deliverable selection not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type GetUploadStatusHandlerError = GetUploadStatusHandlerErrors[keyof GetUploadStatusHandlerErrors];
+
+export type GetUploadStatusHandlerResponses = {
+    /**
+     * Upload status
+     */
+    200: StudentUploadStatusResponse;
+};
+
+export type GetUploadStatusHandlerResponse = GetUploadStatusHandlerResponses[keyof GetUploadStatusHandlerResponses];
+
+export type UploadProjectZipHandlerData = {
+    /**
+     * Multipart form-data with file field named 'file'
+     */
+    body: string;
+    path: {
+        /**
+         * Project id
+         */
+        project_id: number;
+    };
+    query?: never;
+    url: '/v1/students/projects/{project_id}/upload';
+};
+
+export type UploadProjectZipHandlerErrors = {
+    /**
+     * Validation error
+     */
+    400: JsonError;
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Upload deadline reached
+     */
+    403: JsonError;
+    /**
+     * Project or deliverable selection not found
+     */
+    404: JsonError;
+    /**
+     * File too large
+     */
+    413: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type UploadProjectZipHandlerError = UploadProjectZipHandlerErrors[keyof UploadProjectZipHandlerErrors];
+
+export type UploadProjectZipHandlerResponses = {
+    /**
+     * ZIP uploaded successfully
+     */
+    201: UploadProjectZipResponse;
+};
+
+export type UploadProjectZipHandlerResponse = UploadProjectZipHandlerResponses[keyof UploadProjectZipHandlerResponses];
 
 export type ValidateCodeData = {
     body: ValidateCodeRequest;
