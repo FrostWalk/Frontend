@@ -52,6 +52,21 @@ export type AssignCoordinatorResponse = {
     project: ProjectInfo;
 };
 
+export type BulkCompletionRequest = {
+    completed: boolean;
+    /**
+     * Student IDs to mark. If `completed` is true, all listed students are marked done.
+     * If false, all listed students are marked incomplete.
+     */
+    student_ids: Array<number>;
+};
+
+export type BulkCompletionResponse = {
+    group_id: number;
+    project_id: number;
+    results: Array<CompletionResponse>;
+};
+
 export type CheckNameRequest = {
     name: string;
     project_id: number;
@@ -69,6 +84,15 @@ export type ComplaintItem = {
     transaction_id: number;
 };
 
+export type ComplaintSummary = {
+    complaint_id: number;
+    created_at: string;
+    other_group_id: number;
+    other_group_name: string;
+    text: string;
+    transaction_id: number;
+};
+
 export type ComplaintsFiledItem = {
     complaint_id: number;
     created_at: string;
@@ -83,6 +107,13 @@ export type ComplaintsReceivedItem = {
     from_group_id: number;
     text: string;
     transaction_id: number;
+};
+
+export type CompletionResponse = {
+    completed: boolean;
+    completed_at?: string | null;
+    project_id: number;
+    student_id: number;
 };
 
 export type ComponentDetail = {
@@ -340,6 +371,14 @@ export type FairResponse = {
     start_date: string;
 };
 
+export type FairSaleSummary = {
+    buyer_group_id: number;
+    buyer_group_name: string;
+    component_name: string;
+    timestamp: string;
+    transaction_id: number;
+};
+
 /**
  * Request body for requesting a password reset
  */
@@ -594,6 +633,13 @@ export type HealthResponse = {
     version: string;
 };
 
+export type ImplementationDetailSummary = {
+    component_name: string;
+    id: number;
+    markdown_description: string;
+    repository_link: string;
+};
+
 /**
  * Custom error type for generating JSON error responses
  *
@@ -686,12 +732,67 @@ export type MemberInfo = {
     student_id: number;
 };
 
+export type NoteResponse = {
+    project_id: number;
+    student_id: number;
+    text: string;
+    updated_at: string;
+};
+
+export type OralExamGroupDeliverable = {
+    group_deliverable_id: number;
+    implementation_details: Array<ImplementationDetailSummary>;
+    name: string;
+};
+
+export type OralExamGroupDetailsResponse = {
+    complaints_filed: Array<ComplaintSummary>;
+    complaints_received: Array<ComplaintSummary>;
+    fair_sales: Array<FairSaleSummary>;
+    group_deliverable?: null | OralExamGroupDeliverable;
+    group_id: number;
+    members: Array<OralExamMemberDetail>;
+    name: string;
+    project_id: number;
+    project_name: string;
+};
+
+export type OralExamGroupListResponse = {
+    groups: Array<OralExamGroupSummary>;
+    oral_exam_enabled: boolean;
+    project_id: number;
+};
+
+export type OralExamGroupSummary = {
+    completed_count: number;
+    group_id: number;
+    member_count: number;
+    name: string;
+    total_members: number;
+};
+
+export type OralExamMemberDetail = {
+    email: string;
+    first_name: string;
+    is_leader: boolean;
+    last_name: string;
+    oral_exam_completed: boolean;
+    oral_exam_completed_at?: string | null;
+    oral_exam_note?: string | null;
+    oral_exam_note_updated_at?: string | null;
+    student_deliverable?: null | StudentDeliverableSummary;
+    student_id: number;
+    university_id: number;
+    upload_count?: number | null;
+};
+
 export type Project = {
     active: boolean;
     deliverable_selection_deadline?: string | null;
     max_group_size: number;
     max_student_uploads: number;
     name: string;
+    oral_exam_enabled: boolean;
     project_id: number;
     upload_deadline?: string | null;
     year: number;
@@ -782,6 +883,10 @@ export type SecurityCodeWithNames = {
     security_code_id: number;
 };
 
+export type SetCompletionRequest = {
+    completed: boolean;
+};
+
 export type StudentComponentDeliverableResponse = {
     deliverable_name: string;
     id: number;
@@ -793,6 +898,11 @@ export type StudentComponentDeliverableResponse = {
 export type StudentComponentResponse = {
     name: string;
     project_id: number;
+    student_deliverable_component_id: number;
+};
+
+export type StudentComponentSummary = {
+    name: string;
     student_deliverable_component_id: number;
 };
 
@@ -843,6 +953,12 @@ export type StudentDeliverableSelectionsResponse = {
     selections: Array<StudentSelectionInfo>;
 };
 
+export type StudentDeliverableSummary = {
+    components: Array<StudentComponentSummary>;
+    name: string;
+    student_deliverable_id: number;
+};
+
 export type StudentSelectionInfo = {
     student_deliverable_id: number;
     student_deliverable_name: string;
@@ -890,6 +1006,15 @@ export type TestEmailRequest = {
 
 export type TestEmailResponse = {
     message: string;
+};
+
+export type ToggleOralExamRequest = {
+    enabled: boolean;
+};
+
+export type ToggleOralExamResponse = {
+    oral_exam_enabled: boolean;
+    project_id: number;
 };
 
 export type TransactionEntry = {
@@ -1009,6 +1134,10 @@ export type UploadProjectZipResponse = {
     upload_count: number;
     upload_id: number;
     uploads_remaining: number;
+};
+
+export type UpsertNoteRequest = {
+    text: string;
 };
 
 export type ValidateCodeRequest = {
@@ -2247,6 +2376,250 @@ export type RemoveMemberResponses = {
 };
 
 export type RemoveMemberResponse = RemoveMemberResponses[keyof RemoveMemberResponses];
+
+export type ToggleOralExamData = {
+    body: ToggleOralExamRequest;
+    path: {
+        project_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/oral-exam/projects/{project_id}';
+};
+
+export type ToggleOralExamErrors = {
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Project not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type ToggleOralExamError = ToggleOralExamErrors[keyof ToggleOralExamErrors];
+
+export type ToggleOralExamResponses = {
+    /**
+     * Oral exam mode updated
+     */
+    200: ToggleOralExamResponse;
+};
+
+export type ToggleOralExamResponse2 = ToggleOralExamResponses[keyof ToggleOralExamResponses];
+
+export type ListOralExamGroupsData = {
+    body?: never;
+    path: {
+        project_id: number;
+    };
+    query?: {
+        search?: string | null;
+    };
+    url: '/v1/admins/oral-exam/projects/{project_id}/groups';
+};
+
+export type ListOralExamGroupsErrors = {
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Project not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type ListOralExamGroupsError = ListOralExamGroupsErrors[keyof ListOralExamGroupsErrors];
+
+export type ListOralExamGroupsResponses = {
+    /**
+     * Groups listed alphabetically
+     */
+    200: OralExamGroupListResponse;
+};
+
+export type ListOralExamGroupsResponse = ListOralExamGroupsResponses[keyof ListOralExamGroupsResponses];
+
+export type GetOralExamGroupDetailsData = {
+    body?: never;
+    path: {
+        project_id: number;
+        group_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/oral-exam/projects/{project_id}/groups/{group_id}';
+};
+
+export type GetOralExamGroupDetailsErrors = {
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Group or project not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type GetOralExamGroupDetailsError = GetOralExamGroupDetailsErrors[keyof GetOralExamGroupDetailsErrors];
+
+export type GetOralExamGroupDetailsResponses = {
+    /**
+     * Full oral exam group details
+     */
+    200: OralExamGroupDetailsResponse;
+};
+
+export type GetOralExamGroupDetailsResponse = GetOralExamGroupDetailsResponses[keyof GetOralExamGroupDetailsResponses];
+
+export type BulkSetGroupCompletionsData = {
+    body: BulkCompletionRequest;
+    path: {
+        project_id: number;
+        group_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/oral-exam/projects/{project_id}/groups/{group_id}/completions';
+};
+
+export type BulkSetGroupCompletionsErrors = {
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Group not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type BulkSetGroupCompletionsError = BulkSetGroupCompletionsErrors[keyof BulkSetGroupCompletionsErrors];
+
+export type BulkSetGroupCompletionsResponses = {
+    /**
+     * Bulk completion updated
+     */
+    200: BulkCompletionResponse;
+};
+
+export type BulkSetGroupCompletionsResponse = BulkSetGroupCompletionsResponses[keyof BulkSetGroupCompletionsResponses];
+
+export type SetStudentCompletionData = {
+    body: SetCompletionRequest;
+    path: {
+        project_id: number;
+        student_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/oral-exam/projects/{project_id}/students/{student_id}/completion';
+};
+
+export type SetStudentCompletionErrors = {
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type SetStudentCompletionError = SetStudentCompletionErrors[keyof SetStudentCompletionErrors];
+
+export type SetStudentCompletionResponses = {
+    /**
+     * Completion status updated
+     */
+    200: CompletionResponse;
+};
+
+export type SetStudentCompletionResponse = SetStudentCompletionResponses[keyof SetStudentCompletionResponses];
+
+export type DeleteNoteData = {
+    body?: never;
+    path: {
+        project_id: number;
+        student_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/oral-exam/projects/{project_id}/students/{student_id}/note';
+};
+
+export type DeleteNoteErrors = {
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Note not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type DeleteNoteError = DeleteNoteErrors[keyof DeleteNoteErrors];
+
+export type DeleteNoteResponses = {
+    /**
+     * Note deleted
+     */
+    204: void;
+};
+
+export type DeleteNoteResponse = DeleteNoteResponses[keyof DeleteNoteResponses];
+
+export type UpsertNoteData = {
+    body: UpsertNoteRequest;
+    path: {
+        project_id: number;
+        student_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/oral-exam/projects/{project_id}/students/{student_id}/note';
+};
+
+export type UpsertNoteErrors = {
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type UpsertNoteError = UpsertNoteErrors[keyof UpsertNoteErrors];
+
+export type UpsertNoteResponses = {
+    /**
+     * Note saved
+     */
+    200: NoteResponse;
+};
+
+export type UpsertNoteResponse = UpsertNoteResponses[keyof UpsertNoteResponses];
 
 export type GetAllProjectsHandlerData = {
     body?: never;

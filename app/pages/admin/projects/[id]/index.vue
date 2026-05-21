@@ -800,6 +800,96 @@
           </div>
         </template>
 
+        <!-- Oral Exam Tab -->
+        <template #oral-exam>
+          <div class="space-y-6">
+            <UCard>
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                    Oral Exam Mode
+                  </h3>
+                  <p class="mt-1 text-sm text-gray-600">
+                    Enable oral exam workflow for this project.
+                  </p>
+                </div>
+                <div class="flex items-center gap-3">
+                  <UBadge :color="oralExamEnabled ? 'success' : 'neutral'" variant="soft">
+                    {{ oralExamEnabled ? 'Enabled' : 'Disabled' }}
+                  </UBadge>
+                  <USwitch
+                    :model-value="oralExamEnabled"
+                    :loading="togglingOralExam"
+                    @update:model-value="handleToggleOralExam"
+                  />
+                </div>
+              </div>
+            </UCard>
+
+            <UCard v-if="oralExamEnabled">
+              <template #header>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                    Groups (Alphabetical)
+                  </h3>
+                  <div class="w-full sm:w-72">
+                    <UInput
+                      v-model="oralExamSearch"
+                      placeholder="Search groups..."
+                      icon="material-symbols:search"
+                      size="sm"
+                    />
+                  </div>
+                </div>
+              </template>
+
+              <div v-if="loadingOralExamGroups" class="py-12 text-center">
+                <Icon
+                  name="material-symbols:hourglass-empty"
+                  size="32"
+                  class="mx-auto animate-spin text-primary-500"
+                />
+                <p class="mt-3 text-gray-600">Loading oral exam groups...</p>
+              </div>
+
+              <div v-else-if="oralExamGroups.length === 0" class="py-12 text-center">
+                <Icon name="material-symbols:search-off" size="40" class="mx-auto text-gray-400" />
+                <p class="mt-3 text-gray-600">
+                  {{
+                    oralExamSearch.trim()
+                      ? `No groups found for "${oralExamSearch}"`
+                      : 'No groups found'
+                  }}
+                </p>
+              </div>
+
+              <div v-else class="space-y-2">
+                <button
+                  v-for="group in oralExamGroups"
+                  :key="group.group_id"
+                  type="button"
+                  class="flex w-full items-center justify-between rounded-lg border border-gray-200 p-4 text-left transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                  @click="openOralExamGroup(group.group_id)"
+                >
+                  <div>
+                    <p class="font-medium text-gray-900 dark:text-white">{{ group.name }}</p>
+                    <p class="text-sm text-gray-600">{{ group.member_count }} members</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <UBadge
+                      :color="group.completed_count === group.total_members ? 'success' : 'warning'"
+                      variant="soft"
+                    >
+                      {{ group.completed_count }}/{{ group.total_members }} completed
+                    </UBadge>
+                    <Icon name="material-symbols:arrow-forward" size="18" class="text-gray-400" />
+                  </div>
+                </button>
+              </div>
+            </UCard>
+          </div>
+        </template>
+
         <!-- Fair Tab -->
         <template #fair>
           <div class="space-y-6">
@@ -1576,7 +1666,8 @@ import type {
   GroupDeliverableComponentResponse,
   StudentDeliverableComponentResponse,
   FairResponse,
-  ProjectUploadItem
+  ProjectUploadItem,
+  OralExamGroupSummary
 } from '~/composables/api/types.gen'
 import {
   getOneProjectHandler,
@@ -1601,7 +1692,9 @@ import {
   disableFairHandler,
   enableFairHandler,
   listProjectUploadsHandler,
-  downloadStudentUploadHandler
+  downloadStudentUploadHandler,
+  toggleOralExam,
+  listOralExamGroups
 } from '~/composables/api/sdk.gen'
 
 definePageMeta({
@@ -1623,7 +1716,9 @@ const showCreateCoordinatorModal = ref(false)
 const creatingCoordinator = ref(false)
 const loadingFair = ref(false)
 const loadingUploads = ref(false)
+const loadingOralExamGroups = ref(false)
 const savingFair = ref(false)
+const togglingOralExam = ref(false)
 const showCreateFairModal = ref(false)
 const showEditFairModal = ref(false)
 const fairLoaded = ref(false)
@@ -1662,7 +1757,11 @@ const coordinator = ref<CoordinatorDetail | null>(null)
 const coordinators = ref<AdminResponseScheme[]>([])
 const fair = ref<FairResponse | null>(null)
 const uploads = ref<ProjectUploadItem[]>([])
+const oralExamGroups = ref<OralExamGroupSummary[]>([])
+const oralExamEnabled = ref(false)
+const oralExamSearch = ref('')
 const downloadingStudentId = ref<number | null>(null)
+const oralExamSearchDebounceTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 // Search functionality
 const groupSearchTerm = ref('')
@@ -1777,6 +1876,10 @@ watch(currentTab, () => {
   if (currentTab.value === 'uploads' && !uploadsLoaded.value) {
     fetchUploads()
   }
+
+  if (currentTab.value === 'oral-exam' && oralExamEnabled.value) {
+    fetchOralExamGroups()
+  }
 })
 // Tabs configuration - coordinators only see overview
 const overviewTab = {
@@ -1832,6 +1935,13 @@ const tabs = computed(() => {
       slot: 'student-deliverables'
     },
     {
+      key: 'oral-exam',
+      value: 'oral-exam',
+      label: 'Oral Exam',
+      icon: 'material-symbols:school',
+      slot: 'oral-exam'
+    },
+    {
       key: 'fair',
       value: 'fair',
       label: 'Fair',
@@ -1871,6 +1981,7 @@ const fetchProject = async () => {
 
     if (data) {
       project.value = data.project
+      oralExamEnabled.value = data.project.oral_exam_enabled
       groupDeliverables.value = data.group_deliverables
       studentDeliverables.value = data.student_deliverables
       groupComponents.value = data.group_components
@@ -1997,6 +2108,85 @@ const fetchUploads = async () => {
     loadingUploads.value = false
   }
 }
+
+const fetchOralExamGroups = async () => {
+  loadingOralExamGroups.value = true
+  try {
+    const { data, error } = await listOralExamGroups({
+      path: { project_id: projectId },
+      query: {
+        search: oralExamSearch.value.trim() || null
+      }
+    })
+
+    if (error) {
+      showError('Failed to load oral exam groups', error)
+      return
+    }
+
+    oralExamGroups.value = data?.groups ?? []
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    loadingOralExamGroups.value = false
+  }
+}
+
+const handleToggleOralExam = async (enabled: boolean) => {
+  togglingOralExam.value = true
+  try {
+    const { data, error } = await toggleOralExam({
+      path: { project_id: projectId },
+      body: { enabled }
+    })
+
+    if (error) {
+      showError('Failed to update oral exam mode', error)
+      return
+    }
+
+    oralExamEnabled.value = data?.oral_exam_enabled ?? enabled
+
+    if (project.value) {
+      project.value.oral_exam_enabled = oralExamEnabled.value
+    }
+
+    if (oralExamEnabled.value) {
+      await fetchOralExamGroups()
+    } else {
+      oralExamGroups.value = []
+      oralExamSearch.value = ''
+    }
+
+    toast.add({
+      title: oralExamEnabled.value ? 'Oral Exam Enabled' : 'Oral Exam Disabled',
+      description: 'Project oral exam mode updated successfully',
+      color: 'success'
+    })
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    togglingOralExam.value = false
+  }
+}
+
+const openOralExamGroup = (groupId: number) => {
+  navigateTo(`/admin/projects/${projectId}/oral-exam/${groupId}`)
+}
+
+watch(oralExamSearch, () => {
+  if (currentTab.value !== 'oral-exam' || !oralExamEnabled.value) {
+    return
+  }
+
+  if (oralExamSearchDebounceTimer.value) {
+    clearTimeout(oralExamSearchDebounceTimer.value)
+  }
+
+  oralExamSearchDebounceTimer.value = setTimeout(() => {
+    fetchOralExamGroups()
+  }, 400)
+})
 
 const downloadUpload = async (studentId: number) => {
   downloadingStudentId.value = studentId
@@ -2716,8 +2906,11 @@ const formatDateTime = (dateStr: string) => {
 }
 
 onMounted(() => {
+  const requestedTab = route.query.tab
+  if (typeof requestedTab === 'string' && tabs.value.some((tab) => tab.value === requestedTab)) {
+    currentTab.value = requestedTab
+  }
+
   fetchProject()
-  // Ensure Overview tab is selected by default
-  currentTab.value = 'overview'
 })
 </script>
