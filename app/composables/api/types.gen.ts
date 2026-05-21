@@ -61,6 +61,30 @@ export type CheckNameResponse = {
     exists: boolean;
 };
 
+export type ComplaintItem = {
+    complaint_id: number;
+    created_at: string;
+    text: string;
+    to_group_id: number;
+    transaction_id: number;
+};
+
+export type ComplaintsFiledItem = {
+    complaint_id: number;
+    created_at: string;
+    text: string;
+    to_group_id: number;
+    transaction_id: number;
+};
+
+export type ComplaintsReceivedItem = {
+    complaint_id: number;
+    created_at: string;
+    from_group_id: number;
+    text: string;
+    transaction_id: number;
+};
+
 export type ComponentDetail = {
     name: string;
     project_id: number;
@@ -418,6 +442,12 @@ export type Group = {
     group_id: number;
     name: string;
     project_id: number;
+};
+
+export type GroupComplaintsResponse = {
+    complaints_filed: Array<ComplaintsFiledItem>;
+    complaints_received: Array<ComplaintsReceivedItem>;
+    group_id: number;
 };
 
 export type GroupComponentDeliverableResponse = {
@@ -817,6 +847,16 @@ export type StudentSignupScheme = {
     last_name: string;
     password: string;
     university_id: number;
+};
+
+export type SubmitComplaintRequest = {
+    from_group_id: number;
+    text: string;
+    transaction_id: number;
+};
+
+export type SubmitComplaintResponse = {
+    complaint_id: number;
 };
 
 export type TestEmailRequest = {
@@ -2025,6 +2065,44 @@ export type GetGroupDetailsResponses = {
 };
 
 export type GetGroupDetailsResponse = GetGroupDetailsResponses[keyof GetGroupDetailsResponses];
+
+export type GetGroupComplaintsData = {
+    body?: never;
+    path: {
+        /**
+         * Group ID
+         */
+        group_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/groups/{group_id}/complaints';
+};
+
+export type GetGroupComplaintsErrors = {
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Group not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type GetGroupComplaintsError = GetGroupComplaintsErrors[keyof GetGroupComplaintsErrors];
+
+export type GetGroupComplaintsResponses = {
+    /**
+     * Complaints grouped by filed and received
+     */
+    200: GroupComplaintsResponse;
+};
+
+export type GetGroupComplaintsResponse = GetGroupComplaintsResponses[keyof GetGroupComplaintsResponses];
 
 export type TransferLeadershipData = {
     body: TransferLeadershipRequest;
@@ -3699,6 +3777,47 @@ export type StudentSignupHandlerResponses = {
 
 export type StudentSignupHandlerResponse = StudentSignupHandlerResponses[keyof StudentSignupHandlerResponses];
 
+export type SubmitComplaintHandlerData = {
+    body: SubmitComplaintRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/students/complaints';
+};
+
+export type SubmitComplaintHandlerErrors = {
+    /**
+     * Validation error
+     */
+    400: JsonError;
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * User is not group leader
+     */
+    403: JsonError;
+    /**
+     * Transaction or seller group not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type SubmitComplaintHandlerError = SubmitComplaintHandlerErrors[keyof SubmitComplaintHandlerErrors];
+
+export type SubmitComplaintHandlerResponses = {
+    /**
+     * Complaint submitted
+     */
+    201: SubmitComplaintResponse;
+};
+
+export type SubmitComplaintHandlerResponse = SubmitComplaintHandlerResponses[keyof SubmitComplaintHandlerResponses];
+
 export type UpdateStudentDeliverableSelectionData = {
     body: UpdateStudentDeliverableSelectionRequest;
     path?: never;
@@ -4283,6 +4402,44 @@ export type DeleteGroupResponses = {
 };
 
 export type DeleteGroupResponse2 = DeleteGroupResponses[keyof DeleteGroupResponses];
+
+export type ListGroupFiledComplaintsHandlerData = {
+    body?: never;
+    path: {
+        /**
+         * Group ID
+         */
+        group_id: number;
+    };
+    query?: never;
+    url: '/v1/students/groups/{group_id}/complaints';
+};
+
+export type ListGroupFiledComplaintsHandlerErrors = {
+    /**
+     * Authentication required
+     */
+    401: JsonError;
+    /**
+     * Not a member of this group
+     */
+    403: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type ListGroupFiledComplaintsHandlerError = ListGroupFiledComplaintsHandlerErrors[keyof ListGroupFiledComplaintsHandlerErrors];
+
+export type ListGroupFiledComplaintsHandlerResponses = {
+    /**
+     * Complaints filed by group
+     */
+    200: Array<ComplaintItem>;
+};
+
+export type ListGroupFiledComplaintsHandlerResponse = ListGroupFiledComplaintsHandlerResponses[keyof ListGroupFiledComplaintsHandlerResponses];
 
 export type RemoveMember2Data = {
     body: RemoveMemberRequest;
