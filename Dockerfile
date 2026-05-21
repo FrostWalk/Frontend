@@ -1,5 +1,5 @@
 # Stage 1: Builder
-FROM node:lts-alpine AS builder
+FROM node:26.2.0 AS builder
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -27,7 +27,7 @@ ENV NUXT_PUBLIC_APP_COMMIT_HASH=${APP_COMMIT_HASH}
 RUN pnpm run build
 
 # Stage 2: Production
-FROM node:lts-alpine AS runner
+FROM node:26.2.0 AS runner
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -50,7 +50,7 @@ EXPOSE 3000
 
 # Set environment variables
 # Default API URL (can be overridden at runtime)
-ENV NUXT_PUBLIC_API_BASE_URL=https://advancedprogramming.ovh/api
+ENV NUXT_PUBLIC_API_BASE_URL=""
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 

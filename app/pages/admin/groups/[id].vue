@@ -277,13 +277,152 @@
           </template>
         </UCollapsible>
       </div>
+
+      <div class="mb-6">
+        <div
+          class="flex items-center justify-between p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg"
+        >
+          <div class="flex items-center gap-2">
+            <Icon name="material-symbols:report" class="text-primary-500" size="20" />
+            <h3 class="font-semibold">Complaints</h3>
+          </div>
+          <UButton
+            :icon="
+              isComplaintsCollapsed
+                ? 'material-symbols:expand-more'
+                : 'material-symbols:expand-less'
+            "
+            color="neutral"
+            variant="ghost"
+            size="lg"
+            class="!p-4 !min-w-14 !h-14 !text-lg"
+            @click="isComplaintsCollapsed = !isComplaintsCollapsed"
+          />
+        </div>
+
+        <UCollapsible :open="!isComplaintsCollapsed" class="mt-0">
+          <template #content>
+            <div
+              class="border border-gray-200 dark:border-gray-700 border-t-0 rounded-b-lg bg-white dark:bg-gray-900"
+            >
+              <div class="p-4">
+                <div v-if="loadingComplaints" class="text-center py-8">
+                  <Icon
+                    name="material-symbols:hourglass-empty"
+                    size="36"
+                    class="animate-spin mx-auto text-primary-500"
+                  />
+                </div>
+
+                <div v-else-if="!groupComplaints" class="text-sm text-gray-600">
+                  No complaints data available.
+                </div>
+
+                <div v-else class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  <section class="space-y-3">
+                    <div class="flex items-center justify-between">
+                      <h4 class="font-medium text-gray-900 dark:text-white">Filed</h4>
+                      <UBadge color="primary" variant="soft">
+                        {{ groupComplaints.complaints_filed.length }}
+                      </UBadge>
+                    </div>
+                    <div
+                      v-if="groupComplaints.complaints_filed.length === 0"
+                      class="text-sm text-gray-600"
+                    >
+                      No filed complaints.
+                    </div>
+                    <div v-else class="overflow-x-auto">
+                      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead>
+                          <tr>
+                            <th class="px-3 py-2 text-left text-xs text-gray-500 uppercase">
+                              Created At
+                            </th>
+                            <th class="px-3 py-2 text-left text-xs text-gray-500 uppercase">
+                              To Group
+                            </th>
+                            <th class="px-3 py-2 text-left text-xs text-gray-500 uppercase">
+                              Transaction
+                            </th>
+                            <th class="px-3 py-2 text-left text-xs text-gray-500 uppercase">
+                              Text
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                          <tr
+                            v-for="complaint in groupComplaints.complaints_filed"
+                            :key="complaint.complaint_id"
+                          >
+                            <td class="px-3 py-2">{{ formatDateTime(complaint.created_at) }}</td>
+                            <td class="px-3 py-2">{{ complaint.to_group_id }}</td>
+                            <td class="px-3 py-2">{{ complaint.transaction_id }}</td>
+                            <td class="px-3 py-2">{{ complaint.text }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  <section class="space-y-3">
+                    <div class="flex items-center justify-between">
+                      <h4 class="font-medium text-gray-900 dark:text-white">Received</h4>
+                      <UBadge color="warning" variant="soft">
+                        {{ groupComplaints.complaints_received.length }}
+                      </UBadge>
+                    </div>
+                    <div
+                      v-if="groupComplaints.complaints_received.length === 0"
+                      class="text-sm text-gray-600"
+                    >
+                      No received complaints.
+                    </div>
+                    <div v-else class="overflow-x-auto">
+                      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead>
+                          <tr>
+                            <th class="px-3 py-2 text-left text-xs text-gray-500 uppercase">
+                              Created At
+                            </th>
+                            <th class="px-3 py-2 text-left text-xs text-gray-500 uppercase">
+                              From Group
+                            </th>
+                            <th class="px-3 py-2 text-left text-xs text-gray-500 uppercase">
+                              Transaction
+                            </th>
+                            <th class="px-3 py-2 text-left text-xs text-gray-500 uppercase">
+                              Text
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                          <tr
+                            v-for="complaint in groupComplaints.complaints_received"
+                            :key="complaint.complaint_id"
+                          >
+                            <td class="px-3 py-2">{{ formatDateTime(complaint.created_at) }}</td>
+                            <td class="px-3 py-2">{{ complaint.from_group_id }}</td>
+                            <td class="px-3 py-2">{{ complaint.transaction_id }}</td>
+                            <td class="px-3 py-2">{{ complaint.text }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+          </template>
+        </UCollapsible>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { GroupDetailsResponse } from '~/composables/api/types.gen'
-import { getGroupDetails } from '~/composables/api/sdk.gen'
+import type { GroupComplaintsResponse, GroupDetailsResponse } from '~/composables/api/types.gen'
+import { getGroupComplaints, getGroupDetails } from '~/composables/api/sdk.gen'
 
 definePageMeta({
   middleware: 'admin-auth',
@@ -294,12 +433,15 @@ const route = useRoute()
 const { showError } = useErrorToast()
 
 const loading = ref(true)
+const loadingComplaints = ref(false)
 const groupDetails = ref<GroupDetailsResponse | null>(null)
+const groupComplaints = ref<GroupComplaintsResponse | null>(null)
 const expandedDescriptions = ref<Set<number>>(new Set())
 
 // Collapsible state
 const isMembersCollapsed = ref(false)
 const isDeliverableCollapsed = ref(true) // Collapsed by default
+const isComplaintsCollapsed = ref(true)
 
 const groupId = parseInt(route.params.id as string)
 
@@ -320,6 +462,36 @@ const isDescriptionExpanded = (componentId: number) => {
   return expandedDescriptions.value.has(componentId)
 }
 
+const formatDateTime = (value: string) => {
+  return new Date(value).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const fetchGroupComplaints = async () => {
+  loadingComplaints.value = true
+  try {
+    const { data, error } = await getGroupComplaints({
+      path: { group_id: groupId }
+    })
+
+    if (error) {
+      showError('Failed to load complaints', error)
+      return
+    }
+
+    groupComplaints.value = data ?? null
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    loadingComplaints.value = false
+  }
+}
+
 const fetchGroupDetails = async () => {
   loading.value = true
   try {
@@ -335,6 +507,8 @@ const fetchGroupDetails = async () => {
     if (data) {
       groupDetails.value = data
     }
+
+    await fetchGroupComplaints()
   } catch (err) {
     showError('Error', err)
   } finally {

@@ -49,6 +49,10 @@
               <strong>Deadline:</strong>
               {{ formatDate(item.project.deliverable_selection_deadline) }}
             </p>
+            <p v-if="item.project.upload_deadline" class="text-gray-600">
+              <strong>Upload Deadline:</strong>
+              {{ formatDate(item.project.upload_deadline) }}
+            </p>
           </div>
 
           <div class="border-t pt-3">
@@ -62,7 +66,7 @@
         </div>
 
         <template #footer>
-          <div class="flex gap-2">
+          <div class="flex flex-col gap-2">
             <UButton
               :to="`/projects/${item.project.project_id}/select-deliverable`"
               color="primary"
@@ -71,6 +75,26 @@
             >
               <Icon name="material-symbols:assignment" class="mr-2" />
               My Deliverable
+            </UButton>
+            <UButton
+              v-if="item.project.active && item.project.max_student_uploads > 0"
+              :to="`/projects/${item.project.project_id}/upload`"
+              color="primary"
+              variant="outline"
+              block
+            >
+              <Icon name="material-symbols:upload-file" class="mr-2" />
+              Upload Work
+            </UButton>
+            <UButton
+              v-if="item.fair_id"
+              :to="`/fairs/${item.fair_id}/trade`"
+              color="primary"
+              variant="ghost"
+              block
+            >
+              <Icon name="material-symbols:storefront" class="mr-2" />
+              Fair
             </UButton>
           </div>
         </template>

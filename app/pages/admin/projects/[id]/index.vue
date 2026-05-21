@@ -68,6 +68,12 @@
                   <p class="text-sm text-gray-500">Max Student Uploads</p>
                   <p class="font-medium">{{ project.max_student_uploads }}</p>
                 </div>
+                <div v-if="project.upload_deadline" class="col-span-2">
+                  <p class="text-sm text-gray-500">Upload Deadline</p>
+                  <p class="font-medium">
+                    {{ formatDateTime(project.upload_deadline) }}
+                  </p>
+                </div>
                 <div v-if="project.deliverable_selection_deadline" class="col-span-2">
                   <p class="text-sm text-gray-500">Deliverable Selection Deadline</p>
                   <p class="font-medium">
@@ -794,6 +800,400 @@
           </div>
         </template>
 
+        <!-- Students Tab -->
+        <template #students>
+          <div class="space-y-6">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Project Students</h3>
+              <div class="w-72">
+                <UInput
+                  v-model="memberSearchTerm"
+                  placeholder="Search by name, email, or ID..."
+                  icon="material-symbols:search"
+                  size="sm"
+                />
+              </div>
+            </div>
+
+            <div v-if="loadingMembers" class="text-center py-12">
+              <Icon
+                name="material-symbols:hourglass-empty"
+                size="32"
+                class="animate-spin mx-auto text-primary-500"
+              />
+            </div>
+
+            <div v-else-if="filteredProjectMembers.length === 0" class="text-center py-12">
+              <div v-if="memberSearchTerm.trim()">
+                <Icon
+                  name="material-symbols:search-off"
+                  size="48"
+                  class="mx-auto text-gray-400 mb-4"
+                />
+                <p class="text-gray-600">No students found matching "{{ memberSearchTerm }}"</p>
+              </div>
+              <div v-else>
+                <Icon
+                  name="material-symbols:person-off"
+                  size="48"
+                  class="mx-auto text-gray-400 mb-4"
+                />
+                <p class="text-gray-600">No students found in this project</p>
+              </div>
+            </div>
+
+            <div v-else class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead>
+                  <tr>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Name
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Email
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      University ID
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Group
+                    </th>
+                    <th
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                  <tr v-for="member in filteredProjectMembers" :key="member.student_id">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{ member.first_name }} {{ member.last_name }}
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-600">{{ member.email }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-600">{{ member.university_id }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <NuxtLink
+                        :to="`/admin/groups/${member.group_id}`"
+                        class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                      >
+                        {{ member.group_name }}
+                      </NuxtLink>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                      <UButton
+                        color="error"
+                        variant="ghost"
+                        size="sm"
+                        @click="openBlacklistMemberModal(member)"
+                      >
+                        <Icon name="material-symbols:block" size="16" class="mr-1" />
+                        Add to Blacklist
+                      </UButton>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </template>
+
+        <!-- Oral Exam Tab -->
+        <template #oral-exam>
+          <div class="space-y-6">
+            <UCard>
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                    Oral Exam Mode
+                  </h3>
+                  <p class="mt-1 text-sm text-gray-600">
+                    Enable oral exam workflow for this project.
+                  </p>
+                </div>
+                <div class="flex items-center gap-3">
+                  <UBadge :color="oralExamEnabled ? 'success' : 'neutral'" variant="soft">
+                    {{ oralExamEnabled ? 'Enabled' : 'Disabled' }}
+                  </UBadge>
+                  <USwitch
+                    :model-value="oralExamEnabled"
+                    :loading="togglingOralExam"
+                    @update:model-value="handleToggleOralExam"
+                  />
+                </div>
+              </div>
+            </UCard>
+
+            <UCard v-if="oralExamEnabled">
+              <template #header>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                    Groups (Alphabetical)
+                  </h3>
+                  <div class="w-full sm:w-72">
+                    <UInput
+                      v-model="oralExamSearch"
+                      placeholder="Search groups..."
+                      icon="material-symbols:search"
+                      size="sm"
+                    />
+                  </div>
+                </div>
+              </template>
+
+              <div v-if="loadingOralExamGroups" class="py-12 text-center">
+                <Icon
+                  name="material-symbols:hourglass-empty"
+                  size="32"
+                  class="mx-auto animate-spin text-primary-500"
+                />
+                <p class="mt-3 text-gray-600">Loading oral exam groups...</p>
+              </div>
+
+              <div v-else-if="oralExamGroups.length === 0" class="py-12 text-center">
+                <Icon name="material-symbols:search-off" size="40" class="mx-auto text-gray-400" />
+                <p class="mt-3 text-gray-600">
+                  {{
+                    oralExamSearch.trim()
+                      ? `No groups found for "${oralExamSearch}"`
+                      : 'No groups found'
+                  }}
+                </p>
+              </div>
+
+              <div v-else class="space-y-2">
+                <button
+                  v-for="group in oralExamGroups"
+                  :key="group.group_id"
+                  type="button"
+                  class="flex w-full items-center justify-between rounded-lg border border-gray-200 p-4 text-left transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                  @click="openOralExamGroup(group.group_id)"
+                >
+                  <div>
+                    <p class="font-medium text-gray-900 dark:text-white">{{ group.name }}</p>
+                    <p class="text-sm text-gray-600">{{ group.member_count }} members</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <UBadge
+                      :color="group.completed_count === group.total_members ? 'success' : 'warning'"
+                      variant="soft"
+                    >
+                      {{ group.completed_count }}/{{ group.total_members }} completed
+                    </UBadge>
+                    <Icon name="material-symbols:arrow-forward" size="18" class="text-gray-400" />
+                  </div>
+                </button>
+              </div>
+            </UCard>
+          </div>
+        </template>
+
+        <!-- Fair Tab -->
+        <template #fair>
+          <div class="space-y-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Fair Management</h3>
+                <p class="text-sm text-gray-600 mt-1">
+                  Configure the fair window and minimum required purchases
+                </p>
+              </div>
+              <UButton
+                v-if="!fair && !loadingFair"
+                color="primary"
+                icon="material-symbols:add"
+                @click="openCreateFairModal"
+              >
+                Create Fair
+              </UButton>
+            </div>
+
+            <div v-if="loadingFair" class="text-center py-12">
+              <Icon
+                name="material-symbols:hourglass-empty"
+                size="40"
+                class="animate-spin mx-auto text-primary-500"
+              />
+              <p class="mt-3 text-gray-600">Loading fair...</p>
+            </div>
+
+            <UCard v-else-if="!fair">
+              <div class="text-center py-12">
+                <Icon
+                  name="material-symbols:storefront-outline"
+                  size="48"
+                  class="mx-auto text-gray-400"
+                />
+                <h4 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+                  No fair configured
+                </h4>
+                <p class="mt-2 text-sm text-gray-600">
+                  Create a fair to enable group-to-group transactions.
+                </p>
+                <UButton class="mt-4" color="primary" @click="openCreateFairModal">
+                  Create Fair
+                </UButton>
+              </div>
+            </UCard>
+
+            <UCard v-else>
+              <template #header>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <h4 class="text-lg font-semibold">Fair #{{ fair.fair_id }}</h4>
+                    <UBadge :color="fair.is_active ? 'success' : 'neutral'" variant="soft">
+                      {{ fair.is_active ? 'Active' : 'Inactive' }}
+                    </UBadge>
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    <UButton
+                      size="sm"
+                      color="neutral"
+                      variant="soft"
+                      icon="material-symbols:edit"
+                      @click="openEditFairModal"
+                    >
+                      Edit
+                    </UButton>
+                    <UButton
+                      size="sm"
+                      :color="fair.is_active ? 'warning' : 'success'"
+                      :icon="
+                        fair.is_active
+                          ? 'material-symbols:toggle-off-outline'
+                          : 'material-symbols:toggle-on-outline'
+                      "
+                      :loading="savingFair"
+                      @click="toggleFairStatus"
+                    >
+                      {{ fair.is_active ? 'Disable' : 'Enable' }}
+                    </UButton>
+                  </div>
+                </div>
+              </template>
+
+              <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                  <p class="text-sm text-gray-500">Start Date</p>
+                  <p class="font-medium">{{ formatDateTime(fair.start_date) }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500">End Date</p>
+                  <p class="font-medium">{{ formatDateTime(fair.end_date) }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500">Minimum Purchases</p>
+                  <p class="font-medium">{{ fair.min_purchases }}</p>
+                </div>
+                <div class="md:col-span-2">
+                  <p class="text-sm text-gray-500">Details</p>
+                  <MDC
+                    :value="fair.details"
+                    tag="article"
+                    class="prose prose-sm dark:prose-invert max-w-none mt-2"
+                  />
+                </div>
+              </div>
+
+              <div
+                class="mt-6 flex flex-wrap gap-2 border-t border-gray-200 dark:border-gray-700 pt-4"
+              >
+                <UButton
+                  color="primary"
+                  variant="soft"
+                  icon="material-symbols:analytics"
+                  :to="`/admin/fairs/${fair.fair_id}/report`"
+                >
+                  View Report
+                </UButton>
+                <UButton
+                  color="neutral"
+                  variant="soft"
+                  icon="material-symbols:leaderboard"
+                  :to="`/fairs/${fair.fair_id}/leaderboard`"
+                  target="_blank"
+                >
+                  View Leaderboard
+                </UButton>
+              </div>
+            </UCard>
+          </div>
+        </template>
+
+        <!-- Uploads Tab -->
+        <template #uploads>
+          <UCard>
+            <template #header>
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <h3 class="font-semibold">Student Uploads</h3>
+                  <p class="mt-1 text-sm text-gray-600">
+                    Latest upload per student. Each upload replaces previous ZIP.
+                  </p>
+                </div>
+                <UButton
+                  color="neutral"
+                  variant="soft"
+                  size="sm"
+                  icon="material-symbols:refresh"
+                  :loading="loadingUploads"
+                  @click="fetchUploads"
+                >
+                  Refresh
+                </UButton>
+              </div>
+            </template>
+
+            <div v-if="loadingUploads" class="py-8 text-center">
+              <Icon
+                name="material-symbols:hourglass-empty"
+                size="32"
+                class="mx-auto animate-spin text-primary-500"
+              />
+              <p class="mt-3 text-sm text-gray-600">Loading uploads...</p>
+            </div>
+            <div v-else-if="uploads.length === 0" class="py-8 text-center text-gray-600">
+              No uploads submitted yet.
+            </div>
+            <UTable v-else :data="uploads" :columns="uploadsColumns">
+              <template #student-cell="{ row }">
+                <div class="font-medium">
+                  {{ row.original.first_name }} {{ row.original.last_name }}
+                </div>
+              </template>
+              <template #timestamp-cell="{ row }">
+                {{ formatDateTime(row.original.timestamp) }}
+              </template>
+              <template #actions-cell="{ row }">
+                <UButton
+                  size="sm"
+                  color="primary"
+                  variant="soft"
+                  icon="material-symbols:download"
+                  :loading="downloadingStudentId === row.original.student_id"
+                  @click="downloadUpload(row.original.student_id)"
+                >
+                  Download ZIP
+                </UButton>
+              </template>
+            </UTable>
+          </UCard>
+        </template>
+
         <!-- Coordinators Tab -->
         <template #coordinators>
           <UCard>
@@ -835,6 +1235,132 @@
         </template>
       </UTabs>
     </div>
+
+    <!-- Create Fair Modal -->
+    <UModal
+      v-model:open="showCreateFairModal"
+      title="Create Fair"
+      description="Set fair dates and purchase constraints"
+    >
+      <template #body>
+        <UForm :state="fairForm" class="space-y-4" @submit="createFair">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Details</p>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-500">Edit</span>
+              <USwitch v-model="createFairPreviewMode" />
+              <span class="text-xs text-gray-500">Preview</span>
+            </div>
+          </div>
+          <UFormField
+            v-if="!createFairPreviewMode"
+            label="Details"
+            name="details"
+            required
+            class="w-full"
+          >
+            <UTextarea
+              v-model="fairForm.details"
+              :rows="6"
+              autoresize
+              class="w-full"
+              placeholder="Write fair details in Markdown..."
+            />
+          </UFormField>
+          <UCard v-else class="bg-gray-50 dark:bg-gray-800">
+            <template #header>
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Preview</p>
+            </template>
+            <MDC
+              v-if="fairForm.details"
+              :value="fairForm.details"
+              tag="article"
+              class="prose prose-sm dark:prose-invert max-w-none"
+            />
+            <p v-else class="text-sm text-gray-500">No markdown content yet.</p>
+          </UCard>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <UFormField label="Start Date" name="start_date" required>
+              <UInput v-model="fairForm.start_date" type="datetime-local" />
+            </UFormField>
+            <UFormField label="End Date" name="end_date" required>
+              <UInput v-model="fairForm.end_date" type="datetime-local" />
+            </UFormField>
+          </div>
+          <UFormField label="Minimum Purchases" name="min_purchases" required>
+            <UInput v-model.number="fairForm.min_purchases" type="number" min="1" />
+          </UFormField>
+        </UForm>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showCreateFairModal = false">
+            Cancel
+          </UButton>
+          <UButton color="primary" :loading="savingFair" @click="createFair"> Create Fair </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Edit Fair Modal -->
+    <UModal
+      v-model:open="showEditFairModal"
+      title="Edit Fair"
+      description="Update fair dates and constraints"
+    >
+      <template #body>
+        <UForm :state="fairForm" class="space-y-4" @submit="updateFair">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Details</p>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-500">Edit</span>
+              <USwitch v-model="editFairPreviewMode" />
+              <span class="text-xs text-gray-500">Preview</span>
+            </div>
+          </div>
+          <UFormField v-if="!editFairPreviewMode" label="Details" name="details" class="w-full">
+            <UTextarea
+              v-model="fairForm.details"
+              :rows="6"
+              autoresize
+              class="w-full"
+              placeholder="Write fair details in Markdown..."
+            />
+          </UFormField>
+          <UCard v-else class="bg-gray-50 dark:bg-gray-800">
+            <template #header>
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Preview</p>
+            </template>
+            <MDC
+              v-if="fairForm.details"
+              :value="fairForm.details"
+              tag="article"
+              class="prose prose-sm dark:prose-invert max-w-none"
+            />
+            <p v-else class="text-sm text-gray-500">No markdown content yet.</p>
+          </UCard>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <UFormField label="Start Date" name="start_date">
+              <UInput v-model="fairForm.start_date" type="datetime-local" />
+            </UFormField>
+            <UFormField label="End Date" name="end_date">
+              <UInput v-model="fairForm.end_date" type="datetime-local" />
+            </UFormField>
+          </div>
+          <UFormField label="Minimum Purchases" name="min_purchases">
+            <UInput v-model.number="fairForm.min_purchases" type="number" min="1" />
+          </UFormField>
+        </UForm>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showEditFairModal = false">
+            Cancel
+          </UButton>
+          <UButton color="primary" :loading="savingFair" @click="updateFair">Save Changes</UButton>
+        </div>
+      </template>
+    </UModal>
 
     <!-- Assign Coordinator Modal -->
     <UModal
@@ -1202,6 +1728,10 @@
             <UInput v-model="projectForm.deliverable_selection_deadline" type="datetime-local" />
           </UFormField>
 
+          <UFormField label="Upload Deadline" name="upload_deadline">
+            <UInput v-model="projectForm.upload_deadline" type="datetime-local" />
+          </UFormField>
+
           <UFormField label="Active Status" name="active">
             <div class="flex items-center gap-3">
               <USwitch v-model="projectForm.active" />
@@ -1232,6 +1762,49 @@
         </div>
       </template>
     </UModal>
+
+    <UModal
+      v-model:open="showBlacklistMemberModal"
+      title="Add Student to Blacklist"
+      :dismissible="false"
+    >
+      <template #body>
+        <div class="space-y-4">
+          <div v-if="selectedBlacklistMember" class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Student</p>
+            <p class="text-base font-semibold text-gray-900 dark:text-white">
+              {{ selectedBlacklistMember.first_name }} {{ selectedBlacklistMember.last_name }}
+            </p>
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+              ID: {{ selectedBlacklistMember.university_id }}
+            </p>
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+              Group: {{ selectedBlacklistMember.group_name }}
+            </p>
+          </div>
+
+          <UFormField label="Description" name="description">
+            <UTextarea
+              v-model="blacklistDescription"
+              :rows="4"
+              placeholder="Optional reason for blacklisting"
+            />
+          </UFormField>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showBlacklistMemberModal = false">
+            Cancel
+          </UButton>
+          <UButton color="error" :loading="addingToBlacklist" @click="confirmAddToBlacklist">
+            <Icon name="material-symbols:block" class="mr-2" />
+            Add to Blacklist
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -1246,7 +1819,11 @@ import type {
   CoordinatorDetail,
   AdminResponseScheme,
   GroupDeliverableComponentResponse,
-  StudentDeliverableComponentResponse
+  StudentDeliverableComponentResponse,
+  FairResponse,
+  ProjectUploadItem,
+  OralExamGroupSummary,
+  GroupMemberDetail
 } from '~/composables/api/types.gen'
 import {
   getOneProjectHandler,
@@ -1264,7 +1841,18 @@ import {
   updateStudentDeliverableHandler,
   updateGroupDeliverableComponentHandler,
   updateStudentDeliverableComponentHandler,
-  updateGroupComponentHandler
+  updateGroupComponentHandler,
+  createFairHandler,
+  getFairByProjectHandler,
+  updateFairHandler,
+  disableFairHandler,
+  enableFairHandler,
+  listProjectUploadsHandler,
+  downloadStudentUploadHandler,
+  toggleOralExam,
+  listOralExamGroups,
+  getGroupDetails,
+  addToBlacklistHandler
 } from '~/composables/api/sdk.gen'
 
 definePageMeta({
@@ -1284,6 +1872,19 @@ const assigning = ref(false)
 const showAssignModal = ref(false)
 const showCreateCoordinatorModal = ref(false)
 const creatingCoordinator = ref(false)
+const loadingFair = ref(false)
+const loadingUploads = ref(false)
+const loadingOralExamGroups = ref(false)
+const loadingMembers = ref(false)
+const savingFair = ref(false)
+const togglingOralExam = ref(false)
+const showCreateFairModal = ref(false)
+const showEditFairModal = ref(false)
+const fairLoaded = ref(false)
+const uploadsLoaded = ref(false)
+const membersLoaded = ref(false)
+const createFairPreviewMode = ref(false)
+const editFairPreviewMode = ref(false)
 
 // Edit deliverable modals
 const showEditGroupDeliverableModal = ref(false)
@@ -1314,9 +1915,28 @@ const studentComponents = ref<StudentDeliverableComponent[]>([])
 const groups = ref<GroupInfo[]>([])
 const coordinator = ref<CoordinatorDetail | null>(null)
 const coordinators = ref<AdminResponseScheme[]>([])
+const fair = ref<FairResponse | null>(null)
+const uploads = ref<ProjectUploadItem[]>([])
+const oralExamGroups = ref<OralExamGroupSummary[]>([])
+const oralExamEnabled = ref(false)
+const oralExamSearch = ref('')
+const downloadingStudentId = ref<number | null>(null)
+const oralExamSearchDebounceTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 // Search functionality
 const groupSearchTerm = ref('')
+const memberSearchTerm = ref('')
+
+type ProjectMemberRow = GroupMemberDetail & {
+  group_id: number
+  group_name: string
+}
+
+const projectMembers = ref<ProjectMemberRow[]>([])
+const selectedBlacklistMember = ref<ProjectMemberRow | null>(null)
+const showBlacklistMemberModal = ref(false)
+const addingToBlacklist = ref(false)
+const blacklistDescription = ref('')
 
 type CoordinatorItem = AdminResponseScheme & { label: string }
 const selectedCoordinator = ref<CoordinatorItem | undefined>(undefined)
@@ -1337,6 +1957,19 @@ const filteredGroups = computed(() => {
 
   const searchTerm = groupSearchTerm.value.toLowerCase().trim()
   return groups.value.filter((group) => group.name.toLowerCase().includes(searchTerm))
+})
+
+const filteredProjectMembers = computed(() => {
+  if (!memberSearchTerm.value.trim()) {
+    return projectMembers.value
+  }
+
+  const searchTerm = memberSearchTerm.value.toLowerCase().trim()
+  return projectMembers.value.filter((member) =>
+    `${member.first_name} ${member.last_name} ${member.email} ${member.university_id}`
+      .toLowerCase()
+      .includes(searchTerm)
+  )
 })
 
 // Component associations for deliverables
@@ -1379,10 +2012,35 @@ const projectForm = reactive({
   max_group_size: 0,
   max_student_uploads: 0,
   deliverable_selection_deadline: '',
+  upload_deadline: '',
   active: true
+})
+const fairForm = reactive({
+  details: '',
+  start_date: '',
+  end_date: '',
+  min_purchases: 1
 })
 
 const currentTab = ref('overview')
+const uploadsColumns = [
+  {
+    id: 'student',
+    header: 'Student'
+  },
+  {
+    accessorKey: 'upload_count',
+    header: 'Upload Count'
+  },
+  {
+    accessorKey: 'timestamp',
+    header: 'Last Upload'
+  },
+  {
+    id: 'actions',
+    header: 'Actions'
+  }
+]
 
 // Close modals when switching tabs
 watch(currentTab, () => {
@@ -1393,6 +2051,25 @@ watch(currentTab, () => {
   showEditGroupComponentModal.value = false
   showEditProjectModal.value = false
   showDeleteProjectModal.value = false
+  showCreateFairModal.value = false
+  showEditFairModal.value = false
+  showBlacklistMemberModal.value = false
+
+  if (currentTab.value === 'fair' && !fairLoaded.value) {
+    fetchFair()
+  }
+
+  if (currentTab.value === 'uploads' && !uploadsLoaded.value) {
+    fetchUploads()
+  }
+
+  if (currentTab.value === 'oral-exam' && oralExamEnabled.value) {
+    fetchOralExamGroups()
+  }
+
+  if (currentTab.value === 'students' && !membersLoaded.value) {
+    fetchProjectMembers()
+  }
 })
 // Tabs configuration - coordinators only see overview
 const overviewTab = {
@@ -1418,6 +2095,13 @@ const tabs = computed(() => {
       label: 'Groups',
       icon: 'material-symbols:groups',
       slot: 'groups'
+    },
+    {
+      key: 'students',
+      value: 'students',
+      label: 'Students',
+      icon: 'material-symbols:school',
+      slot: 'students'
     },
     {
       key: 'group-components',
@@ -1448,6 +2132,27 @@ const tabs = computed(() => {
       slot: 'student-deliverables'
     },
     {
+      key: 'oral-exam',
+      value: 'oral-exam',
+      label: 'Oral Exam',
+      icon: 'material-symbols:school',
+      slot: 'oral-exam'
+    },
+    {
+      key: 'fair',
+      value: 'fair',
+      label: 'Fair',
+      icon: 'material-symbols:storefront',
+      slot: 'fair'
+    },
+    {
+      key: 'uploads',
+      value: 'uploads',
+      label: 'Uploads',
+      icon: 'material-symbols:upload-file',
+      slot: 'uploads'
+    },
+    {
       key: 'coordinators',
       value: 'coordinators',
       label: 'Coordinators',
@@ -1473,6 +2178,7 @@ const fetchProject = async () => {
 
     if (data) {
       project.value = data.project
+      oralExamEnabled.value = data.project.oral_exam_enabled
       groupDeliverables.value = data.group_deliverables
       studentDeliverables.value = data.student_deliverables
       groupComponents.value = data.group_components
@@ -1494,6 +2200,355 @@ const fetchProject = async () => {
   }
 }
 
+const toDateTimeLocal = (isoDate: string) => {
+  const date = new Date(isoDate)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+const toIso = (localDate: string) => {
+  return localDate ? new Date(localDate).toISOString() : null
+}
+
+const getApiErrorStatus = (error: unknown): number | undefined => {
+  if (!error || typeof error !== 'object') return undefined
+
+  const maybeError = error as {
+    status?: number | string
+    statusCode?: number | string
+    code?: number | string
+    response?: { status?: number | string }
+  }
+
+  const rawStatus =
+    maybeError.status ?? maybeError.statusCode ?? maybeError.code ?? maybeError.response?.status
+
+  if (rawStatus === undefined || rawStatus === null) return undefined
+  const parsedStatus = Number(rawStatus)
+  return Number.isNaN(parsedStatus) ? undefined : parsedStatus
+}
+
+const getApiErrorMessage = (error: unknown): string => {
+  if (!error) return ''
+  if (typeof error === 'string') return error
+  if (typeof error !== 'object') return ''
+
+  const maybeError = error as {
+    message?: string
+    error?: string
+    detail?: string
+    body?: { message?: string; error?: string; detail?: string }
+  }
+
+  return (
+    maybeError.message ??
+    maybeError.error ??
+    maybeError.detail ??
+    maybeError.body?.message ??
+    maybeError.body?.error ??
+    maybeError.body?.detail ??
+    ''
+  )
+}
+
+const fetchFair = async () => {
+  loadingFair.value = true
+  try {
+    const { data, error } = await getFairByProjectHandler({
+      path: { project_id: projectId }
+    })
+
+    if (error) {
+      const errorStatus = getApiErrorStatus(error)
+      const errorMessage = getApiErrorMessage(error).toLowerCase()
+      const isNoFairYetError = errorStatus === 404 || errorMessage.includes('no fair found')
+
+      if (isNoFairYetError) {
+        fair.value = null
+        fairLoaded.value = true
+      } else {
+        showError('Failed to load fair', error)
+      }
+      return
+    }
+
+    fair.value = data ?? null
+    fairLoaded.value = true
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    loadingFair.value = false
+  }
+}
+
+const fetchUploads = async () => {
+  loadingUploads.value = true
+  try {
+    const { data, error } = await listProjectUploadsHandler({
+      path: { project_id: projectId }
+    })
+
+    if (error) {
+      showError('Failed to load uploads', error)
+      return
+    }
+
+    uploads.value = data?.uploads ?? []
+    uploadsLoaded.value = true
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    loadingUploads.value = false
+  }
+}
+
+const fetchOralExamGroups = async () => {
+  loadingOralExamGroups.value = true
+  try {
+    const { data, error } = await listOralExamGroups({
+      path: { project_id: projectId },
+      query: {
+        search: oralExamSearch.value.trim() || null
+      }
+    })
+
+    if (error) {
+      showError('Failed to load oral exam groups', error)
+      return
+    }
+
+    oralExamGroups.value = data?.groups ?? []
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    loadingOralExamGroups.value = false
+  }
+}
+
+const handleToggleOralExam = async (enabled: boolean) => {
+  togglingOralExam.value = true
+  try {
+    const { data, error } = await toggleOralExam({
+      path: { project_id: projectId },
+      body: { enabled }
+    })
+
+    if (error) {
+      showError('Failed to update oral exam mode', error)
+      return
+    }
+
+    oralExamEnabled.value = data?.oral_exam_enabled ?? enabled
+
+    if (project.value) {
+      project.value.oral_exam_enabled = oralExamEnabled.value
+    }
+
+    if (oralExamEnabled.value) {
+      await fetchOralExamGroups()
+    } else {
+      oralExamGroups.value = []
+      oralExamSearch.value = ''
+    }
+
+    toast.add({
+      title: oralExamEnabled.value ? 'Oral Exam Enabled' : 'Oral Exam Disabled',
+      description: 'Project oral exam mode updated successfully',
+      color: 'success'
+    })
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    togglingOralExam.value = false
+  }
+}
+
+const openOralExamGroup = (groupId: number) => {
+  navigateTo(`/admin/projects/${projectId}/oral-exam/${groupId}`)
+}
+
+watch(oralExamSearch, () => {
+  if (currentTab.value !== 'oral-exam' || !oralExamEnabled.value) {
+    return
+  }
+
+  if (oralExamSearchDebounceTimer.value) {
+    clearTimeout(oralExamSearchDebounceTimer.value)
+  }
+
+  oralExamSearchDebounceTimer.value = setTimeout(() => {
+    fetchOralExamGroups()
+  }, 400)
+})
+
+const downloadUpload = async (studentId: number) => {
+  downloadingStudentId.value = studentId
+  try {
+    const { data, error } = await downloadStudentUploadHandler({
+      path: { project_id: projectId, student_id: studentId }
+    })
+
+    if (error) {
+      showError('Download Failed', error)
+      return
+    }
+
+    if (!data) {
+      showError('Download Failed', 'No file returned by server')
+      return
+    }
+
+    const blob = data instanceof Blob ? data : new Blob([data])
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `project_${projectId}_student_${studentId}.zip`
+    document.body.append(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  } catch (err) {
+    showError('Download Failed', err)
+  } finally {
+    downloadingStudentId.value = null
+  }
+}
+
+const openCreateFairModal = () => {
+  fairForm.details = ''
+  fairForm.start_date = ''
+  fairForm.end_date = ''
+  fairForm.min_purchases = 1
+  createFairPreviewMode.value = false
+  showCreateFairModal.value = true
+}
+
+const openEditFairModal = () => {
+  if (!fair.value) return
+
+  fairForm.details = fair.value.details
+  fairForm.start_date = toDateTimeLocal(fair.value.start_date)
+  fairForm.end_date = toDateTimeLocal(fair.value.end_date)
+  fairForm.min_purchases = fair.value.min_purchases
+  editFairPreviewMode.value = false
+  showEditFairModal.value = true
+}
+
+const createFair = async () => {
+  if (!fairForm.details || !fairForm.start_date || !fairForm.end_date || !fairForm.min_purchases) {
+    showError('Validation error', 'All fair fields are required')
+    return
+  }
+
+  savingFair.value = true
+  try {
+    const startDate = toIso(fairForm.start_date)
+    const endDate = toIso(fairForm.end_date)
+
+    if (!startDate || !endDate) {
+      showError('Validation error', 'Invalid fair dates')
+      return
+    }
+
+    const { error } = await createFairHandler({
+      body: {
+        project_id: projectId,
+        details: fairForm.details,
+        start_date: startDate,
+        end_date: endDate,
+        min_purchases: fairForm.min_purchases
+      }
+    })
+
+    if (error) {
+      showError('Failed to create fair', error)
+      return
+    }
+
+    toast.add({
+      title: 'Fair Created',
+      description: 'Fair configuration saved successfully',
+      color: 'success'
+    })
+
+    showCreateFairModal.value = false
+    await fetchFair()
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    savingFair.value = false
+  }
+}
+
+const updateFair = async () => {
+  if (!fair.value) return
+
+  savingFair.value = true
+  try {
+    const { error } = await updateFairHandler({
+      path: { fair_id: fair.value.fair_id },
+      body: {
+        details: fairForm.details || null,
+        start_date: toIso(fairForm.start_date),
+        end_date: toIso(fairForm.end_date),
+        min_purchases: fairForm.min_purchases || null
+      }
+    })
+
+    if (error) {
+      showError('Failed to update fair', error)
+      return
+    }
+
+    toast.add({
+      title: 'Fair Updated',
+      description: 'Fair settings updated successfully',
+      color: 'success'
+    })
+
+    showEditFairModal.value = false
+    await fetchFair()
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    savingFair.value = false
+  }
+}
+
+const toggleFairStatus = async () => {
+  if (!fair.value) return
+
+  savingFair.value = true
+  try {
+    const { error } = fair.value.is_active
+      ? await disableFairHandler({ path: { fair_id: fair.value.fair_id } })
+      : await enableFairHandler({ path: { fair_id: fair.value.fair_id } })
+
+    if (error) {
+      showError(fair.value.is_active ? 'Failed to disable fair' : 'Failed to enable fair', error)
+      return
+    }
+
+    toast.add({
+      title: fair.value.is_active ? 'Fair Disabled' : 'Fair Enabled',
+      description: fair.value.is_active
+        ? 'Fair has been disabled successfully'
+        : 'Fair has been enabled successfully',
+      color: 'success'
+    })
+
+    await fetchFair()
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    savingFair.value = false
+  }
+}
+
 const fetchGroups = async () => {
   loadingGroups.value = true
   try {
@@ -1503,9 +2558,87 @@ const fetchGroups = async () => {
 
     if (data) {
       groups.value = data.groups
+      membersLoaded.value = false
+      projectMembers.value = []
     }
   } finally {
     loadingGroups.value = false
+  }
+}
+
+const fetchProjectMembers = async () => {
+  if (membersLoaded.value) {
+    return
+  }
+
+  if (groups.value.length === 0) {
+    await fetchGroups()
+  }
+
+  loadingMembers.value = true
+  try {
+    const memberGroups = await Promise.all(
+      groups.value.map(async (group) => {
+        const { data, error } = await getGroupDetails({
+          path: { group_id: group.group_id }
+        })
+
+        if (error) {
+          showError(`Failed to load members for ${group.name}`, error)
+          return []
+        }
+
+        return (data?.members ?? []).map((member) => ({
+          ...member,
+          group_id: group.group_id,
+          group_name: group.name
+        }))
+      })
+    )
+
+    projectMembers.value = memberGroups.flat()
+    membersLoaded.value = true
+  } finally {
+    loadingMembers.value = false
+  }
+}
+
+const openBlacklistMemberModal = (member: ProjectMemberRow) => {
+  selectedBlacklistMember.value = member
+  blacklistDescription.value = ''
+  showBlacklistMemberModal.value = true
+}
+
+const confirmAddToBlacklist = async () => {
+  if (!selectedBlacklistMember.value) return
+
+  addingToBlacklist.value = true
+  try {
+    const { error } = await addToBlacklistHandler({
+      body: {
+        student_id: selectedBlacklistMember.value.student_id,
+        description: blacklistDescription.value.trim() || null
+      }
+    })
+
+    if (error) {
+      showError('Failed to blacklist student', error)
+      return
+    }
+
+    toast.add({
+      title: 'Student blacklisted',
+      description: `${selectedBlacklistMember.value.first_name} ${selectedBlacklistMember.value.last_name} was added to blacklist`,
+      color: 'success'
+    })
+
+    showBlacklistMemberModal.value = false
+    selectedBlacklistMember.value = null
+    blacklistDescription.value = ''
+  } catch (error) {
+    showError('Failed to blacklist student', error)
+  } finally {
+    addingToBlacklist.value = false
   }
 }
 
@@ -1671,6 +2804,12 @@ const openEditProjectModal = () => {
     projectForm.deliverable_selection_deadline = ''
   }
 
+  if (project.value.upload_deadline) {
+    projectForm.upload_deadline = toDateTimeLocal(project.value.upload_deadline)
+  } else {
+    projectForm.upload_deadline = ''
+  }
+
   showEditProjectModal.value = true
 }
 
@@ -1685,11 +2824,13 @@ const updateProject = async () => {
       name?: string
       max_group_size?: number
       max_student_uploads?: number
+      upload_deadline?: string | null
       active?: boolean
     } = {
       name: projectForm.name,
       max_group_size: projectForm.max_group_size,
       max_student_uploads: projectForm.max_student_uploads,
+      upload_deadline: toIso(projectForm.upload_deadline),
       active: projectForm.active
     }
 
@@ -1707,6 +2848,7 @@ const updateProject = async () => {
     project.value.name = projectForm.name
     project.value.max_group_size = projectForm.max_group_size
     project.value.max_student_uploads = projectForm.max_student_uploads
+    project.value.upload_deadline = body.upload_deadline ?? null
     project.value.active = projectForm.active
 
     toast.add({
@@ -2028,9 +3170,22 @@ const formatDate = (dateStr: string) => {
   })
 }
 
+const formatDateTime = (dateStr: string) => {
+  return new Date(dateStr).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
 onMounted(() => {
+  const requestedTab = route.query.tab
+  if (typeof requestedTab === 'string' && tabs.value.some((tab) => tab.value === requestedTab)) {
+    currentTab.value = requestedTab
+  }
+
   fetchProject()
-  // Ensure Overview tab is selected by default
-  currentTab.value = 'overview'
 })
 </script>

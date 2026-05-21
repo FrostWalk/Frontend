@@ -4,7 +4,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex">
-            <div class="flex-shrink-0 flex items-center">
+            <div class="shrink-0 flex items-center">
               <NuxtLink to="/admin/projects" class="text-xl font-bold text-white">
                 <Icon name="material-symbols:admin-panel-settings" class="mr-2" />
                 Admin Panel
@@ -40,6 +40,16 @@
                 >
                   <Icon name="material-symbols:manage-accounts" class="mr-2" />
                   Admins
+                </NuxtLink>
+                <NuxtLink
+                  v-if="roleId === roles.ROOT || roleId === roles.PROFESSOR"
+                  to="/admin/blacklist"
+                  class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white"
+                  active-class="border-b-2 border-white"
+                  inactive-class="opacity-80 hover:opacity-100"
+                >
+                  <Icon name="material-symbols:block" class="mr-2" />
+                  Blacklist
                 </NuxtLink>
                 <NuxtLink
                   to="/admin/security-codes"

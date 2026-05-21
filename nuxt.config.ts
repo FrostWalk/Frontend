@@ -42,14 +42,24 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'https://advancedprogramming.ovh/api',
+      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || '/api',
       appVersion: process.env.NUXT_PUBLIC_APP_VERSION || '',
       appCommitHash: process.env.NUXT_PUBLIC_APP_COMMIT_HASH || ''
     }
   },
 
   routeRules: {
-    '/admin/**': { ssr: false }
+    '/admin/**': { ssr: false },
+    '/api/**': { proxy: 'http://127.0.0.1:8080/**' }
+  },
+
+  nitro: {
+    devProxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8080',
+        changeOrigin: true
+      }
+    }
   },
 
   vite: {

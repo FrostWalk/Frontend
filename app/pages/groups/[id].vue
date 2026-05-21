@@ -683,12 +683,124 @@
           </UForm>
         </div>
       </UCard>
+
+      <UCard v-if="canShowComplaints" class="mt-6">
+        <template #header>
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 class="font-semibold">Complaints</h3>
+              <p class="text-sm text-gray-500">Filed complaints for this group</p>
+            </div>
+            <UButton
+              v-if="isLeader"
+              color="primary"
+              :disabled="!canFileComplaints"
+              @click="openComplaintModal"
+            >
+              <Icon name="material-symbols:report" class="mr-2" />
+              File Complaint
+            </UButton>
+          </div>
+        </template>
+
+        <div class="space-y-4">
+          <UAlert
+            v-if="fairIsActive"
+            icon="material-symbols:schedule"
+            color="warning"
+            variant="soft"
+            title="Complaints not available yet"
+            description="You can file complaints only after fair ends."
+          />
+
+          <UAlert
+            v-else-if="!isLeader"
+            icon="material-symbols:visibility"
+            color="neutral"
+            variant="soft"
+            title="View only"
+            description="Only group leader can file complaints."
+          />
+
+          <div v-if="loadingComplaints" class="text-center py-8">
+            <Icon
+              name="material-symbols:hourglass-empty"
+              size="36"
+              class="animate-spin mx-auto text-primary-500"
+            />
+          </div>
+
+          <div v-else-if="complaints.length === 0" class="text-sm text-gray-600">
+            No complaints filed for this group.
+          </div>
+
+          <div v-else class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead>
+                <tr>
+                  <th class="px-4 py-2 text-left text-xs text-gray-500 uppercase">Created At</th>
+                  <th class="px-4 py-2 text-left text-xs text-gray-500 uppercase">
+                    Transaction ID
+                  </th>
+                  <th class="px-4 py-2 text-left text-xs text-gray-500 uppercase">To Group</th>
+                  <th class="px-4 py-2 text-left text-xs text-gray-500 uppercase">Text</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tr v-for="complaint in complaints" :key="complaint.complaint_id">
+                  <td class="px-4 py-2">{{ formatDateTime(complaint.created_at) }}</td>
+                  <td class="px-4 py-2">{{ complaint.transaction_id }}</td>
+                  <td class="px-4 py-2">{{ complaint.to_group_id }}</td>
+                  <td class="px-4 py-2">{{ complaint.text }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </UCard>
+
+      <UModal
+        v-model:open="isComplaintModalOpen"
+        title="File Complaint"
+        description="File complaint for purchased deliverable"
+      >
+        <template #body>
+          <div class="space-y-4">
+            <UFormField label="Transaction ID" required>
+              <UInput
+                v-model.number="complaintForm.transaction_id"
+                type="number"
+                min="1"
+                placeholder="Enter transaction ID"
+              />
+            </UFormField>
+            <UFormField label="Complaint text" required>
+              <UTextarea
+                v-model="complaintForm.text"
+                :rows="5"
+                placeholder="Describe issue with purchased deliverable"
+              />
+            </UFormField>
+          </div>
+        </template>
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <UButton color="neutral" variant="ghost" @click="isComplaintModalOpen = false"
+              >Cancel</UButton
+            >
+            <UButton color="primary" :loading="submittingComplaint" @click="submitComplaint">
+              Submit Complaint
+            </UButton>
+          </div>
+        </template>
+      </UModal>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type {
+  ComplaintItem,
   GroupMemberInfo,
   GroupDeliverableSelectionResponse,
   GroupDeliverable,
@@ -700,7 +812,11 @@ import {
   listGroupMembers,
   getGroupDeliverableSelection,
   addMember2 as addMemberApi,
+  getGroups,
   getStudentProjects,
+  leaderboardHandler,
+  listGroupFiledComplaintsHandler,
+  submitComplaintHandler,
   createGroupDeliverableSelection,
   allowedDomainsHandler,
   getComponentImplementationDetails,
@@ -721,11 +837,16 @@ const { showError } = useErrorToast()
 
 const loading = ref(true)
 const addingMember = ref(false)
+const loadingComplaints = ref(false)
+const submittingComplaint = ref(false)
 const groupData = ref<{ group_id: number; group_name: string } | null>(null)
 const members = ref<GroupMemberInfo[]>([])
 const deliverableSelection = ref<GroupDeliverableSelectionResponse | null>(null)
 const allowedDomains = ref<string[]>([])
 const projectData = ref<Project | null>(null)
+const complaints = ref<ComplaintItem[]>([])
+const fairId = ref<number | null>(null)
+const fairIsActive = ref<boolean | null>(null)
 
 // Modal state
 const isModalOpen = ref(false)
@@ -738,6 +859,7 @@ const selectedDeliverableOption = ref<(GroupDeliverable & { label: string }) | u
 
 // Component implementation details state
 const isComponentModalOpen = ref(false)
+const isComplaintModalOpen = ref(false)
 const loadingComponents = ref(false)
 const submittingComponent = ref(false)
 const componentImplementationDetails = ref<ComponentImplementationDetail[]>([])
@@ -748,6 +870,10 @@ const expandedDescriptions = ref<Set<number>>(new Set())
 
 const addMemberForm = reactive({
   email: ''
+})
+const complaintForm = reactive({
+  transaction_id: undefined as number | undefined,
+  text: ''
 })
 
 // deliverableForm removed - component details are managed separately
@@ -816,6 +942,116 @@ const isGroupAtMaxCapacity = computed(() => {
   return members.value.length >= projectData.value.max_group_size
 })
 
+const canShowComplaints = computed(() => fairId.value !== null)
+
+const canFileComplaints = computed(() => {
+  return isLeader.value && fairId.value !== null && fairIsActive.value === false
+})
+
+const formatDateTime = (value: string) => {
+  return new Date(value).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const fetchComplaints = async (groupId: number) => {
+  loadingComplaints.value = true
+  try {
+    const { data, error } = await listGroupFiledComplaintsHandler({
+      path: { group_id: groupId }
+    })
+
+    if (error) {
+      showError('Failed to load complaints', error)
+      return
+    }
+
+    complaints.value = data ?? []
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    loadingComplaints.value = false
+  }
+}
+
+const fetchFairStatus = async () => {
+  if (!fairId.value) {
+    fairIsActive.value = null
+    return
+  }
+
+  try {
+    const { data, error } = await leaderboardHandler({
+      path: { fair_id: fairId.value }
+    })
+
+    if (error) {
+      showError('Failed to load fair status', error)
+      fairIsActive.value = null
+      return
+    }
+
+    fairIsActive.value = data?.is_active ?? null
+  } catch (err) {
+    showError('Error', err)
+    fairIsActive.value = null
+  }
+}
+
+const openComplaintModal = () => {
+  if (!canFileComplaints.value) return
+  complaintForm.transaction_id = undefined
+  complaintForm.text = ''
+  isComplaintModalOpen.value = true
+}
+
+const submitComplaint = async () => {
+  if (!groupData.value) return
+  if (!canFileComplaints.value) return
+  if (!complaintForm.transaction_id || complaintForm.transaction_id <= 0) {
+    showError('Validation Error', { error: 'Transaction ID is required' })
+    return
+  }
+  if (!complaintForm.text.trim()) {
+    showError('Validation Error', { error: 'Complaint text is required' })
+    return
+  }
+
+  submittingComplaint.value = true
+  try {
+    const { data, error } = await submitComplaintHandler({
+      body: {
+        from_group_id: groupData.value.group_id,
+        transaction_id: complaintForm.transaction_id,
+        text: complaintForm.text.trim()
+      }
+    })
+
+    if (error) {
+      showError('Failed to submit complaint', error)
+      return
+    }
+
+    if (data) {
+      toast.add({
+        title: 'Complaint submitted',
+        description: `Complaint #${data.complaint_id} created successfully`,
+        color: 'success'
+      })
+      isComplaintModalOpen.value = false
+      await fetchComplaints(groupData.value.group_id)
+    }
+  } catch (err) {
+    showError('Error', err)
+  } finally {
+    submittingComplaint.value = false
+  }
+}
+
 const fetchGroupData = async () => {
   loading.value = true
   try {
@@ -863,24 +1099,50 @@ const fetchGroupData = async () => {
       // No component details yet, that's okay
     }
 
-    // Load deliverables and components data if we have a deliverable selection
-    if (deliverableSelection.value) {
-      try {
-        const { data, error } = await getStudentProjects()
-        if (error) {
-          console.warn('Failed to load project data:', error)
-        } else if (data && data.projects.length > 0) {
-          const project = data.projects[0]
-          if (project) {
-            deliverables.value = project.group_deliverables
-            components.value = project.group_components
-            projectData.value = project.project
-          }
-        }
-      } catch (err) {
-        console.warn('Failed to load project data:', err)
+    await fetchComplaints(groupId)
+
+    try {
+      const [
+        { data: groupsData, error: groupsError },
+        { data: projectsData, error: projectsError }
+      ] = await Promise.all([getGroups(), getStudentProjects()])
+
+      if (groupsError) {
+        console.warn('Failed to load groups data:', groupsError)
       }
+      if (projectsError) {
+        console.warn('Failed to load projects data:', projectsError)
+      }
+
+      if (groupsData && projectsData) {
+        const currentGroup = groupsData.groups.find((item) => item.group.group_id === groupId)
+
+        if (currentGroup) {
+          const selectedProject =
+            projectsData.projects.find(
+              (item) => item.project.project_id === currentGroup.project.project_id
+            ) ?? null
+
+          if (selectedProject) {
+            fairId.value = selectedProject.fair_id ?? null
+            projectData.value = selectedProject.project
+
+            if (deliverableSelection.value) {
+              deliverables.value = selectedProject.group_deliverables
+              components.value = selectedProject.group_components
+            }
+          } else {
+            fairId.value = null
+          }
+        } else {
+          fairId.value = null
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load project and group context:', err)
     }
+
+    await fetchFairStatus()
   } catch (err) {
     showError('Error', err)
   } finally {
