@@ -8,6 +8,15 @@ export type AddMemberRequest = {
     email: string;
 };
 
+export type AddToBlacklistResponse = {
+    blacklist: BlacklistDto;
+};
+
+export type AddToBlacklistScheme = {
+    description?: string | null;
+    student_id: number;
+};
+
 export type AdminAddMemberRequest = {
     role_id: number;
     student_email: string;
@@ -50,6 +59,24 @@ export type AssignCoordinatorResponse = {
     coordinator_project_id: number;
     message: string;
     project: ProjectInfo;
+};
+
+export type Blacklist = {
+    banned_at: string;
+    blacklist_id: number;
+    description: string;
+    first_name: string;
+    last_name: string;
+    university_id: number;
+};
+
+export type BlacklistDto = {
+    banned_at: string;
+    blacklist_id: number;
+    description: string;
+    first_name: string;
+    last_name: string;
+    university_id: number;
 };
 
 export type BulkCompletionRequest = {
@@ -336,6 +363,10 @@ export type DatabaseStatus = {
     status: string;
 };
 
+export type DeleteBlacklistResponse = {
+    message: string;
+};
+
 export type DeleteCodeResponse = {
     message: string;
 };
@@ -415,6 +446,10 @@ export type GetAllStudentComponentsResponse = {
 
 export type GetAllStudentDeliverablesResponse = {
     deliverables: Array<StudentDeliverableResponse>;
+};
+
+export type GetBlacklistResponse = {
+    blacklist: Blacklist;
 };
 
 export type GetComponentImplementationDetailsResponse = {
@@ -671,6 +706,10 @@ export type LeaderboardResponse = {
     fair_id: number;
     is_active: boolean;
     leaderboard: Array<LeaderboardEntry>;
+};
+
+export type ListBlacklistResponse = {
+    blacklist: Array<Blacklist>;
 };
 
 export type ListProjectUploadsResponse = {
@@ -1042,6 +1081,16 @@ export type UpdateAdminScheme = {
     password?: string | null;
 };
 
+export type UpdateBlacklistResponse = {
+    blacklist: Blacklist;
+};
+
+export type UpdateBlacklistScheme = {
+    description?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
+};
+
 export type UpdateCodeResponse = {
     code: string;
     expiration: string;
@@ -1283,6 +1332,174 @@ export type ResetPasswordHandlerResponses = {
 };
 
 export type ResetPasswordHandlerResponse = ResetPasswordHandlerResponses[keyof ResetPasswordHandlerResponses];
+
+export type ListBlacklistHandlerData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/admins/blacklist';
+};
+
+export type ListBlacklistHandlerErrors = {
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type ListBlacklistHandlerError = ListBlacklistHandlerErrors[keyof ListBlacklistHandlerErrors];
+
+export type ListBlacklistHandlerResponses = {
+    /**
+     * Blacklist entries retrieved successfully
+     */
+    200: ListBlacklistResponse;
+};
+
+export type ListBlacklistHandlerResponse = ListBlacklistHandlerResponses[keyof ListBlacklistHandlerResponses];
+
+export type AddToBlacklistHandlerData = {
+    body: AddToBlacklistScheme;
+    path?: never;
+    query?: never;
+    url: '/v1/admins/blacklist';
+};
+
+export type AddToBlacklistHandlerErrors = {
+    /**
+     * Invalid request body
+     */
+    400: JsonError;
+    /**
+     * Student not found
+     */
+    404: JsonError;
+    /**
+     * Student already blacklisted
+     */
+    409: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type AddToBlacklistHandlerError = AddToBlacklistHandlerErrors[keyof AddToBlacklistHandlerErrors];
+
+export type AddToBlacklistHandlerResponses = {
+    /**
+     * Student added to blacklist
+     */
+    201: AddToBlacklistResponse;
+};
+
+export type AddToBlacklistHandlerResponse = AddToBlacklistHandlerResponses[keyof AddToBlacklistHandlerResponses];
+
+export type DeleteBlacklistHandlerData = {
+    body?: never;
+    path: {
+        /**
+         * Blacklist entry id
+         */
+        blacklist_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/blacklist/{blacklist_id}';
+};
+
+export type DeleteBlacklistHandlerErrors = {
+    /**
+     * Blacklist entry not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type DeleteBlacklistHandlerError = DeleteBlacklistHandlerErrors[keyof DeleteBlacklistHandlerErrors];
+
+export type DeleteBlacklistHandlerResponses = {
+    /**
+     * Blacklist entry deleted successfully
+     */
+    200: DeleteBlacklistResponse;
+};
+
+export type DeleteBlacklistHandlerResponse = DeleteBlacklistHandlerResponses[keyof DeleteBlacklistHandlerResponses];
+
+export type GetBlacklistHandlerData = {
+    body?: never;
+    path: {
+        /**
+         * Blacklist entry id
+         */
+        blacklist_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/blacklist/{blacklist_id}';
+};
+
+export type GetBlacklistHandlerErrors = {
+    /**
+     * Blacklist entry not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type GetBlacklistHandlerError = GetBlacklistHandlerErrors[keyof GetBlacklistHandlerErrors];
+
+export type GetBlacklistHandlerResponses = {
+    /**
+     * Blacklist entry retrieved successfully
+     */
+    200: GetBlacklistResponse;
+};
+
+export type GetBlacklistHandlerResponse = GetBlacklistHandlerResponses[keyof GetBlacklistHandlerResponses];
+
+export type UpdateBlacklistHandlerData = {
+    body: UpdateBlacklistScheme;
+    path: {
+        /**
+         * Blacklist entry id
+         */
+        blacklist_id: number;
+    };
+    query?: never;
+    url: '/v1/admins/blacklist/{blacklist_id}';
+};
+
+export type UpdateBlacklistHandlerErrors = {
+    /**
+     * Invalid request body
+     */
+    400: JsonError;
+    /**
+     * Blacklist entry not found
+     */
+    404: JsonError;
+    /**
+     * Internal server error
+     */
+    500: JsonError;
+};
+
+export type UpdateBlacklistHandlerError = UpdateBlacklistHandlerErrors[keyof UpdateBlacklistHandlerErrors];
+
+export type UpdateBlacklistHandlerResponses = {
+    /**
+     * Blacklist entry updated successfully
+     */
+    200: UpdateBlacklistResponse;
+};
+
+export type UpdateBlacklistHandlerResponse = UpdateBlacklistHandlerResponses[keyof UpdateBlacklistHandlerResponses];
 
 export type CreateFairHandlerData = {
     body: CreateFairRequest;

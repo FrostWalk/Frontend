@@ -800,6 +800,118 @@
           </div>
         </template>
 
+        <!-- Students Tab -->
+        <template #students>
+          <div class="space-y-6">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Project Students</h3>
+              <div class="w-72">
+                <UInput
+                  v-model="memberSearchTerm"
+                  placeholder="Search by name, email, or ID..."
+                  icon="material-symbols:search"
+                  size="sm"
+                />
+              </div>
+            </div>
+
+            <div v-if="loadingMembers" class="text-center py-12">
+              <Icon
+                name="material-symbols:hourglass-empty"
+                size="32"
+                class="animate-spin mx-auto text-primary-500"
+              />
+            </div>
+
+            <div v-else-if="filteredProjectMembers.length === 0" class="text-center py-12">
+              <div v-if="memberSearchTerm.trim()">
+                <Icon
+                  name="material-symbols:search-off"
+                  size="48"
+                  class="mx-auto text-gray-400 mb-4"
+                />
+                <p class="text-gray-600">No students found matching "{{ memberSearchTerm }}"</p>
+              </div>
+              <div v-else>
+                <Icon
+                  name="material-symbols:person-off"
+                  size="48"
+                  class="mx-auto text-gray-400 mb-4"
+                />
+                <p class="text-gray-600">No students found in this project</p>
+              </div>
+            </div>
+
+            <div v-else class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead>
+                  <tr>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Name
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Email
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      University ID
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Group
+                    </th>
+                    <th
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                  <tr v-for="member in filteredProjectMembers" :key="member.student_id">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{ member.first_name }} {{ member.last_name }}
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-600">{{ member.email }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-600">{{ member.university_id }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <NuxtLink
+                        :to="`/admin/groups/${member.group_id}`"
+                        class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                      >
+                        {{ member.group_name }}
+                      </NuxtLink>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                      <UButton
+                        color="error"
+                        variant="ghost"
+                        size="sm"
+                        @click="openBlacklistMemberModal(member)"
+                      >
+                        <Icon name="material-symbols:block" size="16" class="mr-1" />
+                        Add to Blacklist
+                      </UButton>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </template>
+
         <!-- Oral Exam Tab -->
         <template #oral-exam>
           <div class="space-y-6">
@@ -1650,6 +1762,49 @@
         </div>
       </template>
     </UModal>
+
+    <UModal
+      v-model:open="showBlacklistMemberModal"
+      title="Add Student to Blacklist"
+      :dismissible="false"
+    >
+      <template #body>
+        <div class="space-y-4">
+          <div v-if="selectedBlacklistMember" class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Student</p>
+            <p class="text-base font-semibold text-gray-900 dark:text-white">
+              {{ selectedBlacklistMember.first_name }} {{ selectedBlacklistMember.last_name }}
+            </p>
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+              ID: {{ selectedBlacklistMember.university_id }}
+            </p>
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+              Group: {{ selectedBlacklistMember.group_name }}
+            </p>
+          </div>
+
+          <UFormField label="Description" name="description">
+            <UTextarea
+              v-model="blacklistDescription"
+              :rows="4"
+              placeholder="Optional reason for blacklisting"
+            />
+          </UFormField>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showBlacklistMemberModal = false">
+            Cancel
+          </UButton>
+          <UButton color="error" :loading="addingToBlacklist" @click="confirmAddToBlacklist">
+            <Icon name="material-symbols:block" class="mr-2" />
+            Add to Blacklist
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -1667,7 +1822,8 @@ import type {
   StudentDeliverableComponentResponse,
   FairResponse,
   ProjectUploadItem,
-  OralExamGroupSummary
+  OralExamGroupSummary,
+  GroupMemberDetail
 } from '~/composables/api/types.gen'
 import {
   getOneProjectHandler,
@@ -1694,7 +1850,9 @@ import {
   listProjectUploadsHandler,
   downloadStudentUploadHandler,
   toggleOralExam,
-  listOralExamGroups
+  listOralExamGroups,
+  getGroupDetails,
+  addToBlacklistHandler
 } from '~/composables/api/sdk.gen'
 
 definePageMeta({
@@ -1717,12 +1875,14 @@ const creatingCoordinator = ref(false)
 const loadingFair = ref(false)
 const loadingUploads = ref(false)
 const loadingOralExamGroups = ref(false)
+const loadingMembers = ref(false)
 const savingFair = ref(false)
 const togglingOralExam = ref(false)
 const showCreateFairModal = ref(false)
 const showEditFairModal = ref(false)
 const fairLoaded = ref(false)
 const uploadsLoaded = ref(false)
+const membersLoaded = ref(false)
 const createFairPreviewMode = ref(false)
 const editFairPreviewMode = ref(false)
 
@@ -1765,6 +1925,18 @@ const oralExamSearchDebounceTimer = ref<ReturnType<typeof setTimeout> | null>(nu
 
 // Search functionality
 const groupSearchTerm = ref('')
+const memberSearchTerm = ref('')
+
+type ProjectMemberRow = GroupMemberDetail & {
+  group_id: number
+  group_name: string
+}
+
+const projectMembers = ref<ProjectMemberRow[]>([])
+const selectedBlacklistMember = ref<ProjectMemberRow | null>(null)
+const showBlacklistMemberModal = ref(false)
+const addingToBlacklist = ref(false)
+const blacklistDescription = ref('')
 
 type CoordinatorItem = AdminResponseScheme & { label: string }
 const selectedCoordinator = ref<CoordinatorItem | undefined>(undefined)
@@ -1785,6 +1957,19 @@ const filteredGroups = computed(() => {
 
   const searchTerm = groupSearchTerm.value.toLowerCase().trim()
   return groups.value.filter((group) => group.name.toLowerCase().includes(searchTerm))
+})
+
+const filteredProjectMembers = computed(() => {
+  if (!memberSearchTerm.value.trim()) {
+    return projectMembers.value
+  }
+
+  const searchTerm = memberSearchTerm.value.toLowerCase().trim()
+  return projectMembers.value.filter((member) =>
+    `${member.first_name} ${member.last_name} ${member.email} ${member.university_id}`
+      .toLowerCase()
+      .includes(searchTerm)
+  )
 })
 
 // Component associations for deliverables
@@ -1868,6 +2053,7 @@ watch(currentTab, () => {
   showDeleteProjectModal.value = false
   showCreateFairModal.value = false
   showEditFairModal.value = false
+  showBlacklistMemberModal.value = false
 
   if (currentTab.value === 'fair' && !fairLoaded.value) {
     fetchFair()
@@ -1879,6 +2065,10 @@ watch(currentTab, () => {
 
   if (currentTab.value === 'oral-exam' && oralExamEnabled.value) {
     fetchOralExamGroups()
+  }
+
+  if (currentTab.value === 'students' && !membersLoaded.value) {
+    fetchProjectMembers()
   }
 })
 // Tabs configuration - coordinators only see overview
@@ -1905,6 +2095,13 @@ const tabs = computed(() => {
       label: 'Groups',
       icon: 'material-symbols:groups',
       slot: 'groups'
+    },
+    {
+      key: 'students',
+      value: 'students',
+      label: 'Students',
+      icon: 'material-symbols:school',
+      slot: 'students'
     },
     {
       key: 'group-components',
@@ -2361,9 +2558,87 @@ const fetchGroups = async () => {
 
     if (data) {
       groups.value = data.groups
+      membersLoaded.value = false
+      projectMembers.value = []
     }
   } finally {
     loadingGroups.value = false
+  }
+}
+
+const fetchProjectMembers = async () => {
+  if (membersLoaded.value) {
+    return
+  }
+
+  if (groups.value.length === 0) {
+    await fetchGroups()
+  }
+
+  loadingMembers.value = true
+  try {
+    const memberGroups = await Promise.all(
+      groups.value.map(async (group) => {
+        const { data, error } = await getGroupDetails({
+          path: { group_id: group.group_id }
+        })
+
+        if (error) {
+          showError(`Failed to load members for ${group.name}`, error)
+          return []
+        }
+
+        return (data?.members ?? []).map((member) => ({
+          ...member,
+          group_id: group.group_id,
+          group_name: group.name
+        }))
+      })
+    )
+
+    projectMembers.value = memberGroups.flat()
+    membersLoaded.value = true
+  } finally {
+    loadingMembers.value = false
+  }
+}
+
+const openBlacklistMemberModal = (member: ProjectMemberRow) => {
+  selectedBlacklistMember.value = member
+  blacklistDescription.value = ''
+  showBlacklistMemberModal.value = true
+}
+
+const confirmAddToBlacklist = async () => {
+  if (!selectedBlacklistMember.value) return
+
+  addingToBlacklist.value = true
+  try {
+    const { error } = await addToBlacklistHandler({
+      body: {
+        student_id: selectedBlacklistMember.value.student_id,
+        description: blacklistDescription.value.trim() || null
+      }
+    })
+
+    if (error) {
+      showError('Failed to blacklist student', error)
+      return
+    }
+
+    toast.add({
+      title: 'Student blacklisted',
+      description: `${selectedBlacklistMember.value.first_name} ${selectedBlacklistMember.value.last_name} was added to blacklist`,
+      color: 'success'
+    })
+
+    showBlacklistMemberModal.value = false
+    selectedBlacklistMember.value = null
+    blacklistDescription.value = ''
+  } catch (error) {
+    showError('Failed to blacklist student', error)
+  } finally {
+    addingToBlacklist.value = false
   }
 }
 
