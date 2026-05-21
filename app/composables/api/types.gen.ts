@@ -535,7 +535,7 @@ export type HealthResponse = {
  * Custom error type for generating JSON error responses
  *
  * - `error`: Human-readable error message
- * - `log_id`: Unique identifier for the log entry (for frontend tracking)
+ * - `log_id`: Unique identifier included in console logs for frontend tracking
  * - `status`: HTTP status code (not included in JSON response)
  *
  * Used to standardize error responses across the API

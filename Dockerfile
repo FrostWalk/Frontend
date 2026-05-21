@@ -50,7 +50,7 @@ EXPOSE 3000
 
 # Set environment variables
 # Default API URL (can be overridden at runtime)
-ENV NUXT_PUBLIC_API_BASE_URL=https://advancedprogramming.ovh/api
+ENV NUXT_PUBLIC_API_BASE_URL=""
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 

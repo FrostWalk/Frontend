@@ -170,7 +170,14 @@ const loading = ref(true)
 const updating = ref(false)
 const admin = ref<AdminResponseScheme | null>(null)
 
-const form = reactive<UpdateAdminScheme>({
+type AdminFormState = {
+  first_name: string
+  last_name: string
+  email: string
+  password: string
+}
+
+const form = reactive<AdminFormState>({
   first_name: '',
   last_name: '',
   email: '',
@@ -217,9 +224,9 @@ const fetchAdmin = async () => {
 
     if (data) {
       admin.value = data
-      form.first_name = data.first_name
-      form.last_name = data.last_name
-      form.email = data.email
+      form.first_name = data.first_name ?? ''
+      form.last_name = data.last_name ?? ''
+      form.email = data.email ?? ''
       form.password = '' // Don't pre-fill password
     }
   } catch (err) {
