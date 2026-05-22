@@ -1,8 +1,8 @@
 # Stage 1: Builder
-FROM node:26.2.0 AS builder
+FROM node:lts-alpine AS builder
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install Corepack + pnpm (Node >=25 no longer bundles corepack)
+RUN npm install -g corepack@latest && corepack enable && corepack install -g pnpm@latest
 
 # Build arguments for version information
 ARG APP_VERSION
@@ -27,16 +27,16 @@ ENV NUXT_PUBLIC_APP_COMMIT_HASH=${APP_COMMIT_HASH}
 RUN pnpm run build
 
 # Stage 2: Production
-FROM node:26.2.0 AS runner
+FROM node:lts-alpine AS runner
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install Corepack + pnpm (Node >=25 no longer bundles corepack)
+RUN npm install -g corepack@latest && corepack enable && corepack install -g pnpm@latest
 
 WORKDIR /app
 
-# Create a non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nuxt -u 1001
+# Create a non-root user (Debian syntax)
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 --ingroup nodejs nuxt
 
 # Copy necessary files from builder
 COPY --from=builder --chown=nuxt:nodejs /app/.output ./.output
